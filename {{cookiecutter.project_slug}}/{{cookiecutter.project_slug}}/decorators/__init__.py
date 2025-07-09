@@ -1,0 +1,1 @@
+"""SAAGA decorators for MCP tools."""

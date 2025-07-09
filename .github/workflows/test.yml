@@ -1,0 +1,64 @@
+name: Test Cookiecutter Template
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Test template generation (minimal)
+      run: |
+        cookiecutter . --no-input
+
+    - name: Test template generation (with UI)
+      run: |
+        cookiecutter . --no-input include_admin_ui=yes
+
+    - name: Test template generation (with examples)
+      run: |
+        cookiecutter . --no-input include_example_tools=yes include_parallel_example=yes
+
+    - name: Validate generated project structure
+      run: |
+        cd my_mcp_server
+        # Check that all required files exist
+        test -f pyproject.toml
+        test -f README.md
+        test -f .gitignore
+        test -f LICENSE
+        test -d my_mcp_server/
+        test -d my_mcp_server/server/
+        test -d my_mcp_server/tools/
+        test -d my_mcp_server/decorators/
+        test -d tests/
+        test -d docs/
+
+    - name: Test generated project installation
+      run: |
+        cd my_mcp_server
+        python -m pip install -e .
+
+    - name: Run generated project tests
+      run: |
+        cd my_mcp_server
+        python -m pytest tests/ -v

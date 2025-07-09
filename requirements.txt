@@ -1,0 +1,15 @@
+# Cookiecutter template dependencies
+cookiecutter>=2.5.0
+pytest>=7.0.0
+pytest-cookies>=0.7.0
+pre-commit>=3.0.0
+
+# Development dependencies
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0
+isort>=5.0.0
+
+# Testing dependencies
+pyyaml>=6.0.0
+click>=8.0.0

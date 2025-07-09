@@ -1,0 +1,1 @@
+"""{% if cookiecutter.include_admin_ui == "yes" %}Streamlit administrative UI for MCP server.{% else %}Placeholder for optional Streamlit UI.{% endif %}"""
