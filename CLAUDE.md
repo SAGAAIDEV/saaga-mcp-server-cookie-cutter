@@ -75,9 +75,17 @@ Creating an enhanced MCP (Model Context Protocol) server cookie cutter template 
 
 4. **Add proper logging setup** using Python logging module
 
-5. **Create run instructions** in generated README.md
+5. **Create run instructions** in generated README.md with:
+   - Virtual environment setup commands
+   - Dependency installation instructions
+   - MCP client configuration examples
 
 6. **Ensure server can be launched** via MCP client configuration
+
+7. **CRITICAL: Add setup verification** - Include commands to verify:
+   - Virtual environment creation works
+   - Dependencies install correctly
+   - Server can be imported and run
 
 ## Architecture Summary
 
@@ -121,10 +129,43 @@ saaga-mcp-server-cookie-cutter/
 2. **Phase 2**: Implement config.py with platform-aware paths
 3. **Phase 3**: Add example tools (conditional)
 4. **Phase 4**: Set up logging integration
-5. **Phase 5**: Update README with run instructions
+5. **Phase 5**: Update README with run instructions INCLUDING:
+   - `python -m venv .venv` (virtual environment creation)
+   - `source .venv/bin/activate` (activation - platform specific)
+   - `pip install -e .` (editable install for development)
+   - Verification commands to test setup
 6. **Phase 6**: Test MCP client integration
+7. **Phase 7**: MANDATORY - Test complete setup process from scratch
 
 ## Technical Details to Remember
+
+### CRITICAL: Setup Verification Process
+**When testing generated projects, ALWAYS include these steps:**
+
+1. **Create fresh virtual environment**:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # Linux/Mac
+   # OR
+   .venv\Scripts\activate     # Windows
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -e .
+   ```
+
+3. **Verify server can be imported**:
+   ```bash
+   python -c "from [project_slug].server.app import app; print('Server imported successfully')"
+   ```
+
+4. **Test MCP client configuration**:
+   ```bash
+   python -m [project_slug].server.app
+   ```
+
+**NEVER skip these verification steps during development or testing!**
 
 ### Decorator Application Pattern (for future phases)
 ```python
@@ -186,3 +227,29 @@ Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+
+## CRITICAL RULE: VIRTUAL ENVIRONMENT REQUIREMENT
+**MANDATORY FOR ALL PYTHON DEVELOPMENT:**
+
+- **NEVER install Python packages into the global environment**
+- **ALWAYS create and activate a virtual environment first**
+- **ALWAYS verify virtual environment is active before pip install**
+- **ALWAYS use `pip install -e .` for local development packages**
+
+**Required commands for ANY Python project setup:**
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# OR
+.venv\Scripts\activate     # Windows
+pip install -e .
+```
+
+**This applies to:**
+- Feature development
+- Testing generated projects
+- Dependency installation
+- Package development
+- All Python-related workflows
+
+**NEVER skip virtual environment setup - it's mandatory for all Python work!**

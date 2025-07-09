@@ -46,18 +46,43 @@ The server can be run in two modes:
 #### 1. STDIO Mode (for MCP clients like Claude Desktop)
 
 ```bash
+# Run with default settings
 python -m {{cookiecutter.project_slug}}.server.app
+
+# Run with custom log level
+python -m {{cookiecutter.project_slug}}.server.app --log-level DEBUG
+
+# Run the server directly
+python {{cookiecutter.project_slug}}/server/app.py
 ```
 
-#### 2. HTTP Mode (for web-based clients)
+#### 2. SSE Mode (for web-based clients)
 
 ```bash
-python -m {{cookiecutter.project_slug}}.server.app --transport http --port {{cookiecutter.server_port}}
+# Run with SSE transport
+python -m {{cookiecutter.project_slug}}.server.app --transport sse --port {{cookiecutter.server_port}}
+
+# Run with custom host and port
+python -m {{cookiecutter.project_slug}}.server.app --transport sse --host 0.0.0.0 --port 8080
 ```
+
+### Command Line Options
+
+```bash
+python -m {{cookiecutter.project_slug}}.server.app --help
+```
+
+Available options:
+- `--transport`: Choose between "stdio" (default) or "sse"
+- `--host`: Host to bind to for SSE transport (default: 127.0.0.1)
+- `--port`: Port to bind to for SSE transport (default: {{cookiecutter.server_port}})
+- `--log-level`: Logging level - DEBUG, INFO, WARNING, ERROR (default: {{cookiecutter.log_level}})
 
 ### MCP Client Configuration
 
-To use this server with Claude Desktop, add the following to your MCP settings:
+#### Claude Desktop Configuration
+
+Add the following to your Claude Desktop MCP settings (`claude_desktop_config.json`):
 
 ```json
 {
@@ -69,6 +94,44 @@ To use this server with Claude Desktop, add the following to your MCP settings:
   }
 }
 ```
+
+#### Advanced Configuration Options
+
+```json
+{
+  "mcpServers": {
+    "{{cookiecutter.project_slug}}": {
+      "command": "python",
+      "args": [
+        "-m", "{{cookiecutter.project_slug}}.server.app",
+        "--log-level", "DEBUG"
+      ],
+      "env": {
+        "PYTHONPATH": "/path/to/your/project"
+      }
+    }
+  }
+}
+```
+
+#### Using with Virtual Environment
+
+```json
+{
+  "mcpServers": {
+    "{{cookiecutter.project_slug}}": {
+      "command": "/path/to/your/venv/bin/python",
+      "args": ["-m", "{{cookiecutter.project_slug}}.server.app"]
+    }
+  }
+}
+```
+
+#### Configuration File Locations
+
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
 
 {% if cookiecutter.include_admin_ui == "yes" -%}
 ### Admin UI
