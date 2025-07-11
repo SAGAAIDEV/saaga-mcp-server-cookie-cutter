@@ -71,9 +71,15 @@ your-project/
 │   │   ├── logging.py         # SQLite logging
 │   │   └── parallelize.py     # Parallelization support
 │   └── ui/                    # Streamlit admin UI (optional)
-│       ├── app.py
-│       ├── pages/
-│       └── lib/
+│       ├── app.py            # Main UI entry point with navigation
+│       ├── pages/            # Multi-page structure
+│       │   ├── 1_🏠_Home.py # Dashboard with server status
+│       │   ├── 2_⚙️_Configuration.py # Config management
+│       │   └── 3_📊_Logs.py # Log viewer and analysis
+│       └── lib/              # Shared UI components
+│           ├── components.py # Reusable UI elements
+│           ├── styles.py     # CSS and theming
+│           └── utils.py      # Helper functions
 ├── tests/                     # Test suite
 ├── docs/                      # Documentation
 ├── pyproject.toml            # Project configuration
@@ -99,13 +105,59 @@ Configuration files are automatically placed in appropriate locations:
 - Linux: `~/.local/share/your-project/`
 - Windows: `%APPDATA%/your-project/`
 
-### Optional Streamlit UI
+### Optional Streamlit Admin UI
 
-When enabled, provides:
-- Configuration editor
-- Log viewer with filtering
-- Export capabilities
-- System status dashboard
+When `include_admin_ui=yes`, the template generates a comprehensive web-based administrative interface:
+
+#### Features
+- **🏠 Dashboard**: Server status monitoring, project information, and quick actions
+- **⚙️ Configuration**: Server configuration management (Phase 4, Issue 2)
+- **📊 Logs**: Log viewer with filtering and export (Phase 4, Issue 3)
+- **🎨 Modern UI**: Professional interface with custom CSS and responsive design
+- **🔄 Real-time Status**: Live server monitoring via port checking
+- **🛡️ Error Handling**: Graceful degradation and fallback modes
+
+#### Running the Admin UI
+
+After generating your project with `include_admin_ui=yes`:
+
+```bash
+# Install your project
+cd your-project
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -e .
+
+# Start the admin UI
+streamlit run your_project/ui/app.py
+
+# In another terminal, start your MCP server (for status monitoring)
+python -m your_project --transport sse --port 3001
+```
+
+The admin UI will be available at `http://localhost:8501` and can monitor your MCP server running on port 3001.
+
+#### UI Structure
+
+```
+ui/
+├── app.py              # Main Streamlit entry point with navigation
+├── pages/              # Multi-page structure
+│   ├── 1_🏠_Home.py   # Dashboard with server status
+│   ├── 2_⚙️_Configuration.py  # Config management
+│   └── 3_📊_Logs.py   # Log viewer with filtering
+└── lib/               # Shared utilities
+    ├── components.py  # Reusable UI components
+    ├── styles.py      # CSS styling and themes
+    └── utils.py       # Helper functions and server status checks
+```
+
+#### Independent Operation
+
+The admin UI works independently of the MCP server:
+- ✅ **Server Running**: Shows real-time status and monitoring
+- ✅ **Server Stopped**: Functions with fallback data and placeholders
+- ✅ **Standalone Mode**: All UI features work without server dependencies
 
 ## Development
 
