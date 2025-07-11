@@ -35,13 +35,13 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     
     mcp_server = FastMCP(config.name or "{{ cookiecutter.project_name }}")
     
-{% if cookiecutter.include_example_tools == "yes" -%}
+    {% if cookiecutter.include_example_tools == "yes" -%}
     # Register all tools with the server
     register_tools(mcp_server, config)
-{% else -%}
+    {% else -%}
     # No example tools included
     logger.info("No example tools configured. Add your tools and register them here.")
-{% endif -%}
+    {% endif -%}
     
     return mcp_server
 

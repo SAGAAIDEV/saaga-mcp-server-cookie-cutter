@@ -470,3 +470,40 @@ pip install -e .
 - All Python-related workflows
 
 **NEVER skip virtual environment setup - it's mandatory for all Python work!**
+
+## 🚨 CRITICAL ISSUE DISCOVERED - TEMPLATE CORRUPTION
+
+**ASEP-40 STATUS**: PARTIALLY COMPLETE BUT TEMPLATE CORRUPTED
+
+### Working State Achieved (Temporarily)
+- ✅ MCP Inspector connection working
+- ✅ 3 tools working: get_time, calculate_fibonacci, simulate_heavy_computation  
+- ❌ 3 tools failing with type errors: echo_tool, random_number, process_batch_data
+- ✅ Debug logging enabled
+- ✅ Reference implementation patterns applied
+
+### Template Corruption Discovered
+**Commit**: `0d4a30e` - "fix: implement reference implementation patterns with proper logging"
+**Issue**: When generating fresh projects from this commit, syntax errors occur in server/app.py
+**Error**: `'return' outside function` on line 37
+**Root Cause**: Template jinja2 processing corrupted during ASEP-40 implementation
+
+### Required Next Steps
+1. **MUST fix template syntax errors** before continuing
+2. **MUST restore working template generation**  
+3. **MUST preserve the working MCP server patterns** that were achieved
+4. **THEN fix the 3 tools with type conversion issues**
+
+### Key Insights from Session
+1. **Type Conversion Issue**: MCP protocol passes string parameters, tools expect typed parameters
+2. **Working Pattern**: Reference implementation with proper logging setup works
+3. **Template Issue**: Current cookiecutter template has syntax errors preventing generation
+
+### For Next Session
+1. Fix template syntax errors in server/app.py 
+2. Test cookiecutter generation produces working projects
+3. Apply minimal type conversion fixes for failing tools
+4. Complete ASEP-40 implementation
+
+**Current branch**: `fix/ASEP-40-standard-sdk-alignment` (at commit 0d4a30e)
+**Next action**: Fix template corruption, then address type conversion for 3 failing tools
