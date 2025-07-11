@@ -32,12 +32,11 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     if config is None:
         config = get_config()
     
-    # Configure logging
+    # Configure logging (file only to avoid interfering with MCP JSON protocol)
     logging.basicConfig(
         level=getattr(logging, config.log_level.upper()),
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.StreamHandler(sys.stdout),
             logging.FileHandler(config.log_file_path)
         ]
     )
@@ -56,11 +55,11 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
             name=tool_func.__name__,
             description=tool_func.__doc__ or f"Tool: {tool_func.__name__}"
         )
-        def create_tool_wrapper(func=tool_func):
+        def create_tool_wrapper(func=tool_func, bound_func=tool_func):
             def tool_wrapper(*args, **kwargs) -> types.TextContent:
                 """MCP wrapper that applies SAAGA decorators."""
                 # Apply SAAGA decorator chain: exception_handler → tool_logger
-                decorated_func = exception_handler(tool_logger(func, config))
+                decorated_func = exception_handler(tool_logger(bound_func, config))
                 
                 try:
                     result = decorated_func(*args, **kwargs)
@@ -74,7 +73,7 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
                         return types.TextContent(type="text", text=str(result))
                 except Exception as e:
                     return types.TextContent(type="text", text=f"Error: {str(e)}")
-            return tool_wrapper()
+            return tool_wrapper
         
         logger.info(f"Registered tool: {tool_func.__name__}")
     
@@ -85,11 +84,11 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
             name=tool_func.__name__,
             description=tool_func.__doc__ or f"Parallel tool: {tool_func.__name__}"
         )
-        def create_parallel_tool_wrapper(func=tool_func):
+        def create_parallel_tool_wrapper(func=tool_func, bound_func=tool_func):
             def parallel_tool_wrapper(*args, **kwargs) -> types.TextContent:
                 """MCP wrapper that applies SAAGA decorators with parallelization."""
                 # Apply SAAGA decorator chain: exception_handler → tool_logger → parallelize
-                decorated_func = exception_handler(tool_logger(parallelize(func), config))
+                decorated_func = exception_handler(tool_logger(parallelize(bound_func), config))
                 
                 try:
                     result = decorated_func(*args, **kwargs)
@@ -103,7 +102,7 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
                         return types.TextContent(type="text", text=str(result))
                 except Exception as e:
                     return types.TextContent(type="text", text=f"Error: {str(e)}")
-            return parallel_tool_wrapper()
+            return parallel_tool_wrapper
         
         logger.info(f"Registered parallel tool: {tool_func.__name__}")
     {% endif -%}
