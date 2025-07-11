@@ -14,7 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# Python distribution lib directories (not UI lib)
+/lib/
 lib64/
 parts/
 sdist/
