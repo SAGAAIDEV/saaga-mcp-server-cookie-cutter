@@ -123,12 +123,12 @@ After the subprocess completes:
 
 2. **If tests pass, proceed to complete:**
    ```
-   /project:complete-feature [SITE-ALIAS]
+   /project:complete-issue [SITE-ALIAS]
    ```
 
 3. **If issues found:**
    - Fix the identified problems
-   - Run `/project:test-feature` for quick re-test
+   - Run `/project:test-issue` for quick re-test
    - Or run this command again for another deep exploration
 
 💡 **Tip:** Subprocess testing excels at finding edge cases and visual issues you might miss!

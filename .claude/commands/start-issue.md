@@ -1,7 +1,7 @@
 ---
-description: Start work on a new JIRA feature by fetching the issue, creating a branch, and updating status
-usage: /project:start-feature [ISSUE-KEY] [SITE-ALIAS]
-example: /project:start-feature ACT-123 saaga
+description: Start work on a new JIRA issue (feature, bug, or task) by fetching the issue, creating a branch, and updating status
+usage: /project:start-issue [ISSUE-KEY] [SITE-ALIAS]
+example: /project:start-issue ASEP-40 saaga
 ---
 
 I'll help you start working on JIRA issue $ARGUMENTS. Let me parse the issue key and site alias, then fetch the issue details and set up your development environment.
@@ -17,12 +17,18 @@ I'll use the parsed issue key and site alias to fetch the JIRA issue:
 - The JQL query will be: key = [ISSUE-KEY]
 - Using the provided site_alias
 
-## Step 2: Create Feature Branch
-After reviewing the issue, I'll create an appropriate feature branch:
+## Step 2: Create Branch
+After reviewing the issue, I'll create an appropriate branch based on the issue type:
 
-!git checkout -b feature/[ISSUE-KEY]-<brief-description>
+**Branch naming convention:**
+- **Feature/Story**: `feature/[ISSUE-KEY]-<brief-description>`
+- **Bug**: `fix/[ISSUE-KEY]-<brief-description>`  
+- **Task**: `task/[ISSUE-KEY]-<brief-description>`
+- **Other**: `issue/[ISSUE-KEY]-<brief-description>`
 
-(The branch name will use the issue key and a brief description based on the issue summary)
+!git checkout -b [PREFIX]/[ISSUE-KEY]-<brief-description>
+
+(The branch prefix will be automatically determined from the JIRA issue type)
 
 ## Step 3: Update JIRA Status
 Use mcp__Conduit__update_jira_status to update the issue to 'In Progress' status using the provided site_alias
@@ -36,17 +42,20 @@ If needed, I'll research unfamiliar technologies mentioned in the issue:
 
 ## Step 5: Determine Testing Approach
 Based on the issue details and acceptance criteria, I'll identify the testing strategy:
-- **UI Testing**: If the feature involves user interfaces, forms, or visual elements
-- **MCP Testing**: If the feature involves API endpoints, tools, or integrations
-- **Hybrid**: If the feature spans both frontend and backend
+- **UI Testing**: If the issue involves user interfaces, forms, or visual elements
+- **MCP Testing**: If the issue involves API endpoints, tools, or integrations
+- **Integration Testing**: If the issue involves system components or data flow
+- **Regression Testing**: If the issue is a bug fix that needs validation
+- **Hybrid**: If the issue spans multiple areas
 
 ## Step 6: Create Implementation Plan
 Based on the issue's acceptance criteria, I'll create a detailed implementation plan including:
 - Overview of the approach
 - Components to modify/create
 - Implementation order
-- Testing strategy (UI testing with Puppeteer, MCP testing, or both)
+- Testing strategy (UI testing with Puppeteer, MCP testing, integration testing, or regression testing)
 - Any risks or dependencies
+- Special considerations for bug fixes (root cause analysis, validation approach)
 
 ## Step 6: Request Human Review
 I'll present the implementation plan and wait for your approval before proceeding with exit_plan_mode.
@@ -57,17 +66,17 @@ Let's begin by fetching the JIRA issue details...
 
 ## 🚀 Next Steps After Approval
 
-Once you approve the plan and implement the feature:
+Once you approve the plan and implement the solution:
 
 1. **Test your implementation:**
    ```
-   /project:test-feature
+   /project:test-issue
    ```
-   This will intelligently detect and run appropriate tests (UI, API, or MCP)
+   This will intelligently detect and run appropriate tests (UI, API, MCP, or regression)
 
-2. **When tests pass, complete the feature:**
+2. **When tests pass, complete the issue:**
    ```
-   /project:complete-feature $SITE_ALIAS
+   /project:complete-issue $SITE_ALIAS
    ```
    This will commit, create a PR, and update JIRA to "Done"
 
@@ -77,4 +86,4 @@ Once you approve the plan and implement the feature:
    ```
    This will sync your main branch and clean up
 
-💡 **Tip:** Save your site alias - you'll need it for the complete-feature command!
+💡 **Tip:** Save your site alias - you'll need it for the complete-issue command!

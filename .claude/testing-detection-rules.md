@@ -105,7 +105,7 @@ When multiple approaches could apply:
 
 Users can override detection by:
 1. Using specific commands: `/project:test-ui` or `/project:test-mcp`
-2. Adding hints: `/project:test-feature ui-focused` or `/project:test-feature api-only`
+2. Adding hints: `/project:test-issue ui-focused` or `/project:test-issue api-only`
 3. Including testing approach in JIRA issue description
 
 ## Continuous Learning
