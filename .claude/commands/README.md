@@ -6,8 +6,8 @@ This directory contains custom slash commands to streamline development workflow
 
 ### Core Workflow Commands
 
-#### `/project:start-feature [ISSUE-KEY] [SITE-ALIAS]`
-Start work on a new JIRA feature by:
+#### `/project:start-issue [ISSUE-KEY] [SITE-ALIAS]`
+Start work on a new JIRA issue (feature, bug, or task) by:
 - Fetching the JIRA issue details from the specified Atlassian site
 - Creating a feature branch
 - Updating JIRA status to "In Progress"
@@ -15,17 +15,17 @@ Start work on a new JIRA feature by:
 - Creating an implementation plan with appropriate test strategy
 - Requesting human review
 
-Example: `/project:start-feature ACT-149 saaga`
+Example: `/project:start-issue ASEP-40 saaga`
 
-#### `/project:test-feature [OPTIONAL-HINTS]`
-Intelligently test the current feature by:
+#### `/project:test-issue [OPTIONAL-HINTS]`
+Intelligently test the current issue by:
 - Analyzing the context and changes
 - Automatically choosing between UI, API, or MCP testing
 - **Intelligently selecting direct vs subprocess execution** based on complexity
 - Executing the appropriate test workflow
 - No need to specify test type unless you want to override
 
-Example: `/project:test-feature`
+Example: `/project:test-issue`
 
 #### `/project:test-mcp [TOOL-NAME] [PARAMS]`
 Test MCP endpoints using Claude subprocess:
@@ -76,21 +76,32 @@ Test complex UI flows using Claude subprocess:
 
 Example: `/project:test-ui-subprocess "Complete user registration and onboarding"`
 
-#### `/project:complete-feature [SITE-ALIAS]`
-Complete the current feature by:
+#### `/project:complete-issue [SITE-ALIAS]`
+Complete the current issue by:
 - Running quality checks (linting, tests)
 - Committing changes with conventional commits
 - Creating a pull request via GitHub CLI
 - Updating JIRA issue to "Done" on the specified Atlassian site
 - Adding PR link to JIRA
 
-Example: `/project:complete-feature saaga`
+Example: `/project:complete-issue saaga`
+
+#### `/project:merge-issue [SITE-ALIAS]`
+Merge the current issue locally to main without creating a PR:
+- Running quality checks (linting, tests)
+- Committing changes with appropriate conventional commit format
+- Merging to main branch locally
+- Updating JIRA issue to "Done" on the specified Atlassian site
+- Cleaning up the issue branch
+- Ideal for rapid development and continuous local iteration
+
+Example: `/project:merge-issue saaga`
 
 #### `/project:post-merge`
 Execute post-merge actions:
 - Sync local main with remote
 - Re-run tests on merged code
-- Clean up feature branch
+- Clean up issue branch
 - Update development environment
 
 Example: `/project:post-merge`
@@ -147,9 +158,11 @@ Example: `/project:workflows/run-tests quick`
 ```
 .claude/commands/
 ├── README.md                 # This file
-├── start-feature.md         # Start new feature workflow
+├── start-issue.md           # Start new issue workflow
+├── test-issue.md            # Intelligent issue testing
 ├── test-mcp.md             # Test MCP endpoints
-├── complete-feature.md      # Complete feature workflow
+├── complete-issue.md        # Complete issue workflow
+├── merge-issue.md          # Merge issue locally (no PR)
 ├── post-merge.md           # Post-merge actions
 └── workflows/              # Utility commands
     ├── jira-status.md     # Update JIRA status

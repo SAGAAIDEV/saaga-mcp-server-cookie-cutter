@@ -1,16 +1,14 @@
-"""{% if cookiecutter.include_admin_ui == "yes" %}
-Configuration management page for {{cookiecutter.project_name}} Admin UI
+"""
+Configuration management page for UI Test Project Admin UI
 
 This page provides interface for managing server configuration, environment variables,
 and tool settings. Changes require server restart to take effect.
 
 Note: This is a placeholder implementation for Phase 4, Issue 1.
 Full functionality will be implemented in Phase 4, Issue 2.
-{% else %}
-Placeholder for optional Streamlit admin UI configuration page.
-{% endif %}"""
+"""
 
-{% if cookiecutter.include_admin_ui == "yes" %}
+
 import streamlit as st
 from pathlib import Path
 import sys
@@ -89,27 +87,27 @@ def render_configuration_form(config):
         
         with col1:
             st.markdown("**Server Settings**")
-            server_name = st.text_input("Server Name", value=server_config.get("name", "{{ cookiecutter.project_name }}"))
+            server_name = st.text_input("Server Name", value=server_config.get("name", "UI Test Project"))
             server_port = st.number_input("Server Port", 
-                                        value=server_config.get("port", {{ cookiecutter.server_port }}),
+                                        value=server_config.get("port", 3001),
                                         min_value=1, max_value=65535)
             log_level = st.selectbox("Log Level", 
                                    options=["DEBUG", "INFO", "WARNING", "ERROR"],
                                    index=["DEBUG", "INFO", "WARNING", "ERROR"].index(
-                                       server_config.get("log_level", "{{ cookiecutter.log_level }}")
+                                       server_config.get("log_level", "INFO")
                                    ))
         
         with col2:
             st.markdown("**Logging Settings**")
             log_retention = st.number_input("Log Retention (days)", 
-                                          value=logging_config.get("retention_days", {{ cookiecutter.log_retention_days }}),
+                                          value=logging_config.get("retention_days", 30),
                                           min_value=1, max_value=365)
             
             st.markdown("**Feature Settings**")
             enable_example_tools = st.checkbox("Enable Example Tools", 
-                                              value=features_config.get("example_tools", {{ cookiecutter.include_example_tools == "yes" }}))
+                                              value=features_config.get("example_tools", True))
             enable_parallel_examples = st.checkbox("Enable Parallel Examples", 
-                                                  value=features_config.get("parallel_examples", {{ cookiecutter.include_parallel_example == "yes" }}))
+                                                  value=features_config.get("parallel_examples", True))
         
         st.markdown("---")
         
@@ -237,7 +235,7 @@ def handle_export_config(config):
     st.download_button(
         label="📥 Download Configuration (JSON)",
         data=config_json,
-        file_name="{{ cookiecutter.project_slug }}_config.json",
+        file_name="ui_test_project_config.json",
         mime="application/json"
     )
     
@@ -357,10 +355,10 @@ def render_environment_variables():
     
     # Dynamic environment variables based on current config
     env_vars = {
-        "{{cookiecutter.project_slug.upper()}}_LOG_LEVEL": "{{cookiecutter.log_level}}",
-        "{{cookiecutter.project_slug.upper()}}_PORT": "{{cookiecutter.server_port}}",
-        "{{cookiecutter.project_slug.upper()}}_CONFIG_PATH": system_info.get("config_path", "~/.config/{{cookiecutter.project_slug}}"),
-        "{{cookiecutter.project_slug.upper()}}_LOG_PATH": system_info.get("log_path", "~/.local/share/{{cookiecutter.project_slug}}"),
+        "UI_TEST_PROJECT_LOG_LEVEL": "INFO",
+        "UI_TEST_PROJECT_PORT": "3001",
+        "UI_TEST_PROJECT_CONFIG_PATH": system_info.get("config_path", "~/.config/ui_test_project"),
+        "UI_TEST_PROJECT_LOG_PATH": system_info.get("log_path", "~/.local/share/ui_test_project"),
         "PYTHONPATH": system_info.get("current_directory", "Current directory included")
     }
     
@@ -382,7 +380,7 @@ def render_validation_section(config):
     validation_results = []
     
     # Server port validation
-    port = server_config.get("port", {{cookiecutter.server_port}})
+    port = server_config.get("port", 3001)
     if is_port_available(port):
         validation_results.append({
             "check": "Server port availability", 
@@ -462,7 +460,7 @@ def render_validation_section(config):
 def main():
     """Main configuration page content"""
     # Page header
-    st.title("⚙️ {{cookiecutter.project_name}} Configuration")
+    st.title("⚙️ UI Test Project Configuration")
     st.markdown("Manage server settings, features, and environment configuration.")
     st.markdown("---")
     
@@ -494,7 +492,7 @@ def main():
         st.download_button(
             label="📥 Download Configuration (JSON)",
             data=config_json,
-            file_name="{{ cookiecutter.project_slug }}_config.json",
+            file_name="ui_test_project_config.json",
             mime="application/json"
         )
         
@@ -504,7 +502,7 @@ def main():
         st.download_button(
             label="📥 Download Configuration (YAML)",
             data=config_yaml,
-            file_name="{{ cookiecutter.project_slug }}_config.yaml",
+            file_name="ui_test_project_config.yaml",
             mime="application/x-yaml"
         )
     
@@ -534,4 +532,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-{% endif %}

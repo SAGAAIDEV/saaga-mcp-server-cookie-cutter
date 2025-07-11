@@ -21,7 +21,7 @@ Re-running the same tests that validated your feature:
 !pytest
 !ruff check .
 
-## Step 3: Clean Up Feature Branch
+## Step 3: Clean Up Branch
 Getting the previous branch name and deleting it:
 
 !git branch -d $(git rev-parse --abbrev-ref @{-1})
@@ -44,22 +44,22 @@ Running a final check to ensure the development environment is healthy:
 Post-merge actions completed! Your local environment is now:
 - Synchronized with the latest main branch
 - All tests passing
-- Feature branch cleaned up
+- Issue branch cleaned up
 - Dependencies updated
 
-You're ready to start your next feature!
+You're ready to start your next issue!
 
 ---
 
 ## 🚀 Next Steps
 
-Now that your feature is merged and environment is clean:
+Now that your issue is merged and environment is clean:
 
-1. **Start a new feature:**
+1. **Start a new issue:**
    ```
-   /project:start-feature [ISSUE-KEY] [SITE-ALIAS]
+   /project:start-issue [ISSUE-KEY] [SITE-ALIAS]
    ```
-   Begin work on your next JIRA issue
+   Begin work on your next JIRA issue (feature, bug, or task)
 
 2. **List available sites:**
    ```
@@ -72,4 +72,4 @@ Now that your feature is merged and environment is clean:
    - Pick up the next priority issue
    - Coordinate with your team on Slack/Teams
 
-💡 **Tip:** Your development environment is fresh and ready for the next feature!
+💡 **Tip:** Your development environment is fresh and ready for the next issue!

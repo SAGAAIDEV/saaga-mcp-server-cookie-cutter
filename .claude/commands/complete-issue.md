@@ -1,10 +1,10 @@
 ---
-description: Complete a feature by committing changes, creating a PR, and updating JIRA
-usage: /project:complete-feature [SITE-ALIAS]
-example: /project:complete-feature saaga
+description: Complete an issue (feature, bug, or task) by committing changes, creating a PR, and updating JIRA
+usage: /project:complete-issue [SITE-ALIAS]
+example: /project:complete-issue saaga
 ---
 
-I'll help you complete the current feature by committing changes, creating a pull request, and updating the JIRA issue.
+I'll help you complete the current issue by committing changes, creating a pull request, and updating the JIRA issue.
 
 ## Parse Arguments
 - Site alias provided: $ARGUMENTS (e.g., "saaga")
@@ -27,21 +27,27 @@ I'll stage all changes and create a detailed commit message:
 
 !git add -A
 
-The commit message will follow conventional commits format and include:
+The commit message will follow conventional commits format based on issue type:
+- **Feature/Story**: `feat: [Description]`
+- **Bug**: `fix: [Description]`
+- **Task**: `task: [Description]`
+- **Other**: `chore: [Description]`
+
+The commit will include:
 - Brief description
 - Detailed changes
 - Reference to JIRA issue
 - Claude Code attribution
 
-## Step 4: Push Feature Branch
+## Step 4: Push Branch
 !git push -u origin $(git branch --show-current)
 
 ## Step 5: Create Pull Request
-Using GitHub CLI to create the PR:
+Using GitHub CLI to create the PR with appropriate title based on issue type:
 
 ```bash
 gh pr create \
-  --title "feat: [Description based on commits]" \
+  --title "[TYPE]: [Description based on commits]" \
   --body "## Summary
 - Key changes implemented
 
@@ -52,10 +58,17 @@ Closes [ISSUE-KEY from branch name]
 - ✅ Unit tests pass
 - ✅ Integration tests pass
 - ✅ Linting passes
+- ✅ Regression tests pass (for bug fixes)
 
 🤖 Generated with [Claude Code](https://claude.ai/code)" \
   --assignee @me
 ```
+
+**PR title prefix will be:**
+- **Feature/Story**: `feat:`
+- **Bug**: `fix:`
+- **Task**: `task:`
+- **Other**: `chore:`
 
 ## Step 6: Update JIRA to Done
 After the PR is created, I'll:
@@ -82,12 +95,12 @@ Once your PR is created:
    ```
    This will:
    - Sync your main branch
-   - Clean up the feature branch
-   - Prepare for the next feature
+   - Clean up the branch
+   - Prepare for the next issue
 
-3. **Start your next feature:**
+3. **Start your next issue:**
    ```
-   /project:start-feature [NEW-ISSUE-KEY] [SITE-ALIAS]
+   /project:start-issue [NEW-ISSUE-KEY] [SITE-ALIAS]
    ```
 
 💡 **Tip:** Your JIRA issue is now marked as "Done" and linked to the PR!

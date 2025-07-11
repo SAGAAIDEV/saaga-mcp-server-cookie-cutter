@@ -1,13 +1,11 @@
-"""{% if cookiecutter.include_admin_ui == "yes" %}
-Home/Dashboard page for {{cookiecutter.project_name}} Admin UI
+"""
+Home/Dashboard page for UI Test Project Admin UI
 
 This page provides an overview of the MCP server status, project information,
 and quick access to common administrative tasks.
-{% else %}
-Placeholder for optional Streamlit admin UI home page.
-{% endif %}"""
+"""
 
-{% if cookiecutter.include_admin_ui == "yes" %}
+
 import streamlit as st
 from pathlib import Path
 import sys
@@ -79,19 +77,19 @@ def render_project_overview():
     with col1:
         st.markdown("""
         **Project Details:**
-        - **Name:** {{cookiecutter.project_name}}
-        - **Description:** {{cookiecutter.description}}
-        - **Author:** {{cookiecutter.author_name}}
-        - **Email:** {{cookiecutter.author_email}}
+        - **Name:** UI Test Project
+        - **Description:** MCP server with SAAGA decorators
+        - **Author:** Your Name
+        - **Email:** email@example.com
         """)
         
     with col2:
         st.markdown("""
         **Configuration:**
-        - **Python Version:** {{cookiecutter.python_version}}+
-        - **Server Port:** {{cookiecutter.server_port}}
-        - **Log Level:** {{cookiecutter.log_level}}
-        - **Log Retention:** {{cookiecutter.log_retention_days}} days
+        - **Python Version:** 3.11+
+        - **Server Port:** 3001
+        - **Log Level:** INFO
+        - **Log Retention:** 30 days
         """)
 
 def render_feature_status():
@@ -107,20 +105,16 @@ def render_feature_status():
         
     with col2:
         # Example tools
-        {% if cookiecutter.include_example_tools == "yes" %}
+        
         st.success("✅ Example Tools")
-        {% else %}
-        st.info("➖ Example Tools")
-        {% endif %}
+        
         st.caption("Sample MCP tools for demonstration")
         
     with col3:
         # Parallel processing
-        {% if cookiecutter.include_parallel_example == "yes" %}
+        
         st.success("✅ Parallel Processing")
-        {% else %}
-        st.info("➖ Parallel Processing")
-        {% endif %}
+        
         st.caption("Parallel execution examples")
 
 def render_quick_actions_section():
@@ -184,7 +178,7 @@ Data Path: {system_info.get('data_path', 'Not configured')}
 def main():
     """Main page content"""
     # Page header
-    st.title("🏠 {{cookiecutter.project_name}} Admin Dashboard")
+    st.title("🏠 UI Test Project Admin Dashboard")
     st.markdown("Welcome to the administrative interface for your MCP server.")
     st.markdown("---")
     
@@ -209,8 +203,7 @@ def main():
     
     # Footer
     st.markdown("---")
-    st.caption(f"{{cookiecutter.project_name}} Admin UI • Generated with SAAGA MCP Server Cookie Cutter")
+    st.caption(f"UI Test Project Admin UI • Generated with SAAGA MCP Server Cookie Cutter")
 
 if __name__ == "__main__":
     main()
-{% endif %}

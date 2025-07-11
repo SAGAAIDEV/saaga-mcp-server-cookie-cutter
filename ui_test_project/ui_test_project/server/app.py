@@ -1,4 +1,4 @@
-"""{{cookiecutter.project_name}} - MCP Server with SAAGA Decorators
+"""UI Test Project - MCP Server with SAAGA Decorators
 
 This module implements the core MCP server using FastMCP with dual transport support
 and automatic application of SAAGA decorators (exception handling, logging, parallelization).
@@ -12,10 +12,7 @@ from typing import Any, Dict, List, Optional
 from fastmcp import FastMCP
 
 from ..config import ServerConfig, get_config
-{% if cookiecutter.include_example_tools == "yes" -%}
 from ..tools.example_tools import example_tools, parallel_example_tools
-{% endif -%}
-
 # Initialize server configuration
 config = get_config()
 
@@ -32,9 +29,9 @@ logger = logging.getLogger(__name__)
 
 # Initialize FastMCP server
 server = FastMCP(
-    name="{{cookiecutter.project_name}}",
+    name="UI Test Project",
     instructions="""
-    {{cookiecutter.description}}
+    MCP server with SAAGA decorators
     
     This server provides MCP tools with automatic application of SAAGA decorators:
     - Exception handling with graceful error recovery
@@ -69,24 +66,18 @@ def apply_saaga_decorators(func, is_parallel: bool = False):
 
 def register_tools():
     """Register all tools with the server, applying SAAGA decorators."""
-    {% if cookiecutter.include_example_tools == "yes" -%}
     # Register regular tools
     for tool_func in example_tools:
         decorated_func = apply_saaga_decorators(tool_func, is_parallel=False)
         server.tool()(decorated_func)
         logger.info(f"Registered tool: {tool_func.__name__}")
     
-    {% if cookiecutter.include_parallel_example == "yes" -%}
     # Register parallel tools
     for tool_func in parallel_example_tools:
         decorated_func = apply_saaga_decorators(tool_func, is_parallel=True)
         server.tool()(decorated_func)
         logger.info(f"Registered parallel tool: {tool_func.__name__}")
-    {% endif -%}
-    {% else -%}
-    # No example tools included
-    logger.info("No example tools configured. Add your tools and register them here.")
-    {% endif %}
+    
 
 
 def create_server() -> FastMCP:
@@ -105,7 +96,7 @@ def create_server() -> FastMCP:
 def main():
     """Main entry point for the MCP server."""
     parser = argparse.ArgumentParser(
-        description="{{cookiecutter.project_name}} - MCP Server with SAAGA Decorators"
+        description="UI Test Project - MCP Server with SAAGA Decorators"
     )
     parser.add_argument(
         "--transport",
@@ -121,8 +112,8 @@ def main():
     parser.add_argument(
         "--port",
         type=int,
-        default={{cookiecutter.server_port}},
-        help="Port to bind to for SSE transport (default: {{cookiecutter.server_port}})"
+        default=3001,
+        help="Port to bind to for SSE transport (default: 3001)"
     )
     parser.add_argument(
         "--log-level",
@@ -142,7 +133,7 @@ def main():
     mcp_server = create_server()
     
     # Start the server with the specified transport
-    logger.info(f"Starting {{cookiecutter.project_name}} server...")
+    logger.info(f"Starting UI Test Project server...")
     logger.info(f"Transport: {args.transport}")
     logger.info(f"Configuration: {config}")
     

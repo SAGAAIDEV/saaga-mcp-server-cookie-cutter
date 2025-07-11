@@ -1,10 +1,10 @@
 ---
-description: Intelligently test a feature by automatically detecting whether to use MCP, API, or UI testing, and choosing between direct or subprocess execution
-usage: /project:test-feature [OPTIONAL-HINTS]
-example: /project:test-feature
+description: Intelligently test an issue by automatically detecting whether to use MCP, API, or UI testing, and choosing between direct or subprocess execution
+usage: /project:test-issue [OPTIONAL-HINTS]
+example: /project:test-issue
 ---
 
-I'll analyze the current feature and automatically determine the best testing approach.
+I'll analyze the current issue and automatically determine the best testing approach.
 
 ## Step 1: Analyze Context
 
@@ -113,13 +113,13 @@ After tests complete:
 
 1. **If tests pass, complete the feature:**
    ```
-   /project:complete-feature [SITE-ALIAS]
+   /project:complete-issue [SITE-ALIAS]
    ```
    This will commit your changes, create a PR, and update JIRA
 
 2. **If tests fail:**
    - Fix the issues identified
-   - Run `/project:test-feature` again
+   - Run `/project:test-issue` again
    - Repeat until tests pass
 
 3. **For specific test types:**

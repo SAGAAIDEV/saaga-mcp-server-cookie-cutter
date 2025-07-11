@@ -150,13 +150,13 @@ After the subprocess completes:
 
 2. **If tests pass, proceed to complete:**
    ```
-   /project:complete-feature [SITE-ALIAS]
+   /project:complete-issue [SITE-ALIAS]
    ```
 
 3. **If issues found:**
    - Address security vulnerabilities first
    - Fix failing tests
-   - Run `/project:test-feature` for focused re-testing
+   - Run `/project:test-issue` for focused re-testing
    - Or run this command again for another comprehensive scan
 
 💡 **Tip:** Subprocess API testing often discovers security issues and edge cases that manual testing misses!

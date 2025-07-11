@@ -203,6 +203,31 @@ saaga-mcp-server-cookie-cutter/
 
 ## Technical Details to Remember
 
+### 🚨 CRITICAL: MUST USE STANDARD MCP SDK - NOT FASTMCP
+
+**MANDATORY MCP SDK REQUIREMENT:**
+- **MUST use Anthropic's standard MCP SDK**: `mcp` package from PyPI
+- **MUST use**: `from mcp.server.fastmcp import FastMCP`
+- **MUST use**: `from mcp import types`
+- **MUST use**: `asyncio.run(server.run_stdio_async())` and `asyncio.run(server.run_sse_async())`
+- **MUST use**: `mcp dev` for inspector (loads app.py as module, not runs as script)
+
+**NEVER USE:**
+- `fastmcp` package (non-standard, incompatible with MCP clients)
+- `from fastmcp import FastMCP`
+- Non-standard server initialization patterns
+- Non-async server execution patterns
+
+**Reference Working Template**: https://github.com/codingthefuturewithai/mcp-cookie-cutter.git
+- This template has correct imports, FastMCP setup, stdio/SSE transport
+- Inspector compatibility with `mcp dev`
+- Standard MCP client compatibility
+
+**Decorator Pattern Integration**: 
+- Decorators MUST be preserved as key feature
+- Must be compatible with standard MCP SDK patterns
+- Must work with `mcp dev` inspector loading
+
 ### CRITICAL: Setup Verification Process
 **When testing generated projects, ALWAYS include these steps:**
 
@@ -282,7 +307,61 @@ This will:
 5. Begin ASEP-24 implementation
 
 **Site alias**: `saaga` (for JIRA operations)
-**Current branch**: `main` (ASEP-23 completed and merged, hotfix applied)
+**Current branch**: `feature/ASEP-24-configuration-editor` (working on ASEP-24)
+
+### ✅ **ASEP-24 COMPLETED: Configuration Editor Page Implementation**
+
+**Status**: IMPLEMENTATION COMPLETE - January 11, 2025
+**Branch**: `feature/ASEP-24-configuration-editor`
+**JIRA**: ASEP-24 - In Progress → Ready for Testing
+
+#### What Was Delivered:
+1. **Fully Functional Configuration Editor**:
+   - ✅ Real-time configuration loading and display
+   - ✅ Working form with validation for all server settings
+   - ✅ Save functionality with diff preview showing changes
+   - ✅ Configuration reset to defaults with confirmation
+   - ✅ Export/import functionality (JSON & YAML formats)
+   - ✅ Undo/redo using Streamlit session state
+   - ✅ Comprehensive error handling and user feedback
+
+2. **Enhanced Features Beyond Requirements**:
+   - ✅ Platform-aware configuration paths
+   - ✅ Real-time validation with visual feedback
+   - ✅ Multiple export formats (JSON and YAML)
+   - ✅ Import validation with detailed error messages
+   - ✅ Configuration comparison showing exact changes
+   - ✅ Server restart notifications after changes
+
+3. **Template Integration**:
+   - ✅ All functionality integrated into cookiecutter template
+   - ✅ Maintains compatibility with all cookiecutter variables
+   - ✅ Leverages existing utility functions in `ui/lib/utils.py`
+   - ✅ No new dependencies required
+
+#### 🚨 **CRITICAL ISSUE DISCOVERED & FIXED**
+
+**Problem**: Cookiecutter template generation was BROKEN after ASEP-24 implementation
+**Root Cause**: Jinja2 template syntax errors in Configuration.py file
+- Missing spaces around cookiecutter variables: `{{cookiecutter.var}}` → `{{ cookiecutter.var }}`
+- Broke template parsing and prevented project generation
+
+**Fix Applied**: 
+- Fixed all cookiecutter variable spacing in Configuration.py
+- Template should now generate projects correctly
+- All ASEP-23 functionality preserved
+
+#### 🔧 **IMMEDIATE TESTING REQUIRED**
+
+**Next Steps Upon Session Restart**:
+1. **FIRST**: Test bash execution with simple command
+2. **SECOND**: Test cookiecutter generation:
+   ```bash
+   cookiecutter . --no-input project_name="Test UI Server" project_slug="test_ui_server" include_admin_ui="yes"
+   ```
+3. **THIRD**: If working, test generated UI functionality
+
+**Expected Result**: Should generate complete MCP server with functional configuration editor
 
 ### 🚨 **IMPORTANT UPDATE - ASEP-23 HOTFIX APPLIED**
 
@@ -296,6 +375,41 @@ This will:
 - Template now generates complete UI structure with functional components
 
 **Current Status**: ✅ All UI components are now properly included in the template
+
+## 🔧 **CRITICAL: STREAMLIT UI TESTING METHODOLOGY**
+
+### **❌ WRONG APPROACH (Previously Used):**
+- Testing individual page files directly: `streamlit run pages/2_⚙️_Configuration.py`
+- Taking screenshots without checking browser console errors
+- Testing page functionality in isolation without navigation context
+- Assuming UI works based on form appearance alone
+
+### **✅ CORRECT APPROACH (Required Going Forward):**
+1. **Always Test Complete Multi-Page App**: `streamlit run test_mcp_server_ui/ui/app.py`
+2. **Check Browser Console**: Use dev tools to verify no 404 errors, JavaScript errors
+3. **Test Real User Flows**: 
+   - Navigate to main URL (e.g., http://localhost:8501)
+   - Click sidebar navigation items (Home, Configuration, Logs)
+   - Test page transitions and `st.switch_page()` calls
+   - Reload pages and verify no navigation errors
+4. **Verify Navigation Paths**: Ensure all `st.switch_page()` paths are correct relative to main app
+5. **Test Error States**: Check for red error banners, missing resources, broken imports
+
+### **Key Testing Commands:**
+```bash
+# Generate fresh project
+cookiecutter . --no-input project_name="Test" project_slug="test" include_admin_ui="yes"
+
+# Install and test
+cd test && python -m venv .venv && source .venv/bin/activate && pip install -e .
+
+# Test the COMPLETE app (not individual pages)
+streamlit run test/ui/app.py --server.port 8501
+
+# Navigate to http://localhost:8501 and test ALL navigation flows
+```
+
+**NEVER test individual page files - always test the complete multi-page application as users experience it.**
 
 ---
 

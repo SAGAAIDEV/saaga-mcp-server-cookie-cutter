@@ -1,16 +1,14 @@
-"""{% if cookiecutter.include_admin_ui == "yes" %}
-Log viewer page for {{cookiecutter.project_name}} Admin UI
+"""
+Log viewer page for UI Test Project Admin UI
 
 This page provides interface for viewing, filtering, and analyzing server logs
 from the SQLite logging database. Includes export capabilities and real-time updates.
 
 Note: This is a placeholder implementation for Phase 4, Issue 1.
 Full functionality will be implemented in Phase 4, Issue 3.
-{% else %}
-Placeholder for optional Streamlit admin UI logs page.
-{% endif %}"""
+"""
 
-{% if cookiecutter.include_admin_ui == "yes" %}
+
 import streamlit as st
 from pathlib import Path
 import sys
@@ -285,7 +283,7 @@ def render_export_section(df: pd.DataFrame):
 def main():
     """Main logs page content"""
     # Page header
-    st.title("📊 {{cookiecutter.project_name}} Logs")
+    st.title("📊 UI Test Project Logs")
     st.markdown("View and analyze server logs with filtering and export capabilities.")
     st.markdown("---")
     
@@ -334,4 +332,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-{% endif %}
