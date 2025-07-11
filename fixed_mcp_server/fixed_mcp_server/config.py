@@ -23,7 +23,7 @@ class ServerConfig:
     description: str = "MCP server with SAAGA decorators"
     
     # Logging configuration
-    log_level: str = "INFO"
+    log_level: str = "DEBUG"
     log_retention_days: int = 30
     
     # Server transport settings
