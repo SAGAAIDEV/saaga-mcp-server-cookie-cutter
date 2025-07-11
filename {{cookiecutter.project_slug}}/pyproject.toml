@@ -21,7 +21,12 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "fastmcp>=0.1.0",
+    "mcp>=1.0.0",
+    "mcp[cli]>=1.0.0",
+    "anyio>=4.5",
+    "starlette>=0.36.0",
+    "uvicorn>=0.27.0",
+    "click>=8.0.0",
     "platformdirs>=3.0.0",
     "pydantic>=2.0.0",
     "pyyaml>=6.0.0",
@@ -42,6 +47,9 @@ dev = [
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
 ]
+
+[project.scripts]
+{{ cookiecutter.project_slug }}-server = "{{ cookiecutter.project_slug }}.server.app:main"
 
 [project.urls]
 Homepage = "https://github.com/{{cookiecutter.author_name}}/{{cookiecutter.project_slug}}"

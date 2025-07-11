@@ -1,164 +1,152 @@
-"""{{cookiecutter.project_name}} - MCP Server with SAAGA Decorators
+"""{{ cookiecutter.project_name }} - MCP Server with SAAGA Decorators
 
 This module implements the core MCP server using FastMCP with dual transport support
 and automatic application of SAAGA decorators (exception handling, logging, parallelization).
 """
 
-import argparse
+import asyncio
 import logging
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
-from fastmcp import FastMCP
+import click
+from mcp.server.fastmcp import FastMCP
+from mcp import types
 
-from ..config import ServerConfig, get_config
+from {{ cookiecutter.project_slug }}.config import ServerConfig, get_config
 {% if cookiecutter.include_example_tools == "yes" -%}
-from ..tools.example_tools import example_tools, parallel_example_tools
+from {{ cookiecutter.project_slug }}.tools.example_tools import example_tools, parallel_example_tools
 {% endif -%}
 
-# Initialize server configuration
-config = get_config()
-
-# Configure logging
-logging.basicConfig(
-    level=getattr(logging, config.log_level.upper()),
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(config.log_file_path)
-    ]
-)
 logger = logging.getLogger(__name__)
 
-# Initialize FastMCP server
-server = FastMCP(
-    name="{{cookiecutter.project_name}}",
-    instructions="""
-    {{cookiecutter.description}}
-    
-    This server provides MCP tools with automatic application of SAAGA decorators:
-    - Exception handling with graceful error recovery
-    - Comprehensive logging to SQLite database
-    - Optional parallelization for compute-intensive operations
-    
-    All tools are automatically decorated for enhanced reliability and observability.
-    """,
-)
-
-
-def apply_saaga_decorators(func, is_parallel: bool = False):
-    """Apply SAAGA decorators to MCP tools.
-    
-    This function will be enhanced in Phase 2 to automatically apply:
-    1. Exception handler decorator
-    2. Tool logger decorator  
-    3. Parallelize decorator (for parallel tools)
+def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
+    """Create and configure the MCP server with SAAGA decorators.
     
     Args:
-        func: The tool function to decorate
-        is_parallel: Whether to apply parallelization decorator
+        config: Optional server configuration
         
-    Returns:
-        The decorated function
-    """
-    # TODO: Phase 2 - Apply actual SAAGA decorators
-    # For now, return the function as-is
-    logger.info(f"Applying SAAGA decorators to {func.__name__} (parallel={is_parallel})")
-    return func
-
-
-def register_tools():
-    """Register all tools with the server, applying SAAGA decorators."""
-    {% if cookiecutter.include_example_tools == "yes" -%}
-    # Register regular tools
-    for tool_func in example_tools:
-        decorated_func = apply_saaga_decorators(tool_func, is_parallel=False)
-        server.tool()(decorated_func)
-        logger.info(f"Registered tool: {tool_func.__name__}")
-    
-    {% if cookiecutter.include_parallel_example == "yes" -%}
-    # Register parallel tools
-    for tool_func in parallel_example_tools:
-        decorated_func = apply_saaga_decorators(tool_func, is_parallel=True)
-        server.tool()(decorated_func)
-        logger.info(f"Registered parallel tool: {tool_func.__name__}")
-    {% endif -%}
-    {% else -%}
-    # No example tools included
-    logger.info("No example tools configured. Add your tools and register them here.")
-    {% endif %}
-
-
-def create_server() -> FastMCP:
-    """Create and configure the MCP server.
-    
     Returns:
         Configured FastMCP server instance
     """
-    # Register all tools with decorators
-    register_tools()
+    if config is None:
+        config = get_config()
     
-    logger.info(f"Server '{server.name}' initialized with {len(server._tool_manager._tools)} tools")
-    return server
+    # Configure logging
+    logging.basicConfig(
+        level=getattr(logging, config.log_level.upper()),
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+            logging.FileHandler(config.log_file_path)
+        ]
+    )
+    
+    mcp_server = FastMCP(config.name or "{{ cookiecutter.project_name }}")
+    
+{% if cookiecutter.include_example_tools == "yes" -%}
+    # Import SAAGA decorators
+    from {{ cookiecutter.project_slug }}.decorators.exception_handler import exception_handler
+    from {{ cookiecutter.project_slug }}.decorators.tool_logger import tool_logger
+    from {{ cookiecutter.project_slug }}.decorators.parallelize import parallelize
+    
+    # Register regular tools with SAAGA decorators
+    for tool_func in example_tools:
+        @mcp_server.tool(
+            name=tool_func.__name__,
+            description=tool_func.__doc__ or f"Tool: {tool_func.__name__}"
+        )
+        def create_tool_wrapper(func=tool_func):
+            def tool_wrapper(*args, **kwargs) -> types.TextContent:
+                """MCP wrapper that applies SAAGA decorators."""
+                # Apply SAAGA decorator chain: exception_handler → tool_logger
+                decorated_func = exception_handler(tool_logger(func, config))
+                
+                try:
+                    result = decorated_func(*args, **kwargs)
+                    # Convert result to MCP TextContent
+                    if isinstance(result, str):
+                        return types.TextContent(type="text", text=result)
+                    elif isinstance(result, (dict, list)):
+                        import json
+                        return types.TextContent(type="text", text=json.dumps(result, indent=2))
+                    else:
+                        return types.TextContent(type="text", text=str(result))
+                except Exception as e:
+                    return types.TextContent(type="text", text=f"Error: {str(e)}")
+            return tool_wrapper()
+        
+        logger.info(f"Registered tool: {tool_func.__name__}")
+    
+    {% if cookiecutter.include_parallel_example == "yes" -%}
+    # Register parallel tools with SAAGA decorators
+    for tool_func in parallel_example_tools:
+        @mcp_server.tool(
+            name=tool_func.__name__,
+            description=tool_func.__doc__ or f"Parallel tool: {tool_func.__name__}"
+        )
+        def create_parallel_tool_wrapper(func=tool_func):
+            def parallel_tool_wrapper(*args, **kwargs) -> types.TextContent:
+                """MCP wrapper that applies SAAGA decorators with parallelization."""
+                # Apply SAAGA decorator chain: exception_handler → tool_logger → parallelize
+                decorated_func = exception_handler(tool_logger(parallelize(func), config))
+                
+                try:
+                    result = decorated_func(*args, **kwargs)
+                    # Convert result to MCP TextContent
+                    if isinstance(result, str):
+                        return types.TextContent(type="text", text=result)
+                    elif isinstance(result, (dict, list)):
+                        import json
+                        return types.TextContent(type="text", text=json.dumps(result, indent=2))
+                    else:
+                        return types.TextContent(type="text", text=str(result))
+                except Exception as e:
+                    return types.TextContent(type="text", text=f"Error: {str(e)}")
+            return parallel_tool_wrapper()
+        
+        logger.info(f"Registered parallel tool: {tool_func.__name__}")
+    {% endif -%}
+{% else -%}
+    # No example tools included
+    logger.info("No example tools configured. Add your tools and register them here.")
+{% endif -%}
+    
+    logger.info(f"Server '{mcp_server.name}' initialized with SAAGA decorators")
+    return mcp_server
 
+# Create a server instance that can be imported by the MCP CLI
+server = create_mcp_server()
 
-def main():
-    """Main entry point for the MCP server."""
-    parser = argparse.ArgumentParser(
-        description="{{cookiecutter.project_name}} - MCP Server with SAAGA Decorators"
-    )
-    parser.add_argument(
-        "--transport",
-        choices=["stdio", "sse"],
-        default="stdio",
-        help="Transport protocol to use (default: stdio)"
-    )
-    parser.add_argument(
-        "--host",
-        default="127.0.0.1",
-        help="Host to bind to for SSE transport (default: 127.0.0.1)"
-    )
-    parser.add_argument(
-        "--port",
-        type=int,
-        default={{cookiecutter.server_port}},
-        help="Port to bind to for SSE transport (default: {{cookiecutter.server_port}})"
-    )
-    parser.add_argument(
-        "--log-level",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
-        default=config.log_level,
-        help=f"Log level (default: {config.log_level})"
-    )
-    
-    args = parser.parse_args()
-    
-    # Update log level if specified
-    if args.log_level != config.log_level:
-        logging.getLogger().setLevel(getattr(logging, args.log_level.upper()))
-        logger.info(f"Log level updated to {args.log_level}")
-    
-    # Create the server
-    mcp_server = create_server()
-    
-    # Start the server with the specified transport
-    logger.info(f"Starting {{cookiecutter.project_name}} server...")
-    logger.info(f"Transport: {args.transport}")
-    logger.info(f"Configuration: {config}")
-    
+@click.command()
+@click.option(
+    "--port",
+    default={{ cookiecutter.server_port }},
+    help="Port to listen on for SSE transport"
+)
+@click.option(
+    "--transport",
+    type=click.Choice(["stdio", "sse"]),
+    default="stdio",
+    help="Transport type (stdio or sse)"
+)
+def main(port: int, transport: str) -> int:
+    """Run the {{ cookiecutter.project_name }} server with specified transport."""
     try:
-        if args.transport == "stdio":
+        if transport == "stdio":
             logger.info("Starting server with STDIO transport")
-            mcp_server.run()
-        else:  # sse
-            logger.info(f"Starting server with SSE transport on {args.host}:{args.port}")
-            mcp_server.run(transport="sse", host=args.host, port=args.port)
+            asyncio.run(server.run_stdio_async())
+        else:
+            logger.info(f"Starting server with SSE transport on port {port}")
+            server.settings.port = port
+            asyncio.run(server.run_sse_async())
+        return 0
     except KeyboardInterrupt:
         logger.info("Server stopped by user")
+        return 0
     except Exception as e:
-        logger.error(f"Server error: {e}")
-        sys.exit(1)
-
+        logger.error(f"Failed to start server: {e}", exc_info=True)
+        return 1
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

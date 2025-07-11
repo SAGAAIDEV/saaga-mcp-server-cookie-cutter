@@ -28,11 +28,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def tool_logger(func: Callable) -> Callable:
-    """Decorator to log MCP tool execution details.
+def tool_logger(func: Callable, config=None) -> Callable:
+    """Enhanced tool logger with configuration.
     
     Args:
         func: The function to decorate
+        config: ServerConfig instance for configuration
         
     Returns:
         The decorated function with logging
@@ -41,18 +42,42 @@ def tool_logger(func: Callable) -> Callable:
     def wrapper(*args, **kwargs) -> Any:
         start_time = time.time()
         
-        # TODO: Phase 2 - Implement actual tool logging
+        # TODO: Phase 2 - Implement actual SQLite logging
         # For now, just log basic info
         logger.info(f"Executing tool: {func.__name__}")
         
         try:
             result = func(*args, **kwargs)
-            execution_time = time.time() - start_time
-            logger.info(f"Tool {func.__name__} completed in {execution_time:.3f}s")
+            duration = time.time() - start_time
+            
+            # Log to SQLite (preserve SAAGA functionality)
+            # TODO: Implement log_tool_execution function
+            # log_tool_execution(
+            #     tool_name=func.__name__,
+            #     duration_ms=duration * 1000,
+            #     status="success",
+            #     input_args=str(args)[:500],
+            #     output_summary=str(result)[:500],
+            #     config=config
+            # )
+            
+            logger.info(f"Tool {func.__name__} completed in {duration:.3f}s")
             return result
         except Exception as e:
-            execution_time = time.time() - start_time
-            logger.error(f"Tool {func.__name__} failed after {execution_time:.3f}s: {e}")
+            duration = time.time() - start_time
+            
+            # Log error to SQLite (preserve SAAGA functionality)
+            # TODO: Implement log_tool_execution function
+            # log_tool_execution(
+            #     tool_name=func.__name__,
+            #     duration_ms=duration * 1000,
+            #     status="error",
+            #     input_args=str(args)[:500],
+            #     error_message=str(e)[:500],
+            #     config=config
+            # )
+            
+            logger.error(f"Tool {func.__name__} failed after {duration:.3f}s: {e}")
             raise
     
     return wrapper
