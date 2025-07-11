@@ -59,7 +59,24 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
             def mcp_wrapper(*args, **kwargs) -> types.TextContent:
                 """MCP wrapper that converts result to TextContent."""
                 try:
-                    result = decorated_func(*args, **kwargs)
+                    # Extract actual values from MCP TextContent objects
+                    processed_args = []
+                    for arg in args:
+                        if hasattr(arg, 'text'):  # TextContent object
+                            processed_args.append(arg.text)
+                        else:
+                            processed_args.append(arg)
+                    
+                    processed_kwargs = {}
+                    for key, value in kwargs.items():
+                        if hasattr(value, 'text'):  # TextContent object
+                            processed_kwargs[key] = value.text
+                        else:
+                            processed_kwargs[key] = value
+                    
+                    # Call the decorated function with extracted values
+                    result = decorated_func(*processed_args, **processed_kwargs)
+                    
                     # Convert result to MCP TextContent
                     if isinstance(result, str):
                         return types.TextContent(type="text", text=result)
@@ -95,7 +112,24 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
             def parallel_mcp_wrapper(*args, **kwargs) -> types.TextContent:
                 """MCP wrapper that converts result to TextContent."""
                 try:
-                    result = decorated_func(*args, **kwargs)
+                    # Extract actual values from MCP TextContent objects
+                    processed_args = []
+                    for arg in args:
+                        if hasattr(arg, 'text'):  # TextContent object
+                            processed_args.append(arg.text)
+                        else:
+                            processed_args.append(arg)
+                    
+                    processed_kwargs = {}
+                    for key, value in kwargs.items():
+                        if hasattr(value, 'text'):  # TextContent object
+                            processed_kwargs[key] = value.text
+                        else:
+                            processed_kwargs[key] = value
+                    
+                    # Call the decorated function with extracted values
+                    result = decorated_func(*processed_args, **processed_kwargs)
+                    
                     # Convert result to MCP TextContent
                     if isinstance(result, str):
                         return types.TextContent(type="text", text=result)

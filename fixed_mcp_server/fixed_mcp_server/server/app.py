@@ -11,7 +11,6 @@ from typing import Optional
 
 import click
 from mcp.server.fastmcp import FastMCP
-from mcp import types
 
 from fixed_mcp_server.config import ServerConfig, get_config
 from fixed_mcp_server.tools.example_tools import example_tools, parallel_example_tools
@@ -29,12 +28,14 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     if config is None:
         config = get_config()
     
-    # Configure logging (file only to avoid interfering with MCP JSON protocol)
+    # Configure logging (stderr + file, never stdout to avoid interfering with MCP STDIO protocol)
+    import sys
     logging.basicConfig(
         level=getattr(logging, config.log_level.upper()),
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler(config.log_file_path)
+            logging.FileHandler(config.log_file_path),
+            logging.StreamHandler(sys.stderr)  # Add stderr handler for immediate feedback
         ]
     )
     
@@ -50,33 +51,23 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
         # Apply SAAGA decorator chain: exception_handler → tool_logger
         decorated_func = exception_handler(tool_logger(tool_func, config))
         
-        # Create MCP wrapper that preserves original function signature
-        def create_mcp_wrapper(original_func, decorated_func):
-            def mcp_wrapper(*args, **kwargs) -> types.TextContent:
-                """MCP wrapper that converts result to TextContent."""
-                try:
-                    result = decorated_func(*args, **kwargs)
-                    # Convert result to MCP TextContent
-                    if isinstance(result, str):
-                        return types.TextContent(type="text", text=result)
-                    elif isinstance(result, (dict, list)):
-                        import json
-                        return types.TextContent(type="text", text=json.dumps(result, indent=2))
-                    else:
-                        return types.TextContent(type="text", text=str(result))
-                except Exception as e:
-                    return types.TextContent(type="text", text=f"Error: {str(e)}")
-            
-            # Copy the original function's signature and metadata
+        # Create wrapper with early binding to fix closure capture
+        def create_tool_wrapper(original_func=tool_func, decorated_func=decorated_func):
+            """Create tool wrapper with proper variable capture."""
             import functools
-            mcp_wrapper = functools.wraps(original_func)(mcp_wrapper)
-            return mcp_wrapper
+            
+            @functools.wraps(original_func)  
+            def tool_wrapper(*args, **kwargs):
+                """Wrapper that applies SAAGA decorators and returns raw Python values."""
+                # FastMCP expects raw Python values, not MCP protocol objects
+                # It will handle the conversion to TextContent automatically
+                return decorated_func(*args, **kwargs)
+            
+            return tool_wrapper
         
-        # Register the properly wrapped function
-        mcp_server.tool(
-            name=tool_func.__name__,
-            description=tool_func.__doc__ or f"Tool: {tool_func.__name__}"
-        )(create_mcp_wrapper(tool_func, decorated_func))
+        # Register the tool - let FastMCP handle schema generation automatically
+        wrapped_tool = create_tool_wrapper()
+        mcp_server.tool()(wrapped_tool)
         
         logger.info(f"Registered tool: {tool_func.__name__}")
     
@@ -85,33 +76,23 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
         # Apply SAAGA decorator chain: exception_handler → tool_logger → parallelize
         decorated_func = exception_handler(tool_logger(parallelize(tool_func), config))
         
-        # Create MCP wrapper that preserves original function signature
-        def create_parallel_mcp_wrapper(original_func, decorated_func):
-            def parallel_mcp_wrapper(*args, **kwargs) -> types.TextContent:
-                """MCP wrapper that converts result to TextContent."""
-                try:
-                    result = decorated_func(*args, **kwargs)
-                    # Convert result to MCP TextContent
-                    if isinstance(result, str):
-                        return types.TextContent(type="text", text=result)
-                    elif isinstance(result, (dict, list)):
-                        import json
-                        return types.TextContent(type="text", text=json.dumps(result, indent=2))
-                    else:
-                        return types.TextContent(type="text", text=str(result))
-                except Exception as e:
-                    return types.TextContent(type="text", text=f"Error: {str(e)}")
-            
-            # Copy the original function's signature and metadata
+        # Create wrapper with early binding to fix closure capture
+        def create_parallel_tool_wrapper(original_func=tool_func, decorated_func=decorated_func):
+            """Create parallel tool wrapper with proper variable capture."""
             import functools
-            parallel_mcp_wrapper = functools.wraps(original_func)(parallel_mcp_wrapper)
-            return parallel_mcp_wrapper
+            
+            @functools.wraps(original_func)
+            def parallel_tool_wrapper(*args, **kwargs):
+                """Wrapper that applies SAAGA decorators and returns raw Python values."""
+                # FastMCP expects raw Python values, not MCP protocol objects
+                # It will handle the conversion to TextContent automatically
+                return decorated_func(*args, **kwargs)
+            
+            return parallel_tool_wrapper
         
-        # Register the properly wrapped function
-        mcp_server.tool(
-            name=tool_func.__name__,
-            description=tool_func.__doc__ or f"Parallel tool: {tool_func.__name__}"
-        )(create_parallel_mcp_wrapper(tool_func, decorated_func))
+        # Register the tool - let FastMCP handle schema generation automatically
+        wrapped_parallel_tool = create_parallel_tool_wrapper()
+        mcp_server.tool()(wrapped_parallel_tool)
         
         logger.info(f"Registered parallel tool: {tool_func.__name__}")
     logger.info(f"Server '{mcp_server.name}' initialized with SAAGA decorators")
