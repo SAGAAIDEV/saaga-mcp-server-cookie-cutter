@@ -1,4 +1,4 @@
-"""{{ cookiecutter.project_name }} - MCP Server with SAAGA Decorators
+"""Fixed MCP Server - MCP Server with SAAGA Decorators
 
 This module implements the core MCP server using FastMCP with dual transport support
 and automatic application of SAAGA decorators (exception handling, logging, parallelization).
@@ -13,11 +13,8 @@ import click
 from mcp.server.fastmcp import FastMCP
 from mcp import types
 
-from {{ cookiecutter.project_slug }}.config import ServerConfig, get_config
-{% if cookiecutter.include_example_tools == "yes" -%}
-from {{ cookiecutter.project_slug }}.tools.example_tools import example_tools, parallel_example_tools
-{% endif -%}
-
+from fixed_mcp_server.config import ServerConfig, get_config
+from fixed_mcp_server.tools.example_tools import example_tools, parallel_example_tools
 logger = logging.getLogger(__name__)
 
 def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
@@ -41,13 +38,12 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
         ]
     )
     
-    mcp_server = FastMCP(config.name or "{{ cookiecutter.project_name }}")
+    mcp_server = FastMCP(config.name or "Fixed MCP Server")
     
-{% if cookiecutter.include_example_tools == "yes" -%}
-    # Import SAAGA decorators
-    from {{ cookiecutter.project_slug }}.decorators.exception_handler import exception_handler
-    from {{ cookiecutter.project_slug }}.decorators.tool_logger import tool_logger
-    from {{ cookiecutter.project_slug }}.decorators.parallelize import parallelize
+# Import SAAGA decorators
+    from fixed_mcp_server.decorators.exception_handler import exception_handler
+    from fixed_mcp_server.decorators.tool_logger import tool_logger
+    from fixed_mcp_server.decorators.parallelize import parallelize
     
     # Register regular tools with SAAGA decorators
     for tool_func in example_tools:
@@ -84,7 +80,6 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
         
         logger.info(f"Registered tool: {tool_func.__name__}")
     
-    {% if cookiecutter.include_parallel_example == "yes" -%}
     # Register parallel tools with SAAGA decorators
     for tool_func in parallel_example_tools:
         # Apply SAAGA decorator chain: exception_handler → tool_logger → parallelize
@@ -119,12 +114,6 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
         )(create_parallel_mcp_wrapper(tool_func, decorated_func))
         
         logger.info(f"Registered parallel tool: {tool_func.__name__}")
-    {% endif -%}
-{% else -%}
-    # No example tools included
-    logger.info("No example tools configured. Add your tools and register them here.")
-{% endif -%}
-    
     logger.info(f"Server '{mcp_server.name}' initialized with SAAGA decorators")
     return mcp_server
 
@@ -134,7 +123,7 @@ server = create_mcp_server()
 @click.command()
 @click.option(
     "--port",
-    default={{ cookiecutter.server_port }},
+    default=3001,
     help="Port to listen on for SSE transport"
 )
 @click.option(
@@ -144,7 +133,7 @@ server = create_mcp_server()
     help="Transport type (stdio or sse)"
 )
 def main(port: int, transport: str) -> int:
-    """Run the {{ cookiecutter.project_name }} server with specified transport."""
+    """Run the Fixed MCP Server server with specified transport."""
     try:
         if transport == "stdio":
             logger.info("Starting server with STDIO transport")
