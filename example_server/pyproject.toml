@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fixed_mcp_server"
+name = "test_asep40_server"
 version = "0.1.0"
 description = "MCP server with SAAGA decorators"
 authors = [
@@ -46,16 +46,16 @@ dev = [
 ]
 
 [project.scripts]
-fixed_mcp_server-server = "fixed_mcp_server.server.app:main"
+test_asep40_server-server = "test_asep40_server.server.app:main"
 
 [project.urls]
-Homepage = "https://github.com/Your Name/fixed_mcp_server"
-Documentation = "https://github.com/Your Name/fixed_mcp_server/blob/main/README.md"
-Repository = "https://github.com/Your Name/fixed_mcp_server"
-Issues = "https://github.com/Your Name/fixed_mcp_server/issues"
+Homepage = "https://github.com/Your Name/test_asep40_server"
+Documentation = "https://github.com/Your Name/test_asep40_server/blob/main/README.md"
+Repository = "https://github.com/Your Name/test_asep40_server"
+Issues = "https://github.com/Your Name/test_asep40_server/issues"
 
 [tool.setuptools]
-packages = ["fixed_mcp_server"]
+packages = ["test_asep40_server"]
 
 [tool.black]
 line-length = 88
@@ -104,5 +104,5 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=fixed_mcp_server --cov-report=html --cov-report=term-missing"
+addopts = "-v --cov=test_asep40_server --cov-report=html --cov-report=term-missing"
 asyncio_mode = "auto"

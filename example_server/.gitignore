@@ -146,6 +146,6 @@ ehthumbs.db
 Thumbs.db
 
 # MCP Server specific
-fixed_mcp_server.log
+test_asep40_server.log
 config.yaml
 .mcp_cache/

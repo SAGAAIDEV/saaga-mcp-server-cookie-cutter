@@ -1,4 +1,4 @@
-# Fixed MCP Server
+# Test ASEP40 Server
 
 MCP server with SAAGA decorators
 
@@ -22,7 +22,7 @@ This MCP server was generated using the SAAGA MCP Server Cookie Cutter template.
 
 ```bash
 git clone <your-repository-url>
-cd fixed_mcp_server
+cd test_asep40_server
 pip install -e .
 ```
 
@@ -30,7 +30,7 @@ pip install -e .
 
 ```bash
 git clone <your-repository-url>
-cd fixed_mcp_server
+cd test_asep40_server
 pip install -e ".[dev]"
 ```
 
@@ -44,29 +44,29 @@ The server can be run in two modes:
 
 ```bash
 # Run with default settings
-python -m fixed_mcp_server.server.app
+python -m test_asep40_server.server.app
 
 # Run with custom log level
-python -m fixed_mcp_server.server.app --log-level DEBUG
+python -m test_asep40_server.server.app --log-level DEBUG
 
 # Run the server directly
-python fixed_mcp_server/server/app.py
+python test_asep40_server/server/app.py
 ```
 
 #### 2. SSE Mode (for web-based clients)
 
 ```bash
 # Run with SSE transport
-python -m fixed_mcp_server.server.app --transport sse --port 3001
+python -m test_asep40_server.server.app --transport sse --port 3001
 
 # Run with custom host and port
-python -m fixed_mcp_server.server.app --transport sse --host 0.0.0.0 --port 8080
+python -m test_asep40_server.server.app --transport sse --host 0.0.0.0 --port 8080
 ```
 
 ### Command Line Options
 
 ```bash
-python -m fixed_mcp_server.server.app --help
+python -m test_asep40_server.server.app --help
 ```
 
 Available options:
@@ -84,9 +84,9 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 ```json
 {
   "mcpServers": {
-    "fixed_mcp_server": {
+    "test_asep40_server": {
       "command": "python",
-      "args": ["-m", "fixed_mcp_server.server.app"]
+      "args": ["-m", "test_asep40_server.server.app"]
     }
   }
 }
@@ -97,10 +97,10 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 ```json
 {
   "mcpServers": {
-    "fixed_mcp_server": {
+    "test_asep40_server": {
       "command": "python",
       "args": [
-        "-m", "fixed_mcp_server.server.app",
+        "-m", "test_asep40_server.server.app",
         "--log-level", "DEBUG"
       ],
       "env": {
@@ -116,9 +116,9 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 ```json
 {
   "mcpServers": {
-    "fixed_mcp_server": {
+    "test_asep40_server": {
       "command": "/path/to/your/venv/bin/python",
-      "args": ["-m", "fixed_mcp_server.server.app"]
+      "args": ["-m", "test_asep40_server.server.app"]
     }
   }
 }
@@ -133,9 +133,9 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 ## Configuration
 
 Configuration files are stored in platform-specific locations:
-- **macOS**: `~/Library/Application Support/fixed_mcp_server/`
-- **Linux**: `~/.local/share/fixed_mcp_server/`
-- **Windows**: `%APPDATA%/fixed_mcp_server/`
+- **macOS**: `~/Library/Application Support/test_asep40_server/`
+- **Linux**: `~/.local/share/test_asep40_server/`
+- **Windows**: `%APPDATA%/test_asep40_server/`
 
 ### Configuration Options
 
@@ -148,8 +148,8 @@ Configuration files are stored in platform-specific locations:
 ### Project Structure
 
 ```
-fixed_mcp_server/
-├── fixed_mcp_server/
+test_asep40_server/
+├── test_asep40_server/
 │   ├── config.py              # Platform-aware configuration
 │   ├── server/
 │   │   └── app.py             # FastMCP server with decorators
@@ -163,14 +163,14 @@ fixed_mcp_server/
 
 ### Adding New Tools
 
-1. Create a new Python file in `fixed_mcp_server/tools/`
+1. Create a new Python file in `test_asep40_server/tools/`
 2. Define your tool function
 3. Import and register it in `server/app.py`
 
 Example:
 
 ```python
-# fixed_mcp_server/tools/my_tool.py
+# test_asep40_server/tools/my_tool.py
 def my_tool(message: str) -> str:
     """Example MCP tool."""
     return f"Processed: {message}"
@@ -190,12 +190,12 @@ This project uses several code quality tools:
 
 ```bash
 # Format code
-black fixed_mcp_server/
-isort fixed_mcp_server/
+black test_asep40_server/
+isort test_asep40_server/
 
 # Lint code
-flake8 fixed_mcp_server/
-mypy fixed_mcp_server/
+flake8 test_asep40_server/
+mypy test_asep40_server/
 ```
 
 ## SAAGA Decorators
