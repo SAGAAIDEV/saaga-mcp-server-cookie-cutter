@@ -157,10 +157,33 @@ Configuration files are automatically placed in appropriate locations:
 
 When `include_admin_ui=yes`, the template generates a comprehensive web-based administrative interface:
 
+#### Dashboard
+![Streamlit Admin UI Dashboard](docs/images/streamlit-ui-dashboard.png)
+
+The dashboard provides real-time server status monitoring, project information, and quick access to common actions.
+
+#### Configuration Editor
+![Streamlit Admin UI Configuration](docs/images/streamlit-ui-configuration.png)
+
+The configuration page allows you to edit server settings, with features like:
+- Real-time validation
+- Diff preview showing changes
+- Export/import functionality (JSON & YAML)
+- Reset to defaults with confirmation
+
+#### Log Viewer
+![Streamlit Admin UI Logs](docs/images/streamlit-ui-logs.png)
+
+The logs page provides comprehensive log analysis with:
+- Date range filtering
+- Status filtering (success/error)
+- Tool-specific filtering
+- Export capabilities
+
 #### Features
 - **🏠 Dashboard**: Server status monitoring, project information, and quick actions
-- **⚙️ Configuration**: Server configuration management (Phase 4, Issue 2)
-- **📊 Logs**: Log viewer with filtering and export (Phase 4, Issue 3)
+- **⚙️ Configuration**: Server configuration management with validation and diff preview
+- **📊 Logs**: Log viewer with advanced filtering and export capabilities
 - **🎨 Modern UI**: Professional interface with custom CSS and responsive design
 - **🔄 Real-time Status**: Live server monitoring via port checking
 - **🛡️ Error Handling**: Graceful degradation and fallback modes

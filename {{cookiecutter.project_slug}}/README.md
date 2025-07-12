@@ -152,11 +152,34 @@ Launch the Streamlit admin interface:
 streamlit run {{cookiecutter.project_slug}}/ui/app.py
 ```
 
-The admin UI provides:
-- Configuration editor
-- Log viewer with filtering
-- Export capabilities
-- System status dashboard
+#### Dashboard
+![Streamlit Admin UI Dashboard](docs/images/streamlit-ui-dashboard.png)
+
+The dashboard provides:
+- Real-time server status monitoring
+- Project information and configuration overview
+- Quick access to common actions
+- System resource usage
+
+#### Configuration Editor
+![Streamlit Admin UI Configuration](docs/images/streamlit-ui-configuration.png)
+
+The configuration editor features:
+- Live configuration editing with validation
+- Diff preview showing pending changes
+- Export/import functionality (JSON & YAML formats)
+- Reset to defaults with confirmation dialog
+- Automatic server restart notifications
+
+#### Log Viewer
+![Streamlit Admin UI Logs](docs/images/streamlit-ui-logs.png)
+
+The log viewer includes:
+- Date range filtering for historical analysis
+- Status filtering (success/error/all)
+- Tool-specific filtering
+- Export capabilities for further analysis
+- Real-time log updates
 
 {% endif -%}
 ## AI Assistant Instructions
