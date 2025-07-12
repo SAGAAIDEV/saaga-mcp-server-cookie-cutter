@@ -2,6 +2,19 @@
 
 A [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template for creating MCP (Model Context Protocol) servers with SAAGA decorators, platform-aware configuration, and optional Streamlit administrative UI.
 
+## Quick Start with AI Assistant
+
+**Want to create a new MCP server?** Have your AI coding assistant guide you through the entire process!
+
+Simply tell your AI assistant: *"I want to create a new MCP server using the SAAGA template. Please read and execute the setup instructions in [SETUP_ASSISTANT_PROMPT.md](SETUP_ASSISTANT_PROMPT.md)"*
+
+This will guide you through:
+- Installing cookiecutter
+- Generating your new MCP server project
+- Understanding the SAAGA decorator patterns
+- Setting up your development environment
+- Testing with MCP Inspector
+
 ## Features
 
 - **FastMCP Integration**: Built on the modern FastMCP framework with dual transport support (stdio/SSE)
@@ -55,6 +68,39 @@ You'll be prompted for the following configuration options:
 - `log_level`: Default logging level (INFO, DEBUG, WARNING, ERROR)
 - `log_retention_days`: Number of days to retain logs
 
+## Example Server Reference Implementation
+
+The `example_server/` directory contains a fully functional MCP server that demonstrates all the features of this template:
+
+- ✅ Working SAAGA decorators with proper parameter introspection
+- ✅ Dual transport support (STDIO and SSE)
+- ✅ Example tools showing both sync and async patterns
+- ✅ Complete configuration management
+- ✅ Proper logging setup
+
+### Testing the Example Server
+
+```bash
+cd example_server/test_asep40_server
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -e .
+
+# Test with MCP Inspector
+mcp dev
+
+# Or run directly
+python -m test_asep40_server.server.app
+```
+
+Use the example server as a reference when building your own MCP tools to understand:
+- How decorators preserve function signatures
+- Proper tool registration patterns
+- Configuration management best practices
+- Logging and error handling approaches
+
+For detailed information about the decorator patterns, see [DECORATOR_PATTERNS.md](DECORATOR_PATTERNS.md). This documentation is also included in every generated project.
+
 ## Generated Project Structure
 
 ```
@@ -82,6 +128,8 @@ your-project/
 │           └── utils.py      # Helper functions
 ├── tests/                     # Test suite
 ├── docs/                      # Documentation
+│   └── DECORATOR_PATTERNS.md # Detailed decorator guidance
+├── .ai-prompts.md            # AI assistant context
 ├── pyproject.toml            # Project configuration
 ├── README.md                 # Project documentation
 ├── .gitignore               # Git ignore rules

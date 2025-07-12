@@ -2,6 +2,16 @@
 
 {{cookiecutter.description}}
 
+## Quick Start with AI Assistant
+
+**Need help getting started?** Have your AI coding assistant guide you!
+
+Simply tell your AI assistant: *"I have a {{cookiecutter.project_name}} project. Please read and follow [WORKING_WITH_SAAGA_PROMPT.md](WORKING_WITH_SAAGA_PROMPT.md) to help me understand and work with this MCP server."*
+
+**For quick reference**, the [.ai-prompts.md](.ai-prompts.md) file contains a condensed version of key patterns.
+
+**For detailed technical documentation**, see [docs/DECORATOR_PATTERNS.md](docs/DECORATOR_PATTERNS.md).
+
 ## Overview
 
 This MCP server was generated using the SAAGA MCP Server Cookie Cutter template. It includes:
@@ -149,6 +159,71 @@ The admin UI provides:
 - System status dashboard
 
 {% endif -%}
+## AI Assistant Instructions
+
+When working with this {{cookiecutter.project_name}} MCP server in an AI coding assistant (like Claude, Cursor, or GitHub Copilot):
+
+### Understanding the Server Architecture
+
+This server uses SAAGA decorators that automatically wrap all MCP tools with:
+- **Exception handling**: All errors are caught and returned as structured error responses
+- **Comprehensive logging**: All tool invocations are logged with timing and parameters
+- **Optional parallelization**: Tools marked for parallel execution run concurrently
+
+### Key Points for AI Assistants
+
+1. **Tool Registration Pattern**: Tools are registered with decorators already applied. Do NOT manually wrap tools with decorators - this is handled automatically in `server/app.py`.
+
+2. **Parameter Types**: MCP passes all parameters as strings from the client. Ensure your tools handle type conversion:
+   ```python
+   def my_tool(count: str) -> dict:
+       # Convert string to int
+       count_int = int(count)
+       return {"result": count_int * 2}
+   ```
+
+3. **Error Handling**: Tools can raise exceptions freely - the exception_handler decorator will catch them and return proper error responses.
+
+4. **Async Support**: Both sync and async tools are supported. The decorators automatically detect and handle both patterns.
+
+5. **Logging**: Check logs at the platform-specific data directory for debugging:
+   - macOS: `~/Library/Application Support/{{cookiecutter.project_slug}}/logs.db`
+   - Linux: `~/.local/share/{{cookiecutter.project_slug}}/logs.db`
+   - Windows: `%APPDATA%/{{cookiecutter.project_slug}}/logs.db`
+
+### Common Tasks
+
+**Adding a new tool:**
+```python
+# In {{cookiecutter.project_slug}}/tools/my_new_tool.py
+def my_new_tool(param: str) -> dict:
+    """Description of what this tool does."""
+    # Implementation
+    return {"result": "processed"}
+
+# In {{cookiecutter.project_slug}}/tools/__init__.py
+from .my_new_tool import my_new_tool
+example_tools.append(my_new_tool)
+```
+
+**Testing with MCP Inspector:**
+```bash
+# From the project root
+mcp dev
+```
+
+**Debugging a tool:**
+1. Check the SQLite logs for error messages
+2. Run with `--log-level DEBUG` for verbose output
+3. Test directly with MCP Inspector to see parameter handling
+
+### Important Implementation Notes
+
+- The server uses the standard MCP SDK (`from mcp.server.fastmcp import FastMCP`)
+- Function signatures are preserved through careful decorator implementation
+- The `register_tools()` function in `server/app.py` handles all decorator application
+- Tools should return JSON-serializable Python objects (dict, list, str, int, etc.)
+
 ## Configuration
 
 Configuration files are stored in platform-specific locations:
