@@ -507,3 +507,51 @@ pip install -e .
 
 **Current branch**: `fix/ASEP-40-standard-sdk-alignment` (at commit 0d4a30e)
 **Next action**: Fix template corruption, then address type conversion for 3 failing tools
+
+## 🔧 CRITICAL: DECORATOR INTEGRATION ISSUE (ASEP-40)
+
+### Current Problem
+The cookiecutter template has integrated SAAGA decorators, but the implementation breaks MCP Inspector parameter validation:
+- Tools show "kwargs" field instead of proper parameter names
+- Parameter passing fails at runtime with validation errors
+- The universal `wrapper(**kwargs)` function breaks MCP's parameter introspection
+
+### Root Cause Identified
+1. **Closure Bug Fixed**: The factory function pattern fixed the Python closure capture bug
+2. **NEW ISSUE Created**: Using `**kwargs` in the wrapper breaks MCP parameter validation
+3. **MCP Inspector cannot introspect parameters** when hidden behind generic `**kwargs`
+
+### Resolution Plan Available
+**See**: `/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter/DECORATOR_INTEGRATION_PLAN.md`
+
+This comprehensive plan includes:
+- Deep analysis of both SAAGA and reference implementations
+- Prioritized documentation search (vector search → context7 → GitHub)
+- Comparative analysis to identify exact deviations
+- Solution design that preserves both decorators and MCP compatibility
+
+### Key Resources for Resolution
+- **Code Understanding MCP**: Clone and analyze reference repositories
+- **RAG Collections**: `mcp_python_sdk_docs` (907 docs), `claude_code_docs` (243 docs)
+- **Context7**: Additional FastMCP documentation
+- **Reference Repos**: 
+  - https://github.com/SAGAAIDEV/saaga-mcp-servers (working decorators)
+  - https://github.com/codingthefuturewithai/mcp-cookie-cutter (clean MCP pattern)
+
+### Next Steps
+Execute the DECORATOR_INTEGRATION_PLAN.md to:
+1. Understand how SAAGA preserves function signatures with decorators
+2. Find MCP's requirements for parameter introspection
+3. Design pattern that maintains both decorator functionality and MCP compatibility
+4. Present solution for approval before implementation
+
+### Current Working Directory
+`/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter`
+
+### Test Server Status (if still running)
+- Location: `/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter/test_fixed_server`
+- MCP Inspector: http://127.0.0.1:6274
+- Shows the "kwargs" field issue when testing tools
+
+### Critical Context
+We spent 2 hours getting to this point. The closure bug is FIXED. The new issue is that `**kwargs` breaks MCP's parameter introspection. We need a solution that preserves specific function signatures while maintaining decorator functionality.

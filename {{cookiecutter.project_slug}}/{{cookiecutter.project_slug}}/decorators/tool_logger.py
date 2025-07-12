@@ -10,26 +10,32 @@ Features:
 - SQLite database storage for log persistence
 - Error logging with full stack traces
 - Query interface for log analysis
+- Support for both sync and async functions
 
 Usage:
     @tool_logger
     def my_tool(param: str) -> str:
         # Tool implementation
         return result
-
-This module will be implemented in Phase 2 of the project.
 """
 
+import asyncio
 from functools import wraps
-from typing import Callable, Any
+from typing import Callable, Any, TypeVar, cast
 import time
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
+T = TypeVar('T', bound=Callable[..., Any])
 
-def tool_logger(func: Callable, config=None) -> Callable:
+
+def tool_logger(func: T, config=None) -> T:
     """Enhanced tool logger with configuration.
+    
+    Preserves function signature for MCP introspection while adding
+    comprehensive logging capabilities. Supports both sync and async functions.
     
     Args:
         func: The function to decorate
@@ -38,46 +44,90 @@ def tool_logger(func: Callable, config=None) -> Callable:
     Returns:
         The decorated function with logging
     """
-    @wraps(func)
-    def wrapper(*args, **kwargs) -> Any:
-        start_time = time.time()
-        
-        # TODO: Phase 2 - Implement actual SQLite logging
-        # For now, just log basic info
-        logger.info(f"Executing tool: {func.__name__}")
-        
-        try:
-            result = func(*args, **kwargs)
-            duration = time.time() - start_time
-            
-            # Log to SQLite (preserve SAAGA functionality)
-            # TODO: Implement log_tool_execution function
-            # log_tool_execution(
-            #     tool_name=func.__name__,
-            #     duration_ms=duration * 1000,
-            #     status="success",
-            #     input_args=str(args)[:500],
-            #     output_summary=str(result)[:500],
-            #     config=config
-            # )
-            
-            logger.info(f"Tool {func.__name__} completed in {duration:.3f}s")
-            return result
-        except Exception as e:
-            duration = time.time() - start_time
-            
-            # Log error to SQLite (preserve SAAGA functionality)
-            # TODO: Implement log_tool_execution function
-            # log_tool_execution(
-            #     tool_name=func.__name__,
-            #     duration_ms=duration * 1000,
-            #     status="error",
-            #     input_args=str(args)[:500],
-            #     error_message=str(e)[:500],
-            #     config=config
-            # )
-            
-            logger.error(f"Tool {func.__name__} failed after {duration:.3f}s: {e}")
-            raise
     
-    return wrapper
+    if asyncio.iscoroutinefunction(func):
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs) -> Any:
+            start_time = time.time()
+            
+            # Log input parameters
+            logger.info(f"Executing tool: {func.__name__}")
+            logger.debug(f"Input args: {args}, kwargs: {kwargs}")
+            
+            try:
+                result = await func(*args, **kwargs)
+                duration = time.time() - start_time
+                
+                # TODO: Phase 2 - Implement actual SQLite logging
+                # log_tool_execution(
+                #     tool_name=func.__name__,
+                #     duration_ms=duration * 1000,
+                #     status="success",
+                #     input_args=json.dumps({"args": args, "kwargs": kwargs})[:500],
+                #     output_summary=str(result)[:500],
+                #     config=config
+                # )
+                
+                logger.info(f"Tool {func.__name__} completed in {duration:.3f}s")
+                logger.debug(f"Output: {str(result)[:200]}")
+                
+                return result
+            except Exception as e:
+                duration = time.time() - start_time
+                
+                # TODO: Phase 2 - Implement actual SQLite logging
+                # log_tool_execution(
+                #     tool_name=func.__name__,
+                #     duration_ms=duration * 1000,
+                #     status="error",
+                #     input_args=json.dumps({"args": args, "kwargs": kwargs})[:500],
+                #     error_message=str(e)[:500],
+                #     config=config
+                # )
+                
+                logger.error(f"Tool {func.__name__} failed after {duration:.3f}s: {e}")
+                raise
+        return cast(T, async_wrapper)
+    else:
+        @wraps(func)
+        def sync_wrapper(*args, **kwargs) -> Any:
+            start_time = time.time()
+            
+            # Log input parameters
+            logger.info(f"Executing tool: {func.__name__}")
+            logger.debug(f"Input args: {args}, kwargs: {kwargs}")
+            
+            try:
+                result = func(*args, **kwargs)
+                duration = time.time() - start_time
+                
+                # TODO: Phase 2 - Implement actual SQLite logging
+                # log_tool_execution(
+                #     tool_name=func.__name__,
+                #     duration_ms=duration * 1000,
+                #     status="success",
+                #     input_args=json.dumps({"args": args, "kwargs": kwargs})[:500],
+                #     output_summary=str(result)[:500],
+                #     config=config
+                # )
+                
+                logger.info(f"Tool {func.__name__} completed in {duration:.3f}s")
+                logger.debug(f"Output: {str(result)[:200]}")
+                
+                return result
+            except Exception as e:
+                duration = time.time() - start_time
+                
+                # TODO: Phase 2 - Implement actual SQLite logging
+                # log_tool_execution(
+                #     tool_name=func.__name__,
+                #     duration_ms=duration * 1000,
+                #     status="error",
+                #     input_args=json.dumps({"args": args, "kwargs": kwargs})[:500],
+                #     error_message=str(e)[:500],
+                #     config=config
+                # )
+                
+                logger.error(f"Tool {func.__name__} failed after {duration:.3f}s: {e}")
+                raise
+        return cast(T, sync_wrapper)
