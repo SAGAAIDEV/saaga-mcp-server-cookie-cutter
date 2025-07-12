@@ -69,7 +69,7 @@ pip install -e .
 
 Test with MCP Inspector to verify everything works:
 ```bash
-mcp dev
+mcp dev your_project/server/app.py
 ```
 
 This will:

@@ -88,7 +88,7 @@ parallel_example_tools.append(process_urls)
 
 1. Use MCP Inspector:
    ```bash
-   mcp dev
+   mcp dev your_project/server/app.py
    ```
 
 2. Check the logs:

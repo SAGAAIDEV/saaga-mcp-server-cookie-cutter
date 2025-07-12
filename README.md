@@ -87,7 +87,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e .
 
 # Test with MCP Inspector
-mcp dev
+mcp dev test_asep40_server/server/app.py
 
 # Or run directly
 python -m test_asep40_server.server.app

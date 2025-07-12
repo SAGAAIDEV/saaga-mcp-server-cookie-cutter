@@ -209,7 +209,7 @@ example_tools.append(my_new_tool)
 **Testing with MCP Inspector:**
 ```bash
 # From the project root
-mcp dev
+mcp dev {{cookiecutter.project_slug}}/server/app.py
 ```
 
 **Debugging a tool:**

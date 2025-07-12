@@ -350,7 +350,7 @@ Use MCP Inspector to verify your decorators work correctly:
 
 ```bash
 # In your generated project
-mcp dev
+mcp dev your_project/server/app.py
 
 # Look for:
 # - Correct parameter names (not "kwargs")
