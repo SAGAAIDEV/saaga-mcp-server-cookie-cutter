@@ -1,4 +1,4 @@
-"""{{ cookiecutter.project_name }} - MCP Server with SAAGA Decorators
+"""Test ASEP40 Server - MCP Server with SAAGA Decorators
 
 This module implements the core MCP server using FastMCP with dual transport support
 and automatic application of SAAGA decorators (exception handling, logging, parallelization).
@@ -12,12 +12,9 @@ import click
 from mcp import types
 from mcp.server.fastmcp import FastMCP
 
-from {{ cookiecutter.project_slug }}.config import ServerConfig, get_config
-from {{ cookiecutter.project_slug }}.logging_config import setup_logging, logger
-{% if cookiecutter.include_example_tools == "yes" -%}
-from {{ cookiecutter.project_slug }}.tools.example_tools import example_tools, parallel_example_tools
-{% endif -%}
-
+from test_asep40_server.config import ServerConfig, get_config
+from test_asep40_server.logging_config import setup_logging, logger
+from test_asep40_server.tools.example_tools import example_tools, parallel_example_tools
 def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     """Create and configure the MCP server with SAAGA decorators.
     
@@ -33,20 +30,13 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     # Set up logging first using reference implementation pattern
     setup_logging(config)
     
-    mcp_server = FastMCP(config.name or "{{ cookiecutter.project_name }}")
+    mcp_server = FastMCP(config.name or "Test ASEP40 Server")
     
-    {% if cookiecutter.include_example_tools == "yes" -%}
     # Register all tools with the server
     register_tools(mcp_server, config)
-    {% else -%}
-    # No example tools included
-    logger.info("No example tools configured. Add your tools and register them here.")
-    {% endif -%}
-    
     return mcp_server
 
 
-{% if cookiecutter.include_example_tools == "yes" -%}
 def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
     """Register all MCP tools with the server using SAAGA decorators.
     
@@ -55,9 +45,9 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
     """
     
     # Import SAAGA decorators
-    from {{ cookiecutter.project_slug }}.decorators.exception_handler import exception_handler
-    from {{ cookiecutter.project_slug }}.decorators.tool_logger import tool_logger
-    from {{ cookiecutter.project_slug }}.decorators.parallelize import parallelize
+    from test_asep40_server.decorators.exception_handler import exception_handler
+    from test_asep40_server.decorators.tool_logger import tool_logger
+    from test_asep40_server.decorators.parallelize import parallelize
     
     # Register regular tools with SAAGA decorators
     for tool_func in example_tools:
@@ -77,7 +67,6 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
         
         logger.info(f"Registered tool: {tool_name}")
     
-    {% if cookiecutter.include_parallel_example == "yes" -%}
     # Register parallel tools with SAAGA decorators  
     for tool_func in parallel_example_tools:
         # Apply SAAGA decorator chain: exception_handler → tool_logger → parallelize
@@ -94,18 +83,14 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
         )(decorated_func)
         
         logger.info(f"Registered parallel tool: {tool_name}")
-    {% endif -%}
-    
     logger.info(f"Server '{mcp_server.name}' initialized with SAAGA decorators")
-{% endif -%}
-
 # Create a server instance that can be imported by the MCP CLI
 server = create_mcp_server()
 
 @click.command()
 @click.option(
     "--port",
-    default={{ cookiecutter.server_port }},
+    default=3001,
     help="Port to listen on for SSE transport"
 )
 @click.option(
@@ -115,7 +100,7 @@ server = create_mcp_server()
     help="Transport type (stdio or sse)"
 )
 def main(port: int, transport: str) -> int:
-    """Run the {{ cookiecutter.project_name }} server with specified transport."""
+    """Run the Test ASEP40 Server server with specified transport."""
     try:
         if transport == "stdio":
             logger.info("Starting server with STDIO transport")

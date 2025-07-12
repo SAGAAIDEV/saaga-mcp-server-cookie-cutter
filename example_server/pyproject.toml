@@ -3,21 +3,21 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "{{cookiecutter.project_slug}}"
+name = "test_asep40_server"
 version = "0.1.0"
-description = "{{cookiecutter.description}}"
+description = "MCP server with SAAGA decorators"
 authors = [
-    {name = "{{cookiecutter.author_name}}", email = "{{cookiecutter.author_email}}"}
+    {name = "Your Name", email = "email@example.com"}
 ]
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">={{cookiecutter.python_version}}"
+requires-python = ">=3.11"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: {{cookiecutter.python_version}}",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
@@ -30,10 +30,7 @@ dependencies = [
     "platformdirs>=3.0.0",
     "pydantic>=2.0.0",
     "pyyaml>=6.0.0",
-    "python-multipart>=0.0.6"{% if cookiecutter.include_admin_ui == "yes" %},
-    "streamlit>=1.28.0",
-    "plotly>=5.0.0",
-    "pandas>=2.0.0"{% endif %}
+    "python-multipart>=0.0.6"
 ]
 
 [project.optional-dependencies]
@@ -49,20 +46,20 @@ dev = [
 ]
 
 [project.scripts]
-{{ cookiecutter.project_slug }}-server = "{{ cookiecutter.project_slug }}.server.app:main"
+test_asep40_server-server = "test_asep40_server.server.app:main"
 
 [project.urls]
-Homepage = "https://github.com/{{cookiecutter.author_name}}/{{cookiecutter.project_slug}}"
-Documentation = "https://github.com/{{cookiecutter.author_name}}/{{cookiecutter.project_slug}}/blob/main/README.md"
-Repository = "https://github.com/{{cookiecutter.author_name}}/{{cookiecutter.project_slug}}"
-Issues = "https://github.com/{{cookiecutter.author_name}}/{{cookiecutter.project_slug}}/issues"
+Homepage = "https://github.com/Your Name/test_asep40_server"
+Documentation = "https://github.com/Your Name/test_asep40_server/blob/main/README.md"
+Repository = "https://github.com/Your Name/test_asep40_server"
+Issues = "https://github.com/Your Name/test_asep40_server/issues"
 
 [tool.setuptools]
-packages = ["{{cookiecutter.project_slug}}"]
+packages = ["test_asep40_server"]
 
 [tool.black]
 line-length = 88
-target-version = ['py{{cookiecutter.python_version.replace(".", "")}}']
+target-version = ['py311']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -88,7 +85,7 @@ ensure_newline_before_comments = true
 line_length = 88
 
 [tool.mypy]
-python_version = "{{cookiecutter.python_version}}"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -107,5 +104,5 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov={{cookiecutter.project_slug}} --cov-report=html --cov-report=term-missing"
+addopts = "-v --cov=test_asep40_server --cov-report=html --cov-report=term-missing"
 asyncio_mode = "auto"

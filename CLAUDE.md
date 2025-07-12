@@ -111,18 +111,22 @@ Creating an enhanced MCP (Model Context Protocol) server cookie cutter template 
 **Work Package**: Implement actual SAAGA decorators (exception_handler, tool_logger, parallelize) with SQLite logging integration. Only touches `decorators/` directory, uses hardcoded paths initially.
 
 #### 🎨 Developer 2: Streamlit Admin UI (timkitch@codingthefuture.ai)  
-**Branch**: `feature/ASEP-23-streamlit-admin-ui-base` (COMPLETED)
+**Branch**: Multiple feature branches (ASEP-23, ASEP-24 COMPLETED)
 **Assigned Issues**:
 - ✅ **ASEP-23**: Phase 4, Issue 1: Streamlit Admin UI Base Structure - COMPLETED + HOTFIX
-- 🔄 **ASEP-24**: Phase 4, Issue 2: Configuration Editor Page Implementation - READY TO START
-- ⏳ **ASEP-25**: Phase 4, Issue 3: SQLite Log Viewer with Filtering and Export - PENDING
+- ✅ **ASEP-24**: Phase 4, Issue 2: Configuration Editor Page Implementation - COMPLETED + MERGED
+- 🔄 **ASEP-25**: Phase 4, Issue 3: SQLite Log Viewer with Filtering and Export - READY TO START
 
-**Work Package**: Complete Streamlit admin interface with mocked dependencies. Only touches `ui/` directory, creates standalone UI.
+**Work Package**: Complete Streamlit admin interface with working functionality. All UI components implemented and tested.
 
 **ASEP-23 Status**: ✅ COMPLETED July 10-11, 2025
 - **PR**: https://github.com/SAGAAIDEV/saaga-mcp-server-cookie-cutter/pull/1 (MERGED)
-- **Hotfix**: Missing UI lib directory added (commit dd789b3) - Fixed .gitignore issue
-- **Ready for**: ASEP-24 Configuration Editor implementation
+- **Hotfix**: Missing UI lib directory added (commit dd789b3)
+
+**ASEP-24 Status**: ✅ COMPLETED January 11, 2025
+- **PR**: https://github.com/SAGAAIDEV/saaga-mcp-server-cookie-cutter/pull/2 (MERGED)
+- **Full configuration editor with navigation fixes applied**
+- **Ready for**: ASEP-25 SQLite Log Viewer implementation
 
 #### 📚 Developer 3: Configuration System + Documentation (ruffin4it@gmail.com)
 **Branch**: `feature/ASEP-19-config-docs`
@@ -297,23 +301,28 @@ def create_decorated_server(name, tools, parallel_tools):
 
 ## Ready to Resume Work
 
-**When resuming, run**: `/start-feature ASEP-24 saaga`
+**PRIORITY BUG DISCOVERED**: ASEP-40 takes precedence over ASEP-25
+
+**Next issue**: `/start-issue ASEP-40 saaga`
 
 This will:
-1. Fetch ASEP-24 from JIRA (Configuration Editor Page Implementation)
-2. Create feature branch: `feature/ASEP-24-configuration-editor`
-3. Update JIRA to "In Progress"
-4. Present implementation plan for approval
-5. Begin ASEP-24 implementation
+1. Fetch ASEP-40 from JIRA (Bug discovered during ASEP-24 implementation)
+2. Create feature branch: `feature/ASEP-40-[bug-description]`
+3. Update JIRA to "In Progress" 
+4. Present bug fix plan for approval
+5. Begin ASEP-40 bug fix implementation
+
+**Note**: ASEP-25 (SQLite Log Viewer) is postponed until ASEP-40 bug fix is complete
 
 **Site alias**: `saaga` (for JIRA operations)
-**Current branch**: `feature/ASEP-24-configuration-editor` (working on ASEP-24)
+**Current branch**: `main` (ASEP-24 complete and merged)
 
 ### ✅ **ASEP-24 COMPLETED: Configuration Editor Page Implementation**
 
-**Status**: IMPLEMENTATION COMPLETE - January 11, 2025
-**Branch**: `feature/ASEP-24-configuration-editor`
-**JIRA**: ASEP-24 - In Progress → Ready for Testing
+**Status**: COMPLETE AND MERGED - January 11, 2025
+**Branch**: `feature/ASEP-24-configuration-editor` → MERGED TO MAIN
+**JIRA**: ASEP-24 - In Progress → Done ✅
+**Pull Request**: https://github.com/SAGAAIDEV/saaga-mcp-server-cookie-cutter/pull/2 (MERGED)
 
 #### What Was Delivered:
 1. **Fully Functional Configuration Editor**:
@@ -333,35 +342,52 @@ This will:
    - ✅ Configuration comparison showing exact changes
    - ✅ Server restart notifications after changes
 
-3. **Template Integration**:
+3. **UI Navigation Architecture Fixes**:
+   - ✅ Fixed import paths from `ui.lib.` back to `lib.` (ASEP-23 compatibility)
+   - ✅ Implemented clean modular structure with separate page files
+   - ✅ Removed duplicate `st.set_page_config()` calls
+   - ✅ Fixed navigation architecture for consistent multi-page app
+   - ✅ All navigation tested and verified working with Puppeteer
+
+4. **Template Integration**:
    - ✅ All functionality integrated into cookiecutter template
    - ✅ Maintains compatibility with all cookiecutter variables
    - ✅ Leverages existing utility functions in `ui/lib/utils.py`
    - ✅ No new dependencies required
+   - ✅ Template generation and UI functionality fully tested
 
-#### 🚨 **CRITICAL ISSUE DISCOVERED & FIXED**
+#### 🔧 **CRITICAL FIXES APPLIED**
 
-**Problem**: Cookiecutter template generation was BROKEN after ASEP-24 implementation
-**Root Cause**: Jinja2 template syntax errors in Configuration.py file
-- Missing spaces around cookiecutter variables: `{{cookiecutter.var}}` → `{{ cookiecutter.var }}`
-- Broke template parsing and prevented project generation
+**Navigation Architecture Issues Fixed**:
+- Fixed hybrid navigation system conflict (st.navigation + st.switch_page)
+- Standardized on pure multi-page app structure with separate page files
+- Fixed import path inconsistencies across all UI files
+- Removed conflicting page configurations
 
-**Fix Applied**: 
-- Fixed all cookiecutter variable spacing in Configuration.py
-- Template should now generate projects correctly
-- All ASEP-23 functionality preserved
+**Template Generation Issues Fixed**:
+- Fixed Jinja2 template syntax errors in Configuration.py
+- Corrected cookiecutter variable spacing: `{{cookiecutter.var}}` → `{{ cookiecutter.var }}`
+- Verified template parsing and project generation working
 
-#### 🔧 **IMMEDIATE TESTING REQUIRED**
+#### ✅ **TESTING VALIDATION COMPLETE**
 
-**Next Steps Upon Session Restart**:
-1. **FIRST**: Test bash execution with simple command
-2. **SECOND**: Test cookiecutter generation:
-   ```bash
-   cookiecutter . --no-input project_name="Test UI Server" project_slug="test_ui_server" include_admin_ui="yes"
-   ```
-3. **THIRD**: If working, test generated UI functionality
+**Comprehensive Testing Performed**:
+1. ✅ Cookiecutter template generation verified working
+2. ✅ Generated project virtual environment setup tested
+3. ✅ UI navigation tested with Puppeteer automation
+4. ✅ All page transitions working correctly
+5. ✅ Configuration editor functionality validated
+6. ✅ No red error banners or 404 navigation errors
+7. ✅ All acceptance criteria confirmed complete
 
-**Expected Result**: Should generate complete MCP server with functional configuration editor
+**Test Results**: Complete UI navigation and configuration editor working correctly
+
+#### 🐛 **BUG DISCOVERED DURING IMPLEMENTATION**
+
+**ASEP-40**: Bug discovered during ASEP-24 implementation that requires immediate attention
+- **Status**: Takes priority over ASEP-25 
+- **Discovery Context**: Found during ASEP-24 configuration editor implementation
+- **Next Action**: Address ASEP-40 before continuing with ASEP-25 SQLite Log Viewer
 
 ### 🚨 **IMPORTANT UPDATE - ASEP-23 HOTFIX APPLIED**
 
@@ -444,3 +470,88 @@ pip install -e .
 - All Python-related workflows
 
 **NEVER skip virtual environment setup - it's mandatory for all Python work!**
+
+## 🚨 CRITICAL ISSUE DISCOVERED - TEMPLATE CORRUPTION
+
+**ASEP-40 STATUS**: PARTIALLY COMPLETE BUT TEMPLATE CORRUPTED
+
+### Working State Achieved (Temporarily)
+- ✅ MCP Inspector connection working
+- ✅ 3 tools working: get_time, calculate_fibonacci, simulate_heavy_computation  
+- ❌ 3 tools failing with type errors: echo_tool, random_number, process_batch_data
+- ✅ Debug logging enabled
+- ✅ Reference implementation patterns applied
+
+### Template Corruption Discovered
+**Commit**: `0d4a30e` - "fix: implement reference implementation patterns with proper logging"
+**Issue**: When generating fresh projects from this commit, syntax errors occur in server/app.py
+**Error**: `'return' outside function` on line 37
+**Root Cause**: Template jinja2 processing corrupted during ASEP-40 implementation
+
+### Required Next Steps
+1. **MUST fix template syntax errors** before continuing
+2. **MUST restore working template generation**  
+3. **MUST preserve the working MCP server patterns** that were achieved
+4. **THEN fix the 3 tools with type conversion issues**
+
+### Key Insights from Session
+1. **Type Conversion Issue**: MCP protocol passes string parameters, tools expect typed parameters
+2. **Working Pattern**: Reference implementation with proper logging setup works
+3. **Template Issue**: Current cookiecutter template has syntax errors preventing generation
+
+### For Next Session
+1. Fix template syntax errors in server/app.py 
+2. Test cookiecutter generation produces working projects
+3. Apply minimal type conversion fixes for failing tools
+4. Complete ASEP-40 implementation
+
+**Current branch**: `fix/ASEP-40-standard-sdk-alignment` (at commit 0d4a30e)
+**Next action**: Fix template corruption, then address type conversion for 3 failing tools
+
+## 🔧 CRITICAL: DECORATOR INTEGRATION ISSUE (ASEP-40)
+
+### Current Problem
+The cookiecutter template has integrated SAAGA decorators, but the implementation breaks MCP Inspector parameter validation:
+- Tools show "kwargs" field instead of proper parameter names
+- Parameter passing fails at runtime with validation errors
+- The universal `wrapper(**kwargs)` function breaks MCP's parameter introspection
+
+### Root Cause Identified
+1. **Closure Bug Fixed**: The factory function pattern fixed the Python closure capture bug
+2. **NEW ISSUE Created**: Using `**kwargs` in the wrapper breaks MCP parameter validation
+3. **MCP Inspector cannot introspect parameters** when hidden behind generic `**kwargs`
+
+### Resolution Plan Available
+**See**: `/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter/DECORATOR_INTEGRATION_PLAN.md`
+
+This comprehensive plan includes:
+- Deep analysis of both SAAGA and reference implementations
+- Prioritized documentation search (vector search → context7 → GitHub)
+- Comparative analysis to identify exact deviations
+- Solution design that preserves both decorators and MCP compatibility
+
+### Key Resources for Resolution
+- **Code Understanding MCP**: Clone and analyze reference repositories
+- **RAG Collections**: `mcp_python_sdk_docs` (907 docs), `claude_code_docs` (243 docs)
+- **Context7**: Additional FastMCP documentation
+- **Reference Repos**: 
+  - https://github.com/SAGAAIDEV/saaga-mcp-servers (working decorators)
+  - https://github.com/codingthefuturewithai/mcp-cookie-cutter (clean MCP pattern)
+
+### Next Steps
+Execute the DECORATOR_INTEGRATION_PLAN.md to:
+1. Understand how SAAGA preserves function signatures with decorators
+2. Find MCP's requirements for parameter introspection
+3. Design pattern that maintains both decorator functionality and MCP compatibility
+4. Present solution for approval before implementation
+
+### Current Working Directory
+`/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter`
+
+### Test Server Status (if still running)
+- Location: `/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter/test_fixed_server`
+- MCP Inspector: http://127.0.0.1:6274
+- Shows the "kwargs" field issue when testing tools
+
+### Critical Context
+We spent 2 hours getting to this point. The closure bug is FIXED. The new issue is that `**kwargs` breaks MCP's parameter introspection. We need a solution that preserves specific function signatures while maintaining decorator functionality.
