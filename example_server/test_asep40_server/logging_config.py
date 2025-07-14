@@ -8,7 +8,9 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+from loguru import logger as loguru_logger
 from test_asep40_server.config import ServerConfig
+from test_asep40_server.decorators.sqlite_logger import initialize_sqlite_logging
 
 
 def get_default_log_dir() -> Path:
@@ -45,6 +47,9 @@ def setup_logging(server_config: Optional[ServerConfig] = None) -> None:
         "CRITICAL": logging.CRITICAL,
     }
     effective_level = valid_levels.get(log_level, logging.INFO)
+    
+    # Initialize SQLite logging with Loguru sink
+    sqlite_sink = initialize_sqlite_logging(server_config)
 
     # Configure basic logging first
     logging.basicConfig(
@@ -113,6 +118,8 @@ def setup_logging(server_config: Optional[ServerConfig] = None) -> None:
     project_logger.info("- MCP Framework (mcp.*)")
     project_logger.info("- Uvicorn Server (uvicorn)")
     project_logger.info(f"Log Level: {log_level}")
+    project_logger.info(f"SQLite Database: {sqlite_sink._db_path}")
+    project_logger.info("SQLite logging initialized with Loguru sink")
 
 
 # Export the logger for use in other modules

@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mcp list:*)",
+      "Bash(python:*)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(ls:*)",
+      "Bash(git checkout:*)",
+      "Bash(mcp__mcp_jira__search_jira_issues:*)",
+      "Bash(env)",
+      "Bash(grep:*)",
+      "Bash(/project:read-issue-comments ASEP-17 saaga)",
+      "Bash(find:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)",
+      "Bash(mcp dev:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:modelcontextprotocol.io)",
+      "Bash(rm:*)",
+      "Bash(/project:workflows/jira-status ASEP-17 \"check status\" saaga)",
+      "Bash(cookiecutter:*)",
+      "Bash(cp:*)",
+      "Bash(true)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh auth:*)",
+      "Bash(gh:*)",
+      "Bash(ruff check:*)",
+      "Bash(ruff format:*)",
+      "Bash(git reset:*)"
+    ],
+    "deny": []
+  }
+}
