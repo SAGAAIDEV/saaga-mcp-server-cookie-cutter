@@ -1,11 +1,9 @@
 # Phase 3 JIRA Issues - Configuration System
 
-## ACT-152: Platform-Aware Configuration Management
+## Platform-Aware Configuration Management
 
-**Project**: ACT  
 **Type**: Task  
 **Labels**: mcp, cookie-cutter  
-**Parent**: ACT-149  
 
 ### Background & Goal
 
@@ -54,12 +52,10 @@ class ConfigManager:
 
 ---
 
-## ACT-153: Shared Configuration Module Implementation
+## Shared Configuration Module Implementation
 
-**Project**: ACT  
 **Type**: Task  
 **Labels**: mcp, cookie-cutter  
-**Parent**: ACT-149  
 
 ### Background & Goal
 
@@ -106,12 +102,10 @@ class Config(BaseModel):
 
 ---
 
-## ACT-154: Configuration Template and Validation
+## Configuration Template and Validation
 
-**Project**: ACT  
 **Type**: Task  
 **Labels**: mcp, cookie-cutter  
-**Parent**: ACT-149  
 
 ### Background & Goal
 
@@ -156,12 +150,10 @@ tools:
 
 # Phase 4 JIRA Issues - Admin UI
 
-## ACT-155: Streamlit Admin UI Base Structure
+## Streamlit Admin UI Base Structure
 
-**Project**: ACT  
 **Type**: Task  
 **Labels**: mcp, cookie-cutter, streamlit-ui  
-**Parent**: ACT-149  
 
 ### Background & Goal
 
@@ -217,12 +209,10 @@ st.sidebar.info("MCP Server Administration")
 
 ---
 
-## ACT-156: Configuration Editor Page Implementation
+## Configuration Editor Page Implementation
 
-**Project**: ACT  
 **Type**: Task  
 **Labels**: mcp, cookie-cutter, streamlit-ui  
-**Parent**: ACT-149  
 
 ### Background & Goal
 
@@ -280,12 +270,10 @@ def render_configuration_page():
 
 ---
 
-## ACT-157: SQLite Log Viewer with Filtering and Export
+## SQLite Log Viewer with Filtering and Export
 
-**Project**: ACT  
 **Type**: Task  
 **Labels**: mcp, cookie-cutter, streamlit-ui  
-**Parent**: ACT-149  
 
 ### Background & Goal
 
