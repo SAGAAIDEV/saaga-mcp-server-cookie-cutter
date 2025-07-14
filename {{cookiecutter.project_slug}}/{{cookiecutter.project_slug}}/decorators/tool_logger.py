@@ -26,6 +26,8 @@ import time
 import logging
 import json
 
+from {{ cookiecutter.project_slug }}.decorators.sqlite_logger import log_tool_execution
+
 logger = logging.getLogger(__name__)
 
 T = TypeVar('T', bound=Callable[..., Any])
@@ -58,15 +60,14 @@ def tool_logger(func: T, config=None) -> T:
                 result = await func(*args, **kwargs)
                 duration = time.time() - start_time
                 
-                # TODO: Phase 2 - Implement actual SQLite logging
-                # log_tool_execution(
-                #     tool_name=func.__name__,
-                #     duration_ms=duration * 1000,
-                #     status="success",
-                #     input_args=json.dumps({"args": args, "kwargs": kwargs})[:500],
-                #     output_summary=str(result)[:500],
-                #     config=config
-                # )
+                # Log to SQLite using Loguru sink
+                log_tool_execution(
+                    tool_name=func.__name__,
+                    duration_ms=duration * 1000,
+                    status="success",
+                    input_args={"args": list(args), "kwargs": kwargs},
+                    output_summary=str(result)[:500]
+                )
                 
                 logger.info(f"Tool {func.__name__} completed in {duration:.3f}s")
                 logger.debug(f"Output: {str(result)[:200]}")
@@ -75,15 +76,14 @@ def tool_logger(func: T, config=None) -> T:
             except Exception as e:
                 duration = time.time() - start_time
                 
-                # TODO: Phase 2 - Implement actual SQLite logging
-                # log_tool_execution(
-                #     tool_name=func.__name__,
-                #     duration_ms=duration * 1000,
-                #     status="error",
-                #     input_args=json.dumps({"args": args, "kwargs": kwargs})[:500],
-                #     error_message=str(e)[:500],
-                #     config=config
-                # )
+                # Log error to SQLite using Loguru sink
+                log_tool_execution(
+                    tool_name=func.__name__,
+                    duration_ms=duration * 1000,
+                    status="error",
+                    input_args={"args": list(args), "kwargs": kwargs},
+                    error_message=str(e)[:500]
+                )
                 
                 logger.error(f"Tool {func.__name__} failed after {duration:.3f}s: {e}")
                 raise
@@ -101,15 +101,14 @@ def tool_logger(func: T, config=None) -> T:
                 result = func(*args, **kwargs)
                 duration = time.time() - start_time
                 
-                # TODO: Phase 2 - Implement actual SQLite logging
-                # log_tool_execution(
-                #     tool_name=func.__name__,
-                #     duration_ms=duration * 1000,
-                #     status="success",
-                #     input_args=json.dumps({"args": args, "kwargs": kwargs})[:500],
-                #     output_summary=str(result)[:500],
-                #     config=config
-                # )
+                # Log to SQLite using Loguru sink
+                log_tool_execution(
+                    tool_name=func.__name__,
+                    duration_ms=duration * 1000,
+                    status="success",
+                    input_args={"args": list(args), "kwargs": kwargs},
+                    output_summary=str(result)[:500]
+                )
                 
                 logger.info(f"Tool {func.__name__} completed in {duration:.3f}s")
                 logger.debug(f"Output: {str(result)[:200]}")
@@ -118,15 +117,14 @@ def tool_logger(func: T, config=None) -> T:
             except Exception as e:
                 duration = time.time() - start_time
                 
-                # TODO: Phase 2 - Implement actual SQLite logging
-                # log_tool_execution(
-                #     tool_name=func.__name__,
-                #     duration_ms=duration * 1000,
-                #     status="error",
-                #     input_args=json.dumps({"args": args, "kwargs": kwargs})[:500],
-                #     error_message=str(e)[:500],
-                #     config=config
-                # )
+                # Log error to SQLite using Loguru sink
+                log_tool_execution(
+                    tool_name=func.__name__,
+                    duration_ms=duration * 1000,
+                    status="error",
+                    input_args={"args": list(args), "kwargs": kwargs},
+                    error_message=str(e)[:500]
+                )
                 
                 logger.error(f"Tool {func.__name__} failed after {duration:.3f}s: {e}")
                 raise
