@@ -1,45 +1,69 @@
 # SAAGA Decorator Patterns in {{ cookiecutter.project_name }}
 
-This document explains the decorator patterns used in your MCP server and provides guidance on when and how to use them.
+This document explains the SAAGA decorator patterns used in your MCP server and provides guidance on the async-only patterns and parallel tool calling conventions.
 
 ## Overview
 
-Your MCP server automatically applies SAAGA decorators to all tools. These decorators provide:
-- **Exception handling**: Consistent error responses
-- **Logging**: Comprehensive execution tracking
-- **Parallelization**: Concurrent execution for suitable tools
+Your MCP server automatically applies SAAGA decorators to all tools. These decorators follow strict async-only patterns and provide:
+- **Exception handling**: SAAGA-standard error responses
+- **Logging**: Comprehensive execution tracking with SQLite persistence
+- **Parallelization**: Concurrent execution with signature transformation
 
-## The Three Decorators
+## ⚠️ IMPORTANT: Async-Only Pattern
+
+**All tools must be async functions.** SAAGA decorators only support async functions for consistency and performance.
+
+```python
+# ✅ CORRECT - Async function
+async def my_tool(param: str) -> dict:
+    return {"result": param.upper()}
+
+# ❌ INCORRECT - Sync function (will cause errors)
+def my_tool(param: str) -> dict:
+    return {"result": param.upper()}
+```
+
+## The Three SAAGA Decorators
 
 ### 1. Exception Handler (Applied to ALL tools)
 
-The exception handler ensures consistent error handling across all tools:
+The exception handler ensures consistent SAAGA-format error handling:
 
 ```python
 @exception_handler
-def my_tool(param: str) -> dict:
+async def my_tool(param: str) -> dict:
     if not param:
         raise ValueError("Parameter required")
     return {"result": param.upper()}
 ```
 
+**SAAGA Error Format:**
+```python
+{
+    "Status": "Exception",
+    "Message": "Parameter required",
+    "ExceptionType": "ValueError",
+    "Traceback": "Full stack trace..."
+}
+```
+
 **What it does:**
 - Catches any exception thrown by your tool
-- Returns a structured error response that MCP clients understand
+- Returns SAAGA-standard error response format
 - Logs the error with full stack trace
 - Your tool can raise exceptions freely
 
 ### 2. Tool Logger (Applied to ALL tools)
 
-Tracks execution metrics and logs all tool invocations:
+Tracks execution metrics and logs all tool invocations to SQLite database:
 
 ```python
 # Automatically applied - you don't need to do anything
-def my_tool(param: str) -> dict:
+async def my_tool(param: str) -> dict:
     # Logger tracks:
     # - Start time
-    # - Input parameters
-    # - Execution duration
+    # - Input parameters (JSON serialized)
+    # - Execution duration (milliseconds)
     # - Output (summarized)
     # - Any errors
     return {"result": "processed"}
@@ -54,7 +78,59 @@ def my_tool(param: str) -> dict:
 
 ### 3. Parallelize (Applied ONLY to specific tools)
 
-**⚠️ IMPORTANT**: This decorator is only applied to tools in the `parallel_example_tools` list.
+**⚠️ IMPORTANT**: This decorator is only applied to tools in the `parallel_example_tools` list and **transforms the function signature**.
+
+## 🔄 Signature Transformation
+
+The parallelize decorator transforms your function signature:
+
+```python
+# Your original function (single item processing)
+async def process_item(item: str, operation: str = "upper") -> str:
+    if operation == "upper":
+        return item.upper()
+    elif operation == "lower":
+        return item.lower()
+    else:
+        raise ValueError(f"Unknown operation: {operation}")
+
+# After parallelize decorator, the signature becomes:
+# async def process_item(kwargs_list: List[Dict]) -> List[str]
+```
+
+## 📞 How to Call Parallel Tools
+
+### In MCP Inspector or Client:
+```python
+# Call parallel tool with List[Dict] format
+result = await process_item([
+    {"item": "hello", "operation": "upper"},
+    {"item": "world", "operation": "lower"}, 
+    {"item": "test", "operation": "upper"}
+])
+
+# Returns: ["HELLO", "world", "TEST"]
+```
+
+### Error Handling in Parallel Tools:
+```python
+# If one item fails, it returns SAAGA error format
+result = await process_item([
+    {"item": "hello", "operation": "upper"},
+    {"item": "world", "operation": "invalid"}  # This will fail
+])
+
+# Returns: 
+# [
+#   "HELLO",
+#   {
+#     "Status": "Exception",
+#     "Message": "Unknown operation: invalid",
+#     "ExceptionType": "ValueError",
+#     "Index": 1
+#   }
+# ]
+```
 
 ## When to Use the Parallelize Decorator
 
@@ -64,38 +140,34 @@ The parallelize decorator is **NOT** suitable for all tools. Use it ONLY when:
 
 1. **Batch Processing Tools**
    ```python
-   def process_batch_data(items: List[str]) -> List[dict]:
-       """Process multiple independent items."""
-       results = []
-       for item in items:
-           # Each item processed independently
-           results.append(expensive_computation(item))
-       return results
+   async def process_single_item(item: str) -> dict:
+       """Process one item - will be parallelized automatically."""
+       return {"processed": expensive_computation(item)}
    ```
 
 2. **Independent Computations**
    ```python
-   def analyze_documents(doc_ids: List[str]) -> List[dict]:
-       """Analyze multiple documents independently."""
-       return [analyze_single_doc(doc_id) for doc_id in doc_ids]
+   async def analyze_document(doc_id: str) -> dict:
+       """Analyze one document - will be parallelized automatically."""
+       return analyze_single_doc(doc_id)
    ```
 
 3. **Parallel API Calls**
    ```python
-   def fetch_multiple_resources(urls: List[str]) -> List[dict]:
-       """Fetch multiple URLs in parallel."""
-       return [fetch_url(url) for url in urls]
+   async def fetch_resource(url: str) -> dict:
+       """Fetch one URL - will be parallelized automatically."""
+       return await fetch_url(url)
    ```
 
 ### ❌ Bad Candidates for Parallelization
 
 1. **Sequential Operations**
    ```python
-   def sequential_process(data: str) -> str:
+   async def sequential_process(data: str) -> str:
        """Operations that depend on order."""
-       step1 = process_step1(data)
-       step2 = process_step2(step1)  # Depends on step1
-       return process_step3(step2)   # Depends on step2
+       step1 = await process_step1(data)
+       step2 = await process_step2(step1)  # Depends on step1
+       return await process_step3(step2)   # Depends on step2
    ```
 
 2. **Shared State Operations**

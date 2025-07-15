@@ -62,7 +62,7 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
     # Register regular tools with SAAGA decorators
     for tool_func in example_tools:
         # Apply SAAGA decorator chain: exception_handler → tool_logger
-        decorated_func = exception_handler(tool_logger(tool_func, config))
+        decorated_func = exception_handler(tool_logger(tool_func, config.__dict__))
         
         # Extract metadata from the original function
         tool_name = tool_func.__name__
@@ -81,7 +81,7 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
     # Register parallel tools with SAAGA decorators  
     for tool_func in parallel_example_tools:
         # Apply SAAGA decorator chain: exception_handler → tool_logger → parallelize
-        decorated_func = exception_handler(tool_logger(parallelize(tool_func), config))
+        decorated_func = exception_handler(tool_logger(parallelize(tool_func), config.__dict__))
         
         # Extract metadata
         tool_name = tool_func.__name__

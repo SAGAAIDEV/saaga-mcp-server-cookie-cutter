@@ -19,7 +19,7 @@ from typing import List, Dict, Any, Optional
 {% if cookiecutter.include_example_tools == "yes" -%}
 
 
-def echo_tool(message: str) -> str:
+async def echo_tool(message: str) -> str:
     """Echo back the input message.
     
     This is a simple example tool that demonstrates basic MCP tool functionality.
@@ -35,7 +35,7 @@ def echo_tool(message: str) -> str:
     return f"Echo: {message}"
 
 
-def get_time() -> str:
+async def get_time() -> str:
     """Get the current time.
     
     Returns the current time in a human-readable format.
@@ -46,7 +46,7 @@ def get_time() -> str:
     return f"Current time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
 
 
-def random_number(min_value: int = 1, max_value: int = 100) -> Dict[str, Any]:
+async def random_number(min_value: int = 1, max_value: int = 100) -> Dict[str, Any]:
     """Generate a random number within a specified range.
     
     Args:
@@ -67,7 +67,7 @@ def random_number(min_value: int = 1, max_value: int = 100) -> Dict[str, Any]:
     }
 
 
-def calculate_fibonacci(n: int) -> Dict[str, Any]:
+async def calculate_fibonacci(n: int) -> Dict[str, Any]:
     """Calculate the nth Fibonacci number.
     
     This is a more computationally intensive example that demonstrates
@@ -102,47 +102,42 @@ def calculate_fibonacci(n: int) -> Dict[str, Any]:
 
 
 {% if cookiecutter.include_parallel_example == "yes" -%}
-def process_batch_data(items: List[str], operation: str = "upper") -> List[Dict[str, Any]]:
-    """Process a batch of data items.
+async def process_batch_data(item: str, operation: str = "upper") -> Dict[str, Any]:
+    """Process a single data item.
     
     This is an example of a tool that benefits from parallelization.
     It will be automatically decorated with the parallelize decorator
-    in addition to exception handling and logging.
+    which transforms it to accept List[Dict] for batch processing.
     
     Args:
-        items: List of strings to process
+        item: String to process
         operation: Operation to perform ('upper', 'lower', 'reverse')
         
     Returns:
-        List of processed items with metadata
+        Processed item with metadata
     """
-    results = []
+    # Simulate some processing time
+    import asyncio
+    await asyncio.sleep(0.1)
     
-    for i, item in enumerate(items):
-        # Simulate some processing time
-        time.sleep(0.1)
-        
-        if operation == "upper":
-            processed = item.upper()
-        elif operation == "lower":
-            processed = item.lower()
-        elif operation == "reverse":
-            processed = item[::-1]
-        else:
-            raise ValueError(f"Unknown operation: {operation}")
-        
-        results.append({
-            "index": i,
-            "original": item,
-            "processed": processed,
-            "operation": operation,
-            "timestamp": time.time()
-        })
+    if operation == "upper":
+        processed = item.upper()
+    elif operation == "lower":
+        processed = item.lower()
+    elif operation == "reverse":
+        processed = item[::-1]
+    else:
+        raise ValueError(f"Unknown operation: {operation}")
     
-    return results
+    return {
+        "original": item,
+        "processed": processed,
+        "operation": operation,
+        "timestamp": time.time()
+    }
 
 
-def simulate_heavy_computation(complexity: int = 5) -> Dict[str, Any]:
+async def simulate_heavy_computation(complexity: int = 5) -> Dict[str, Any]:
     """Simulate a heavy computation task.
     
     This tool demonstrates parallelization benefits by performing
@@ -161,13 +156,14 @@ def simulate_heavy_computation(complexity: int = 5) -> Dict[str, Any]:
     
     # Simulate heavy computation
     result = 0
-    iterations = complexity * 1000000
+    iterations = complexity * 100000  # Reduced for async context
     
     for i in range(iterations):
         result += i * 2
-        if i % 100000 == 0:
-            # Simulate some I/O or complex calculation
-            time.sleep(0.001)
+        if i % 10000 == 0:
+            # Yield control to allow other tasks to run
+            import asyncio
+            await asyncio.sleep(0.001)
     
     computation_time = time.time() - start_time
     
@@ -214,7 +210,7 @@ parallel_example_tools = []
 {% endif -%}
 
 
-def get_tool_info() -> Dict[str, Any]:
+async def get_tool_info() -> Dict[str, Any]:
     """Get information about available tools.
     
     Returns:
@@ -233,19 +229,24 @@ def get_tool_info() -> Dict[str, Any]:
 
 if __name__ == "__main__":
     # Test tools functionality
-    print("Tool Information:")
-    print(get_tool_info())
+    import asyncio
     
-    {% if cookiecutter.include_example_tools == "yes" -%}
-    print("\nTesting example tools:")
-    print(echo_tool("Hello, World!"))
-    print(get_time())
-    print(random_number(1, 10))
-    print(calculate_fibonacci(10))
+    async def test_tools():
+        print("Tool Information:")
+        print(await get_tool_info())
+        
+        {% if cookiecutter.include_example_tools == "yes" -%}
+        print("\nTesting example tools:")
+        print(await echo_tool("Hello, World!"))
+        print(await get_time())
+        print(await random_number(1, 10))
+        print(await calculate_fibonacci(10))
+        
+        {% if cookiecutter.include_parallel_example == "yes" -%}
+        print("\nTesting parallel tools (individual calls):")
+        print(await process_batch_data("hello", "upper"))
+        print(await simulate_heavy_computation(2))
+        {% endif -%}
+        {% endif -%}
     
-    {% if cookiecutter.include_parallel_example == "yes" -%}
-    print("\nTesting parallel tools:")
-    print(process_batch_data(["hello", "world"], "upper"))
-    print(simulate_heavy_computation(2))
-    {% endif -%}
-    {% endif -%}
+    asyncio.run(test_tools())
