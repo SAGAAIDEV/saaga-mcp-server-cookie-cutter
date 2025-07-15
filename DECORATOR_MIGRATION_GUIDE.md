@@ -1,14 +1,25 @@
 # SAAGA Decorator Migration Guide
 
-This guide provides complete implementation patterns for aligning decorator implementations with SAAGA base patterns while preserving SQLite logging functionality.
+## Executive Summary
 
-## Overview
+This guide provides a comprehensive plan to transition the cookie cutter template's decorator implementation from the current approach to match the SAAGA base implementation patterns. The migration preserves internal functionality while aligning external interfaces with SAAGA standards.
 
-The SAAGA decorator patterns follow these key principles:
-- **Async-only**: All decorators and tools must be async functions
-- **Standard Error Format**: Consistent error response structure
-- **Signature Transformation**: Parallel tools accept `List[Dict]` parameters
-- **Chaining Order**: `exception_handler` → `tool_logger` → `parallelize`
+## Key Architectural Changes
+
+### 1. **Async-Only Pattern**
+- **Current**: Decorators support both sync and async functions
+- **SAAGA**: All decorators are async-only
+- **Impact**: All MCP tools must be converted to async functions
+
+### 2. **Signature Transformation for Parallelization**
+- **Current**: Decorators preserve original function signatures
+- **SAAGA**: Parallelize decorator transforms signatures to accept `List[Dict[str, Any]]`
+- **Impact**: Parallel tools will have completely different calling conventions
+
+### 3. **Error Response Format**
+- **Current**: `{"error": True, "error_type": "...", "error_message": "...", "tool": "..."}`
+- **SAAGA**: `{"Status": "Exception", "Message": "...", "ExceptionType": "...", "Traceback": "..."}`
+- **Impact**: Error handling consistency across all tools
 
 ## Complete Decorator Implementations
 
