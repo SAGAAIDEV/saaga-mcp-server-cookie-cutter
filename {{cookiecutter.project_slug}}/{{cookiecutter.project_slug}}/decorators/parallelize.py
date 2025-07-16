@@ -6,13 +6,14 @@ for parallel execution following SAAGA standards:
 - Signature transformation: func(args) → func(kwargs_list: List[Dict])
 - Batch processing support
 - Integration with SAAGA logging and error handling
+- Fail-fast behavior: if any item fails, the entire batch fails
 
 Features:
 - Automatic parallelization of compatible tools
 - Signature transformation for batch processing
 - Concurrent execution with asyncio.gather
-- Error handling for individual batch items
-- Graceful degradation for unsupported operations
+- Fail-fast error handling (SAAGA standard)
+- Type validation for input parameters
 
 Usage:
     @parallelize
@@ -26,8 +27,9 @@ Usage:
 
 import asyncio
 from functools import wraps
-from typing import Callable, Any, Awaitable, List, Dict
+from typing import Callable, Any, Awaitable, List, Dict, Union
 import logging
+import inspect
 
 logger = logging.getLogger(__name__)
 
@@ -40,19 +42,33 @@ def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], A
     To:
         async def func(kwargs_list: List[Dict]) -> List[str]
     
+    Uses fail-fast behavior: if any task fails, the entire batch fails immediately.
+    This maintains SAAGA compatibility and prevents partial results.
+    
+    The decorator preserves the original function's parameter information for
+    better introspection and documentation, while transforming the execution
+    signature to accept batch parameters.
+    
     Args:
         func: The async function to decorate
         
     Returns:
         The decorated function that accepts List[Dict] and returns List[results]
+        
+    Raises:
+        TypeError: If kwargs_list is not a List[Dict]
+        Exception: Any exception from the first failing task (fail-fast)
     """
+    
+    # Store original function signature for introspection
+    original_signature = inspect.signature(func)
     
     @wraps(func)
     async def wrapper(kwargs_list: List[Dict]) -> List[Any]:
         """Execute function in parallel for each kwargs dict."""
         
         if not isinstance(kwargs_list, list):
-            raise ValueError("Parallel tools require List[Dict] parameter")
+            raise TypeError("Parallel tools require List[Dict] parameter")
         
         if not kwargs_list:
             logger.warning(f"Empty kwargs_list provided to {func.__name__}")
@@ -63,12 +79,16 @@ def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], A
         # Validate all items are dictionaries
         for i, kwargs in enumerate(kwargs_list):
             if not isinstance(kwargs, dict):
-                raise ValueError(f"Item {i} in kwargs_list must be a dict, got {type(kwargs).__name__}")
+                raise TypeError(f"Item {i} in kwargs_list must be a dict, got {type(kwargs).__name__}")
         
         # Execute all calls concurrently
         tasks = []
         for i, kwargs in enumerate(kwargs_list):
             try:
+                # Validate parameters against original function signature
+                bound_args = original_signature.bind(**kwargs)
+                bound_args.apply_defaults()
+                
                 task = func(**kwargs)
                 tasks.append(task)
             except Exception as e:
@@ -77,22 +97,13 @@ def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], A
                     raise e
                 tasks.append(failed_task())
         
-        # Wait for all tasks to complete
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        # Wait for all tasks to complete - SAAGA fail-fast behavior
+        results = await asyncio.gather(*tasks)
         
-        # Convert exceptions to error format for consistency
-        processed_results = []
-        for i, result in enumerate(results):
-            if isinstance(result, Exception):
-                processed_results.append({
-                    "Status": "Exception",
-                    "Message": str(result),
-                    "ExceptionType": type(result).__name__,
-                    "Index": i
-                })
-            else:
-                processed_results.append(result)
-        
-        return processed_results
+        return results
+    
+    # Store original signature for introspection
+    wrapper.__original_signature__ = original_signature
+    wrapper.__original_func__ = func
     
     return wrapper
