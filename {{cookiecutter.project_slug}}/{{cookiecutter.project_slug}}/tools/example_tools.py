@@ -102,36 +102,39 @@ async def calculate_fibonacci(n: int) -> Dict[str, Any]:
 
 
 {% if cookiecutter.include_parallel_example == "yes" -%}
-async def process_batch_data(item: str, operation: str = "upper") -> Dict[str, Any]:
-    """Process a single data item.
+async def process_batch_data(items: List[str], operation: str = "upper") -> Dict[str, Any]:
+    """Process a batch of data items.
     
     This is an example of a tool that benefits from parallelization.
     It will be automatically decorated with the parallelize decorator
-    which transforms it to accept List[Dict] for batch processing.
+    in addition to exception handling and logging.
     
     Args:
-        item: String to process
+        items: List of strings to process
         operation: Operation to perform ('upper', 'lower', 'reverse')
         
     Returns:
-        Processed item with metadata
+        Processed items with metadata
     """
     # Simulate some processing time
     import asyncio
     await asyncio.sleep(0.1)
     
-    if operation == "upper":
-        processed = item.upper()
-    elif operation == "lower":
-        processed = item.lower()
-    elif operation == "reverse":
-        processed = item[::-1]
-    else:
-        raise ValueError(f"Unknown operation: {operation}")
+    processed_items = []
+    for item in items:
+        if operation == "upper":
+            processed = item.upper()
+        elif operation == "lower":
+            processed = item.lower()
+        elif operation == "reverse":
+            processed = item[::-1]
+        else:
+            raise ValueError(f"Unknown operation: {operation}")
+        processed_items.append(processed)
     
     return {
-        "original": item,
-        "processed": processed,
+        "original": items,
+        "processed": processed_items,
         "operation": operation,
         "timestamp": time.time()
     }

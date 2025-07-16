@@ -34,6 +34,65 @@ import inspect
 logger = logging.getLogger(__name__)
 
 
+def _set_parallelized_signature_and_annotations(
+    wrapper_func: Callable, 
+    param_name: str, 
+    param_annotation: Any, 
+    return_annotation: Any
+):
+    """Sets the __signature__ and __annotations__ for the wrapper function."""
+    new_param = inspect.Parameter(
+        name=param_name,
+        kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        annotation=param_annotation
+    )
+    
+    new_sig = inspect.Signature(
+        parameters=[new_param],
+        return_annotation=return_annotation
+    )
+    
+    wrapper_func.__signature__ = new_sig
+    wrapper_func.__annotations__ = {
+        param_name: param_annotation,
+        'return': return_annotation
+    }
+
+def _build_parallelized_docstring(func: Callable) -> str:
+    """Constructs the docstring for the parallelized wrapper function."""
+    original_doc = func.__doc__.strip() if func.__doc__ else "No original docstring provided."
+    func_name = func.__name__
+    
+    sig = inspect.signature(func)
+    params = []
+    for name, param in sig.parameters.items():
+        if param.annotation != inspect.Parameter.empty:
+            params.append(f"{name}: {param.annotation}")
+        else:
+            params.append(name)
+    params_str = ", ".join(params)
+
+    return f"""Parallelized version of `{func_name}`.
+
+This function accepts a list of keyword argument dictionaries and executes
+`{func_name}` concurrently for each set of arguments.
+
+Original function signature: {func_name}({params_str})
+
+Args:
+    kwargs_list (List[Dict[str, Any]]): A list of dictionaries, where each
+                                      dictionary provides the keyword arguments
+                                      for a single call to `{func_name}`.
+
+Returns:
+    List[Any]: A list containing the results of each call to `{func_name}`,
+               in the same order as the input `kwargs_list`.
+
+Original docstring:
+{original_doc}
+"""
+
+
 def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], Awaitable[List[Any]]]:
     """Decorator to enable parallel execution of MCP tools - SAAGA Pattern.
     
@@ -102,8 +161,13 @@ def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], A
         
         return results
     
-    # Store original signature for introspection
-    wrapper.__original_signature__ = original_signature
-    wrapper.__original_func__ = func
+    # Update the docstring and signature for the wrapper function
+    wrapper.__doc__ = _build_parallelized_docstring(func)
+    _set_parallelized_signature_and_annotations(
+        wrapper_func=wrapper,
+        param_name="kwargs_list",
+        param_annotation=List[Dict[str, Any]],
+        return_annotation=List[Any]
+    )
     
     return wrapper

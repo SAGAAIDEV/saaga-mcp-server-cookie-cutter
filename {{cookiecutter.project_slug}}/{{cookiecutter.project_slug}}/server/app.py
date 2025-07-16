@@ -66,13 +66,11 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
         
         # Extract metadata from the original function
         tool_name = tool_func.__name__
-        tool_description = tool_func.__doc__ or f"{tool_name} - No description provided"
         
         # Register the decorated function directly with MCP
         # This preserves the function signature for parameter introspection
         mcp_server.tool(
-            name=tool_name,
-            description=tool_description
+            name=tool_name
         )(decorated_func)
         
         logger.info(f"Registered tool: {tool_name}")
@@ -85,12 +83,10 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
         
         # Extract metadata
         tool_name = tool_func.__name__
-        tool_description = tool_func.__doc__ or f"{tool_name} - No description provided"
         
         # Register directly with MCP
         mcp_server.tool(
-            name=tool_name,
-            description=tool_description
+            name=tool_name
         )(decorated_func)
         
         logger.info(f"Registered parallel tool: {tool_name}")
