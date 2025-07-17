@@ -85,6 +85,8 @@ uv run python -m {{cookiecutter.project_slug}}.server.app --log-level DEBUG
 
 # Run the server directly
 uv run python {{cookiecutter.project_slug}}/server/app.py
+
+uv run {{ cookiecutter.project_slug }}-server
 ```
 
 #### 2. SSE Mode (for web-based clients)
