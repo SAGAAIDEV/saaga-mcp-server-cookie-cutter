@@ -101,7 +101,7 @@ Use the example server as a reference when building your own MCP tools to unders
 - Configuration management best practices
 - Logging and error handling approaches
 
-For detailed information about the decorator patterns, see [DECORATOR_PATTERNS.md](DECORATOR_PATTERNS.md). This documentation is also included in every generated project.
+For detailed information about the decorator patterns, see [DECORATOR_PATTERNS.md](docs/DECORATOR_PATTERNS.md). This documentation is also included in every generated project.
 
 ## Generated Project Structure
 
@@ -258,6 +258,34 @@ cookiecutter . --no-input
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
+## For Template Developers
+
+If you're working on improving or maintaining this cookiecutter template, please note:
+
+### 🚨 Critical Architecture Decisions
+
+1. **SAAGA Decorators are Core**: The decorator pattern is fundamental to this template. Changes to decorator behavior will impact all generated projects.
+
+2. **Async-Only Pattern**: All decorators require async functions. This is a SAAGA standard that must be maintained.
+
+3. **Signature Transformation**: The `parallelize` decorator intentionally transforms function signatures. This enables batch processing but requires careful handling.
+
+4. **Registration Pattern**: Tools are registered via lists (`example_tools`, `parallel_example_tools`) rather than decorators. This allows proper decorator chaining.
+
+### 📚 Technical Documentation
+
+For detailed technical information about the decorator implementation:
+- See [docs/DECORATOR_PATTERNS.md](docs/DECORATOR_PATTERNS.md) for implementation details
+- Review `example_server/` for a working reference implementation
+- Check the generated project's documentation to understand end-user experience
+
+### ⚠️ Before Making Changes
+
+1. **Understand the current pattern**: The decorator chain order matters
+2. **Test with MCP Inspector**: Ensure parameter introspection still works
+3. **Verify signature transformation**: Parallel tools must show `kwargs_list: List[Dict]`
+4. **Update all documentation**: Both template and generated project docs
+
 ## Architecture
 
 ### MCP Server Lifecycle
@@ -271,49 +299,57 @@ MCP servers are launched by MCP clients (Claude Desktop, Cursor, etc.) through c
 
 ### Decorator Application Pattern
 
+The template automatically applies SAAGA decorators to all tools during server initialization. Here's the actual pattern used:
+
 ```python
-def create_decorated_server(name, tools, parallel_tools):
-    server = FastMCP(name)
-    
-    # Regular tools: exception_handler → tool_logger
-    for func in tools:
-        decorated = exception_handler(func)
-        decorated = tool_logger(decorated)
-        server.tool()(decorated)
-    
-    # Parallel tools: exception_handler → tool_logger → parallelize
-    for func in parallel_tools:
-        decorated = exception_handler(func)
-        decorated = tool_logger(decorated)
-        decorated = parallelize(decorated)
-        server.tool()(decorated)
-    
-    return server
+# From server/app.py - How decorators are applied
+for tool_func in example_tools:
+    # Apply SAAGA decorator chain: exception_handler → tool_logger
+    decorated_func = exception_handler(tool_logger(tool_func, config.__dict__))
+    mcp_server.tool(name=tool_func.__name__)(decorated_func)
+
+for tool_func in parallel_example_tools:
+    # Apply SAAGA decorator chain: exception_handler → tool_logger → parallelize
+    decorated_func = exception_handler(tool_logger(parallelize(tool_func), config.__dict__))
+    mcp_server.tool(name=tool_func.__name__)(decorated_func)
 ```
+
+**⚠️ Important**: All SAAGA decorators require async functions. The parallel decorator also transforms the function signature.
 
 ## Examples
 
 ### Basic MCP Tool
 
-```python
-from your_project.server.app import server
+Tools are defined as async functions and automatically decorated when added to the `example_tools` list:
 
-@server.tool
-def example_tool(message: str) -> str:
+```python
+# In your_project/tools/my_tools.py
+async def example_tool(message: str) -> str:
     """Example MCP tool with automatic decorators."""
     return f"Processed: {message}"
+
+# Add to example_tools list to register
+example_tools = [example_tool]
 ```
 
 ### Parallel Processing Tool
 
-```python
-from your_project.server.app import server
+Parallel tools must be async and will have their signature transformed to accept `List[Dict]`:
 
-@server.tool
-def compute_intensive_tool(data: list) -> list:
-    """Tool that will be automatically parallelized."""
-    # This tool will be wrapped with the parallelize decorator
-    return [expensive_computation(item) for item in data]
+```python
+# Original function definition
+async def process_item(item: str, operation: str = "upper") -> str:
+    """Process a single item - will be parallelized."""
+    if operation == "upper":
+        return item.upper()
+    elif operation == "lower":
+        return item.lower()
+
+# Add to parallel_example_tools list
+parallel_example_tools = [process_item]
+
+# After decoration, MCP clients call it with:
+# [{"item": "hello", "operation": "upper"}, {"item": "world", "operation": "lower"}]
 ```
 
 ## License
@@ -324,4 +360,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [FastMCP](https://github.com/jlowin/fastmcp) for the excellent MCP framework
 - [Cookiecutter](https://github.com/cookiecutter/cookiecutter) for the templating system
-- [SAAGA](https://github.com/SAGAAIDEV) for the decorator patterns
