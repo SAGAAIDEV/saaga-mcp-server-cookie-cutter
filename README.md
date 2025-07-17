@@ -93,6 +93,8 @@ mcp dev test_asep40_server/server/app.py
 python -m test_asep40_server.server.app
 ```
 
+For detailed testing instructions and examples for each tool in the MCP Inspector, see [MCP_INSPECTOR_TEST_GUIDE.md](docs/MCP_INSPECTOR_TEST_GUIDE.md).
+
 Use the example server as a reference when building your own MCP tools to understand:
 - How decorators preserve function signatures
 - Proper tool registration patterns
