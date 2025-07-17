@@ -160,6 +160,19 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 }
 ```
 
+#### Using with uv tool
+
+```json
+{
+  "mcpServers": {
+    "{{cookiecutter.project_slug}}": {
+      "command": "uv",
+      "args": ["--directory=/path/to/{{cookiecutter.project_slug}}", "run" ,"{{ cookiecutter.project_slug }}-server"]
+    }
+  }
+}
+```
+
 #### Configuration File Locations
 
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
