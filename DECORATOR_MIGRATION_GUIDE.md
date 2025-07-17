@@ -21,389 +21,313 @@ This guide provides a comprehensive plan to transition the cookie cutter templat
 - **SAAGA**: `{"Status": "Exception", "Message": "...", "ExceptionType": "...", "Traceback": "..."}`
 - **Impact**: Error handling consistency across all tools
 
-## Migration Steps
+## Complete Decorator Implementations
 
-### Step 1: Update Exception Handler Decorator
-
-**File**: `{{cookiecutter.project_slug}}/decorators/exception_handler.py`
+### 1. Exception Handler (SAAGA Pattern)
 
 ```python
-import functools
+"""Exception handling decorator for MCP tools - SAAGA Pattern.
+
+This decorator provides graceful error handling following SAAGA standards:
+- Async-only pattern
+- Standard SAAGA error response format
+- Full traceback preservation
+"""
+
+import asyncio
+from functools import wraps
+from typing import Callable, Any, Awaitable
+import logging
 import traceback
-from typing import Any, Callable, Dict, TypeVar, cast
 
-T = TypeVar("T", bound=Callable[..., Any])
+logger = logging.getLogger(__name__)
 
-def exception_handler(func: T) -> T:
-    """SAAGA-compatible exception handler decorator.
+
+def exception_handler(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
+    """Decorator to handle exceptions in MCP tools gracefully - SAAGA Pattern.
     
-    Async-only decorator that catches exceptions and returns
-    standardized error responses.
+    Args:
+        func: The async function to decorate
+        
+    Returns:
+        The decorated async function with exception handling
     """
-    @functools.wraps(func)
-    async def wrapper(*args: Any, **kwargs: Any) -> Any:
+    
+    @wraps(func)
+    async def wrapper(*args, **kwargs) -> Any:
         try:
             return await func(*args, **kwargs)
         except Exception as e:
+            # Log the full traceback for debugging
             tb_str = traceback.format_exc()
-            logger.exception(tb_str)
-            error_return = {
+            logger.error(f"Exception in {func.__name__}: {tb_str}")
+            
+            # Return SAAGA-format error response
+            return {
                 "Status": "Exception",
                 "Message": str(e),
                 "ExceptionType": type(e).__name__,
-                "Traceback": tb_str,
+                "Traceback": tb_str
             }
-            return error_return
     
-    return cast(T, wrapper)
+    return wrapper
 ```
 
-### Step 2: Update Tool Logger Decorator
-
-**File**: `{{cookiecutter.project_slug}}/decorators/tool_logger.py`
+### 2. Tool Logger (SAAGA Pattern with SQLite)
 
 ```python
-import functools
+"""Tool logging decorator for MCP tools - SAAGA Pattern.
+
+This decorator provides comprehensive logging following SAAGA standards:
+- Async-only pattern
+- SQLite database integration
+- Performance timing
+- Input/output logging
+"""
+
+import asyncio
 import time
-from typing import Any, Callable, TypeVar, cast
-from {{cookiecutter.project_slug}}.decorators.sqlite_logger import log_tool_execution
+from functools import wraps
+from typing import Callable, Any, Awaitable
+import logging
+import json
 
-T = TypeVar("T", bound=Callable[..., Any])
+from .sqlite_logger import log_tool_execution
 
-def tool_logger(func: T, config=None) -> T:
-    """SAAGA-compatible tool logger with preserved SQLite functionality.
+logger = logging.getLogger(__name__)
+
+
+def tool_logger(func: Callable[..., Awaitable[Any]], config: dict = None) -> Callable[..., Awaitable[Any]]:
+    """Decorator to log MCP tool execution - SAAGA Pattern.
     
-    Maintains internal SQLite logging while conforming to SAAGA's
-    async-only pattern.
-    """
-    @functools.wraps(func)
-    async def wrapper(*args: Any, **kwargs: Any) -> Any:
-        start_time = time.time()
+    Args:
+        func: The async function to decorate
+        config: Optional configuration dictionary
         
-        # Add tool context for logging
-        logger.info(f"Executing tool: {func.__name__}")
-        logger.debug(f"Input args: {args}, kwargs: {kwargs}")
+    Returns:
+        The decorated async function with logging
+    """
+    
+    @wraps(func)
+    async def wrapper(*args, **kwargs) -> Any:
+        start_time = time.time()
+        tool_name = func.__name__
+        
+        # Log input parameters (sanitized)
+        try:
+            input_args = json.dumps({"args": args, "kwargs": kwargs}, default=str)
+        except Exception:
+            input_args = f"args={len(args)}, kwargs={len(kwargs)}"
+        
+        logger.info(f"Starting tool: {tool_name}")
         
         try:
-            # Execute the async function
             result = await func(*args, **kwargs)
-            duration = time.time() - start_time
+            duration_ms = int((time.time() - start_time) * 1000)
             
-            # Log to SQLite (preserve our enhanced logging)
+            # Log successful execution
+            try:
+                output_summary = str(result)[:200] + "..." if len(str(result)) > 200 else str(result)
+            except Exception:
+                output_summary = f"<{type(result).__name__}>"
+            
+            # Log to SQLite database
             log_tool_execution(
-                tool_name=func.__name__,
-                duration_ms=duration * 1000,
+                tool_name=tool_name,
+                duration_ms=duration_ms,
                 status="success",
-                input_args={"args": list(args), "kwargs": kwargs},
-                output_summary=str(result)[:500]
+                input_args=input_args,
+                output_summary=output_summary,
+                error_message=None
             )
             
-            logger.info(f"Tool {func.__name__} completed in {duration:.3f}s")
+            logger.info(f"Completed tool: {tool_name} in {duration_ms}ms")
             return result
             
         except Exception as e:
-            duration = time.time() - start_time
+            duration_ms = int((time.time() - start_time) * 1000)
             
-            # Log error to SQLite
+            # Log failed execution
             log_tool_execution(
-                tool_name=func.__name__,
-                duration_ms=duration * 1000,
+                tool_name=tool_name,
+                duration_ms=duration_ms,
                 status="error",
-                input_args={"args": list(args), "kwargs": kwargs},
-                error_message=str(e)[:500]
+                input_args=input_args,
+                output_summary=None,
+                error_message=str(e)
             )
             
-            logger.error(f"Tool {func.__name__} failed after {duration:.3f}s: {e}")
-            raise  # Re-raise for exception_handler to catch
+            logger.error(f"Tool {tool_name} failed after {duration_ms}ms: {e}")
+            raise  # Re-raise for exception_handler
     
-    return cast(T, wrapper)
+    return wrapper
 ```
 
-### Step 3: Implement SAAGA Parallelize Decorator
-
-**File**: `{{cookiecutter.project_slug}}/decorators/parallelize.py`
+### 3. Parallelize Decorator (SAAGA Pattern)
 
 ```python
+"""Parallelization decorator for MCP tools - SAAGA Pattern.
+
+This decorator transforms function signatures to accept List[Dict] parameters
+for parallel execution following SAAGA standards:
+- Async-only pattern
+- Signature transformation: func(args) → func(kwargs_list: List[Dict])
+- Batch processing support
+"""
+
 import asyncio
-import functools
-import inspect
-from typing import Any, Callable, Coroutine, Dict, List, TypeVar, cast, get_type_hints
+from functools import wraps
+from typing import Callable, Any, Awaitable, List, Dict
+import logging
 
-T = TypeVar("T", bound=Callable[..., Coroutine[Any, Any, Any]])
+logger = logging.getLogger(__name__)
 
-def _get_original_param_details(func: Callable) -> str:
-    """Helper to format original parameter details for the docstring."""
-    original_params_list = []
-    try:
-        sig = inspect.signature(func)
-        try:
-            type_hints = get_type_hints(func)
-        except Exception:
-            type_hints = {}
 
-        for name, param in sig.parameters.items():
-            annotation_display = "Any"
-            if name in type_hints:
-                hint = type_hints[name]
-                annotation_display = str(hint).replace('typing.', '')
-            elif param.annotation is not inspect.Parameter.empty:
-                annotation_display = str(param.annotation).replace('typing.', '')
-            
-            original_params_list.append(f" - `{name}: {annotation_display}`")
-    except (ValueError, TypeError):
-        pass
+def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], Awaitable[List[Any]]]:
+    """Decorator to enable parallel execution of MCP tools - SAAGA Pattern.
     
-    return "\\n".join(original_params_list) if original_params_list else " - No parameters"
-
-def parallelize(func: T) -> T:
-    """SAAGA parallelize decorator that transforms function signatures.
+    Transforms function signature from:
+        async def func(param1: str, param2: int) -> str
+    To:
+        async def func(kwargs_list: List[Dict]) -> List[str]
     
-    Transforms a function to accept a list of keyword argument dictionaries
-    and executes them in parallel using asyncio.gather().
-    
-    Example:
-        Original: async def process(item: str, operation: str) -> str
-        After decoration: async def process(kwargs_list: List[Dict[str, Any]]) -> List[Any]
+    Args:
+        func: The async function to decorate
         
-        Call as: results = await process([
-            {"item": "apple", "operation": "upper"},
-            {"item": "banana", "operation": "upper"}
-        ])
+    Returns:
+        The decorated function that accepts List[Dict] and returns List[results]
     """
     
-    @functools.wraps(func)
-    async def wrapper(kwargs_list: List[Dict[str, Any]]) -> List[Any]:
-        """Execute function in parallel with multiple parameter sets.
+    @wraps(func)
+    async def wrapper(kwargs_list: List[Dict]) -> List[Any]:
+        """Execute function in parallel for each kwargs dict."""
         
-        Args:
-            kwargs_list: List of dictionaries containing keyword arguments
-                        for each parallel execution.
-                        
-        Returns:
-            List of results in the same order as the input list.
-            
-        Raises:
-            TypeError: If kwargs_list is not a list or contains non-dict items.
-        """
-        # Validate input
         if not isinstance(kwargs_list, list):
-            raise TypeError(
-                f"Expected list of dicts, got {type(kwargs_list).__name__}. "
-                f"Original function parameters:\\n{_get_original_param_details(func)}"
-            )
+            raise ValueError("Parallel tools require List[Dict] parameter")
         
-        for i, kwargs in enumerate(kwargs_list):
+        logger.info(f"Parallel execution of {func.__name__} with {len(kwargs_list)} items")
+        
+        # Execute all calls concurrently
+        tasks = []
+        for kwargs in kwargs_list:
             if not isinstance(kwargs, dict):
-                raise TypeError(
-                    f"Expected dict at index {i}, got {type(kwargs).__name__}. "
-                    f"Original function parameters:\\n{_get_original_param_details(func)}"
-                )
+                raise ValueError("Each item in kwargs_list must be a dict")
+            task = func(**kwargs)
+            tasks.append(task)
         
-        # Create tasks for parallel execution
-        tasks = [func(**kwargs) for kwargs in kwargs_list]
+        # Wait for all tasks to complete
+        results = await asyncio.gather(*tasks, return_exceptions=True)
         
-        # Execute all tasks in parallel
-        results = await asyncio.gather(*tasks)
+        # Convert exceptions to error format for consistency
+        processed_results = []
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                processed_results.append({
+                    "Status": "Exception",
+                    "Message": str(result),
+                    "ExceptionType": type(result).__name__,
+                    "Index": i
+                })
+            else:
+                processed_results.append(result)
         
-        return results
+        return processed_results
     
-    # Update wrapper's docstring to include original parameters
-    if func.__doc__:
-        wrapper.__doc__ = (
-            f"{func.__doc__}\\n\\n"
-            f"**Parallelized Function**\\n"
-            f"Original parameters:\\n{_get_original_param_details(func)}\\n\\n"
-            f"Now accepts: kwargs_list: List[Dict[str, Any]]"
-        )
-    
-    # Preserve the original function as an attribute for introspection
-    wrapper._original_func = func
-    
-    return cast(T, wrapper)
+    return wrapper
 ```
 
-### Step 4: Convert All Tools to Async
+## Tool Migration Examples
 
-**Example conversion for existing tools:**
+### Converting Regular Tools to Async
 
+**Before (sync):**
 ```python
-# BEFORE (sync tool)
 def echo_tool(message: str) -> str:
-    """Echo back the input message."""
     return f"Echo: {message}"
+```
 
-# AFTER (async tool)
+**After (async):**
+```python
 async def echo_tool(message: str) -> str:
-    """Echo back the input message."""
     return f"Echo: {message}"
-
-# For tools with time.sleep or I/O operations
-import asyncio
-
-# BEFORE
-def process_batch_data(items: List[str], operation: str = "upper") -> List[Dict[str, Any]]:
-    results = []
-    for i, item in enumerate(items):
-        time.sleep(0.1)  # Simulate processing
-        # ... processing logic ...
-    return results
-
-# AFTER
-async def process_batch_data(items: List[str], operation: str = "upper") -> List[Dict[str, Any]]:
-    results = []
-    for i, item in enumerate(items):
-        await asyncio.sleep(0.1)  # Async sleep
-        # ... processing logic ...
-    return results
 ```
 
-### Step 5: Update Tool Registration
+### Converting Parallel Tools
 
-**File**: `{{cookiecutter.project_slug}}/server/app.py`
-
+**Before (sync, single item):**
 ```python
-def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
-    """Register tools with SAAGA decorators following SAAGA patterns."""
-    
-    # Import SAAGA decorators
-    from {{ cookiecutter.project_slug }}.decorators.exception_handler import exception_handler
-    from {{ cookiecutter.project_slug }}.decorators.tool_logger import tool_logger
-    from {{ cookiecutter.project_slug }}.decorators.parallelize import parallelize
-    
-    # Register regular tools (no parallelization)
-    for tool_func in example_tools:
-        # Apply decorator chain: exception_handler → tool_logger
-        # Order matters: exception handler is outermost
-        decorated_func = exception_handler(tool_logger(tool_func, config))
-        
-        # Register with MCP
-        mcp_server.tool(
-            name=tool_func.__name__,
-            description=tool_func.__doc__ or f"{tool_func.__name__} - No description"
-        )(decorated_func)
-        
-        logger.info(f"Registered tool: {tool_func.__name__}")
-    
-    # Register parallel tools (with signature transformation)
-    for tool_func in parallel_example_tools:
-        # Apply decorator chain: exception_handler → tool_logger → parallelize
-        # Parallelize is innermost, transforms the signature first
-        decorated_func = exception_handler(
-            tool_logger(
-                parallelize(tool_func), 
-                config
-            )
-        )
-        
-        # Update the description to indicate parallel execution
-        description = (
-            f"{tool_func.__doc__ or tool_func.__name__}\\n\\n"
-            f"**Parallel Execution**: This tool accepts a list of parameter "
-            f"dictionaries for batch processing."
-        )
-        
-        # Register with MCP
-        mcp_server.tool(
-            name=tool_func.__name__,
-            description=description
-        )(decorated_func)
-        
-        logger.info(f"Registered parallel tool: {tool_func.__name__}")
+def process_item(item: str) -> str:
+    return item.upper()
 ```
 
-### Step 6: Update Example Tools Usage
-
-**For parallel tools, update documentation and examples:**
-
+**After (async, batch processing):**
 ```python
-# Example of calling a parallelized tool
-# BEFORE: 
-# result = process_batch_data(["apple", "banana"], "upper")
+async def process_item(item: str) -> str:
+    return item.upper()
 
-# AFTER:
-result = await process_batch_data([
-    {"items": ["apple"], "operation": "upper"},
-    {"items": ["banana"], "operation": "upper"},
-    {"items": ["cherry"], "operation": "upper"}
+# Note: parallelize decorator will transform this to:
+# async def process_item(kwargs_list: List[Dict]) -> List[str]
+```
+
+## Tool Registration Updates
+
+### Regular Tools
+```python
+# Apply decorators in order: exception_handler → tool_logger
+for tool_func in regular_tools:
+    decorated_func = exception_handler(tool_logger(tool_func, config))
+    mcp_server.tool(name=tool_func.__name__)(decorated_func)
+```
+
+### Parallel Tools
+```python
+# Apply decorators in order: exception_handler → tool_logger → parallelize
+for tool_func in parallel_tools:
+    decorated_func = exception_handler(tool_logger(parallelize(tool_func), config))
+    mcp_server.tool(name=tool_func.__name__)(decorated_func)
+```
+
+## Testing Parallel Tools
+
+### MCP Inspector Usage
+```python
+# Regular tool call
+result = await echo_tool(message="Hello")
+
+# Parallel tool call (transformed signature)
+results = await process_batch_data(kwargs_list=[
+    {"item": "hello"},
+    {"item": "world"},
+    {"item": "test"}
 ])
-# Returns: [result1, result2, result3]
 ```
 
-## Testing Strategy
-
-### 1. Unit Tests for Decorators
-
+### Expected Results
 ```python
-# Test exception handler
-async def test_exception_handler():
-    @exception_handler
-    async def failing_tool():
-        raise ValueError("Test error")
-    
-    result = await failing_tool()
-    assert result["Status"] == "Exception"
-    assert result["ExceptionType"] == "ValueError"
-    assert result["Message"] == "Test error"
+# Regular tool result
+"Echo: Hello"
 
-# Test parallelize
-async def test_parallelize():
-    @parallelize
-    async def add(a: int, b: int) -> int:
-        return a + b
-    
-    results = await add([
-        {"a": 1, "b": 2},
-        {"a": 3, "b": 4},
-        {"a": 5, "b": 6}
-    ])
-    assert results == [3, 7, 11]
+# Parallel tool results
+["HELLO", "WORLD", "TEST"]
 ```
-
-### 2. MCP Inspector Testing
-
-1. Run the server with MCP Inspector
-2. Verify regular tools show normal signatures
-3. Verify parallel tools show `kwargs_list: List[Dict[str, Any]]` parameter
-4. Test calling both tool types
-5. Verify error responses match SAAGA format
-
-### 3. Integration Testing
-
-Test with actual MCP clients (Claude Desktop, etc.) to ensure:
-- Tools are discoverable
-- Parallel tools can be called with list of dicts
-- Error handling works correctly
-- Logging captures all tool executions
 
 ## Migration Checklist
 
-- [ ] Convert all tools to async functions
-- [ ] Update exception_handler.py to async-only with SAAGA error format
-- [ ] Update tool_logger.py to async-only while preserving SQLite functionality
+- [ ] Update exception_handler.py with SAAGA async-only pattern
+- [ ] Update tool_logger.py with SAAGA async-only pattern  
 - [ ] Implement parallelize.py with signature transformation
-- [ ] Update server/app.py registration logic
-- [ ] Update all tool documentation to reflect async and parallel patterns
-- [ ] Create unit tests for all decorators
-- [ ] Test with MCP Inspector
-- [ ] Test with real MCP clients
-- [ ] Update README and examples
+- [ ] Convert all example tools to async functions
+- [ ] Update tool registration logic for parallel tools
+- [ ] Test with MCP Inspector for correct signatures
+- [ ] Verify error responses match SAAGA format
+- [ ] Confirm SQLite logging still functions
+- [ ] Update documentation for new calling conventions
 
-## Important Notes
+## Breaking Changes
 
-1. **Breaking Change**: Parallel tools will have completely different signatures. Users must call them with `List[Dict]` instead of normal parameters.
+1. **All tools must be async**: No more sync function support
+2. **Parallel tool signatures**: Accept `List[Dict]` instead of individual parameters
+3. **Error format**: New SAAGA-standard error response format
+4. **Client impact**: Code calling these tools may need updates
 
-2. **Async Requirement**: All tools must be async. This may require adding `asyncio.sleep(0)` in some places just to make them async.
-
-3. **Error Format**: The new error format is more verbose but provides better debugging information with full tracebacks.
-
-4. **Performance**: The parallel decorator truly enables concurrent execution, which can significantly improve performance for batch operations.
-
-5. **Backwards Compatibility**: This is NOT backwards compatible. Existing users of tools will need to update their code.
-
-## Rollback Plan
-
-If issues arise:
-1. Keep backup of current decorator implementations
-2. The changes are isolated to decorator files and server registration
-3. Tools themselves only need async/await added
-4. Can revert decorator files and remove async keywords to restore original behavior
+This migration ensures full compatibility with SAAGA base patterns while preserving our enhanced SQLite logging functionality.
