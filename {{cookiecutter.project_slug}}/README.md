@@ -12,6 +12,21 @@ Simply tell your AI assistant: *"I have a {{cookiecutter.project_name}} project.
 
 **For detailed technical documentation**, see [docs/DECORATOR_PATTERNS.md](docs/DECORATOR_PATTERNS.md).
 
+## Testing with MCP Inspector
+
+**Ready to test your MCP server?** The [MCP Inspector Guide](docs/MCP_INSPECTOR_GUIDE.md) provides:
+
+- Step-by-step setup instructions with virtual environment troubleshooting
+- Test examples for all included tools
+- JSON mode instructions for parallel tools
+- Common issues and solutions
+
+Quick start:
+```bash
+source .venv/bin/activate
+mcp dev {{cookiecutter.project_slug}}/server/app.py
+```
+
 ## Overview
 
 This MCP server was generated using the SAAGA MCP Server Cookie Cutter template. It includes:
