@@ -6,6 +6,7 @@ This guide provides manual test examples for all tools in the SAAGA MCP Server t
 
 1. Generate a project from this template with example tools enabled:
    ```bash
+   uv tool install cookiecutter  # Install globally if needed
    cookiecutter . --no-input \
        project_name="Test Project" \
        include_example_tools="yes" \
@@ -15,9 +16,9 @@ This guide provides manual test examples for all tools in the SAAGA MCP Server t
 2. Set up and launch the MCP Inspector:
    ```bash
    cd test_project
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   pip install -e .
+   uv venv
+   source .venv/bin/activate  # Or use: uv shell
+   uv sync
    mcp dev test_project/server/app.py
    ```
 

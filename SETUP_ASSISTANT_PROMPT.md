@@ -11,7 +11,7 @@ python --version
 
 Install cookiecutter if not already installed:
 ```bash
-pip install cookiecutter
+uv tool install cookiecutter
 ```
 
 ## 2. Generate the Project
@@ -46,23 +46,16 @@ cd <your-project-slug>
 
 **IMPORTANT**: Always use a virtual environment for Python projects!
 
-On macOS/Linux:
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-```
-
-On Windows:
-```bash
-python -m venv .venv
-.venv\Scripts\activate
+uv venv
+source .venv/bin/activate  # Or use: uv shell
 ```
 
 ## 5. Install the Project
 
 Install in development mode with all dependencies:
 ```bash
-pip install -e .
+uv sync
 ```
 
 ## 6. Test the Server
@@ -135,6 +128,6 @@ To use your server with Claude Desktop, add to your Claude config:
 
 - **"kwargs" in MCP Inspector**: This means function signatures are hidden. The template should prevent this.
 - **Type errors**: Remember MCP passes all parameters as strings. Handle conversion in your tools.
-- **Import errors**: Make sure you activated the virtual environment and ran `pip install -e .`
+- **Import errors**: Make sure you activated the virtual environment and ran `uv sync`
 
 Now show me the generated project structure and explain what each part does!

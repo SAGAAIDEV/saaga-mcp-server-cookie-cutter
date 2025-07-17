@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "saaga-mcp-server-cookie-cutter"
+version = "1.0.0"
+description = "Cookie cutter template for creating MCP servers with SAAGA decorators"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    { name = "SAAGA AI Development Team", email = "dev@saaga.ai" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "cookiecutter>=2.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cookies>=0.7.0",
+    "pre-commit>=3.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "isort>=5.0.0",
+    "pyyaml>=6.0.0",
+    "click>=8.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/SAGAAIDEV/saaga-mcp-server-cookie-cutter"
+Repository = "https://github.com/SAGAAIDEV/saaga-mcp-server-cookie-cutter"
+Issues = "https://github.com/SAGAAIDEV/saaga-mcp-server-cookie-cutter/issues"
+
+[tool.uv]
+# UV-specific configuration (not for dependencies)
+
+[tool.black]
+line-length = 100
+target-version = ['py311', 'py312']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
