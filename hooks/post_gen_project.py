@@ -5,6 +5,7 @@ import os
 import sys
 import platform
 import subprocess
+import json
 from pathlib import Path
 
 
@@ -119,6 +120,78 @@ def run_uv_commands():
         print("   Then run 'uv sync' and 'uv pip install -e .' manually.")
 
 
+def install_mcp_server_config():
+    """Install the MCP server configuration into a specified JSON config file."""
+    # Access cookiecutter context
+    project_name = "{{ cookiecutter.project_name }}"
+    project_slug = "{{ cookiecutter.project_slug }}"
+    mcp_config_file_path = "{{ cookiecutter.mcp_config_file_path }}"
+    
+    # Skip if no path provided
+    if not mcp_config_file_path or mcp_config_file_path.strip() == "":
+        return
+    
+    print(f"\n🔧 Installing MCP server configuration...")
+    
+    try:
+        # Expand user path and resolve absolute path
+        config_path = Path(mcp_config_file_path).expanduser().resolve()
+        
+        # Check if file exists
+        if not config_path.exists():
+            print(f"   ⚠️  Warning: Config file not found: {config_path}")
+            print("   Skipping MCP server configuration installation.")
+            return
+        
+        # Read and parse JSON file
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config_data = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"   ⚠️  Warning: Invalid JSON in config file: {e}")
+            print("   Skipping MCP server configuration installation.")
+            return
+        
+        # Check if mcpServers key exists
+        if "mcpServers" not in config_data:
+            print(f"   ⚠️  Warning: Config file does not contain 'mcpServers' key")
+            print("   Skipping MCP server configuration installation.")
+            return
+        
+        # Get absolute project path
+        project_path = get_project_path()
+        
+        # Create the server configuration entry
+        server_config = {
+            "command": "uv",
+            "args": ["run", "--directory", project_path, f"{project_slug}-server"]
+        }
+        
+        # Check if project_slug already exists and replace/add
+        action = "Updated" if project_slug in config_data["mcpServers"] else "Added"
+        config_data["mcpServers"][project_slug] = server_config
+        
+        # Write back the updated configuration
+        try:
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(config_data, f, indent=2, ensure_ascii=False)
+            
+            print(f"   ✅ {action} '{project_slug}' server configuration in: {config_path}")
+            print(f"   📋 Configuration:")
+            print(f"      Command: uv run --directory {project_path} {project_slug}-server")
+            
+        except PermissionError:
+            print(f"   ⚠️  Warning: Permission denied writing to: {config_path}")
+            print("   You may need to manually add the server configuration.")
+        except Exception as e:
+            print(f"   ⚠️  Warning: Failed to write config file: {e}")
+            print("   You may need to manually add the server configuration.")
+            
+    except Exception as e:
+        print(f"   ⚠️  Warning: Failed to process MCP config file: {e}")
+        print("   You may need to manually add the server configuration.")
+
+
 def main():
     """Main entry point for the post-generation hook."""
     print("\n🔧 Running post-generation hook...")
@@ -132,6 +205,9 @@ def main():
     
     # Run uv commands
     run_uv_commands()
+    
+    # Install MCP server configuration if requested
+    install_mcp_server_config()
     
     print("\n✅ Post-generation hook completed!")
     # Don't fail the entire cookiecutter generation for any errors
