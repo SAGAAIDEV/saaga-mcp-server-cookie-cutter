@@ -72,12 +72,24 @@ def update_readme_with_paths():
     project_path_json = escape_path_for_json(project_path)
     python_exe_path_json = escape_path_for_json(python_exe_path)
     
+    # Get the project slug for the template replacements
+    context = get_cookiecutter_context()
+    project_slug = context["project_slug"]
+    
     # Replace placeholders with actual paths
+    # Handle both old ASEP-47 patterns and new ASEP-41 patterns
     replacements = {
+        # Original ASEP-47 patterns (if any remain)
         '"/path/to/your/project"': f'"{project_path_json}"',
         '"/path/to/your/venv/bin/python"': f'"{python_exe_path_json}"',
         '"cwd": "/path/to/your/project"': f'"cwd": "{project_path_json}"',
-        '"PYTHONPATH": "/path/to/your/project"': f'"PYTHONPATH": "{project_path_json}"'
+        '"PYTHONPATH": "/path/to/your/project"': f'"PYTHONPATH": "{project_path_json}"',
+        
+        # New ASEP-41 patterns with cookiecutter variable
+        f'"/path/to/{project_slug}"': f'"{project_path_json}"',
+        f'"cwd": "/path/to/{project_slug}"': f'"cwd": "{project_path_json}"',
+        f'"/path/to/{project_slug}/.venv/bin/python"': f'"{python_exe_path_json}"',
+        '"UV_PROJECT_ENVIRONMENT": "/path/to/specific/venv"': f'"UV_PROJECT_ENVIRONMENT": "{escape_path_for_json(str(Path(python_exe_path).parent.parent))}"'
     }
     
     for placeholder, actual_path in replacements.items():
@@ -96,7 +108,7 @@ def update_readme_with_paths():
 # =============================================================================
 
 def run_uv_commands():
-    """Run uv sync and uv pip install -e . commands."""
+    """Run uv sync to install dependencies."""
     # Get cookiecutter context
     context = get_cookiecutter_context()
     project_name = context["project_name"]
@@ -106,7 +118,7 @@ def run_uv_commands():
     print(f"\n📦 Installing dependencies for '{project_name}' with uv...")
     
     try:
-        # Run uv sync
+        # Run uv sync (this installs all dependencies including the project itself in editable mode)
         print("   Running: uv sync")
         subprocess.run(
             ["uv", "sync"],
@@ -116,28 +128,18 @@ def run_uv_commands():
         )
         print("   ✅ uv sync completed successfully")
         
-        # Run uv pip install -e .
-        print("   Running: uv pip install -e .")
-        subprocess.run(
-            ["uv", "pip", "install", "-e", "."],
-            capture_output=False,  # Allow output to be printed directly
-            text=True,
-            check=True
-        )
-        print("   ✅ uv pip install -e . completed successfully")
-        
         # Show additional info based on cookiecutter variables
         if include_admin_ui == "yes":
             print("\n   📊 Admin UI is included! You can run it with:")
-            print(f"      streamlit run {project_slug}/ui/app.py")
+            print(f"      uv run streamlit run {project_slug}/ui/app.py")
         
     except subprocess.CalledProcessError as e:
         print(f"   ⚠️  Warning: Failed to run uv commands: {e}")
-        print("   You may need to run 'uv sync' and 'uv pip install -e .' manually.")
+        print("   You may need to run 'uv sync' manually.")
     except FileNotFoundError:
         print("   ⚠️  Warning: 'uv' command not found.")
         print("   Please install uv first: https://github.com/astral-sh/uv")
-        print("   Then run 'uv sync' and 'uv pip install -e .' manually.")
+        print("   Then run 'uv sync' manually.")
 
 
 # =============================================================================
