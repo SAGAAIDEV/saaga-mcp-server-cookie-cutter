@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Post-generation hook to resolve and inject absolute paths into the generated project."""
+"""Post-generation hook for SAAGA MCP Server Cookie Cutter."""
 
 import os
 import sys
@@ -8,6 +8,10 @@ import subprocess
 import json
 from pathlib import Path
 
+
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
 
 def get_project_path():
     """Get the absolute path of the generated project."""
@@ -34,6 +38,20 @@ def escape_path_for_json(path):
         return path.replace("\\", "\\\\")
     return path
 
+
+def get_cookiecutter_context():
+    """Get common cookiecutter context variables."""
+    return {
+        "project_name": "{{ cookiecutter.project_name }}",
+        "project_slug": "{{ cookiecutter.project_slug }}",
+        "include_admin_ui": "{{ cookiecutter.include_admin_ui }}",
+        "mcp_config_file_path": "{{ cookiecutter.mcp_config_file_path }}"
+    }
+
+
+# =============================================================================
+# README PATH UPDATING
+# =============================================================================
 
 def update_readme_with_paths():
     """Replace path placeholders in README.md with actual paths."""
@@ -73,22 +91,24 @@ def update_readme_with_paths():
     print(f"   Python executable: {python_exe_path}")
 
 
+# =============================================================================
+# UV DEPENDENCY INSTALLATION
+# =============================================================================
+
 def run_uv_commands():
     """Run uv sync and uv pip install -e . commands."""
-    # Access cookiecutter context
-    from cookiecutter.main import cookiecutter
-    
-    # The context is available as a global variable in post-gen hooks
-    project_name = "{{ cookiecutter.project_name }}"
-    project_slug = "{{ cookiecutter.project_slug }}"
-    include_admin_ui = "{{ cookiecutter.include_admin_ui }}"
+    # Get cookiecutter context
+    context = get_cookiecutter_context()
+    project_name = context["project_name"]
+    project_slug = context["project_slug"]
+    include_admin_ui = context["include_admin_ui"]
     
     print(f"\n📦 Installing dependencies for '{project_name}' with uv...")
     
     try:
         # Run uv sync
         print("   Running: uv sync")
-        result = subprocess.run(
+        subprocess.run(
             ["uv", "sync"],
             capture_output=False,  # Allow output to be printed directly
             text=True,
@@ -98,7 +118,7 @@ def run_uv_commands():
         
         # Run uv pip install -e .
         print("   Running: uv pip install -e .")
-        result = subprocess.run(
+        subprocess.run(
             ["uv", "pip", "install", "-e", "."],
             capture_output=False,  # Allow output to be printed directly
             text=True,
@@ -120,12 +140,17 @@ def run_uv_commands():
         print("   Then run 'uv sync' and 'uv pip install -e .' manually.")
 
 
+# =============================================================================
+# MCP SERVER CONFIGURATION INSTALLATION
+# =============================================================================
+
 def install_mcp_server_config():
     """Install the MCP server configuration into a specified JSON config file."""
-    # Access cookiecutter context
-    project_name = "{{ cookiecutter.project_name }}"
-    project_slug = "{{ cookiecutter.project_slug }}"
-    mcp_config_file_path = "{{ cookiecutter.mcp_config_file_path }}"
+    # Get cookiecutter context
+    context = get_cookiecutter_context()
+    project_name = context["project_name"]
+    project_slug = context["project_slug"]
+    mcp_config_file_path = context["mcp_config_file_path"]
     
     # Skip if no path provided
     if not mcp_config_file_path or mcp_config_file_path.strip() == "":
@@ -196,6 +221,7 @@ def main():
     """Main entry point for the post-generation hook."""
     print("\n🔧 Running post-generation hook...")
     
+    # Update README.md with actual paths
     try:
         update_readme_with_paths()
         print("✅ Path resolution completed successfully!")
@@ -203,7 +229,7 @@ def main():
         print(f"⚠️  Warning: Failed to update paths in README.md: {e}")
         print("   You may need to manually update the paths in the configuration examples.")
     
-    # Run uv commands
+    # Install dependencies with UV
     run_uv_commands()
     
     # Install MCP server configuration if requested
