@@ -29,12 +29,18 @@ This will guide you through:
 ### Prerequisites
 
 - Python 3.11 or higher
+- [UV](https://github.com/astral-sh/uv) - An extremely fast Python package manager
 - [Cookiecutter](https://cookiecutter.readthedocs.io/en/latest/installation.html)
 
 ### Installation
 
 ```bash
-pip install cookiecutter
+# Install UV (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh  # On macOS/Linux
+# Or visit https://github.com/astral-sh/uv for Windows instructions
+
+# Install cookiecutter as a UV tool
+uv tool install cookiecutter
 ```
 
 ### Usage
@@ -42,12 +48,20 @@ pip install cookiecutter
 Generate a new MCP server project:
 
 ```bash
+# Using UV tool
+uv tool run cookiecutter https://github.com/SAGAAIDEV/saaga-mcp-server-cookie-cutter.git
+
+# Or if you installed cookiecutter globally
 cookiecutter https://github.com/SAGAAIDEV/saaga-mcp-server-cookie-cutter.git
 ```
 
 Or from a local checkout:
 
 ```bash
+# Using UV tool
+uv tool run cookiecutter /path/to/saaga-mcp-server-cookie-cutter
+
+# Or if you installed cookiecutter globally
 cookiecutter /path/to/saaga-mcp-server-cookie-cutter
 ```
 
@@ -82,15 +96,17 @@ The `example_server/` directory contains a fully functional MCP server that demo
 
 ```bash
 cd example_server/test_asep40_server
-python -m venv .venv
+uv venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -e .
+# Or simply use: uv shell
+
+uv sync
 
 # Test with MCP Inspector
-mcp dev test_asep40_server/server/app.py
+uv run mcp dev test_asep40_server/server/app.py
 
 # Or run directly
-python -m test_asep40_server.server.app
+uv run python -m test_asep40_server.server.app
 ```
 
 For detailed testing instructions and examples for each tool in the MCP Inspector, see [MCP_INSPECTOR_TEST_GUIDE.md](docs/MCP_INSPECTOR_TEST_GUIDE.md).
@@ -197,15 +213,14 @@ After generating your project with `include_admin_ui=yes`:
 ```bash
 # Install your project
 cd your-project
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -e .
+uv venv
+uv sync
 
 # Start the admin UI
-streamlit run your_project/ui/app.py
+uv run streamlit run your_project/ui/app.py
 
 # In another terminal, start your MCP server (for status monitoring)
-python -m your_project --transport sse --port 3001
+uv run python -m your_project --transport sse --port 3001
 ```
 
 The admin UI will be available at `http://localhost:8501` and can monitor your MCP server running on port 3001.
@@ -237,8 +252,12 @@ The admin UI works independently of the MCP server:
 ### Setting Up for Development
 
 1. Clone this repository
-2. Install dependencies: `pip install -r requirements.txt`
-3. Install pre-commit hooks: `pre-commit install`
+2. Create virtual environment and install dependencies:
+   ```bash
+   uv venv
+   uv sync --extra dev
+   ```
+3. Install pre-commit hooks: `uv run pre-commit install`
 
 ### Testing
 

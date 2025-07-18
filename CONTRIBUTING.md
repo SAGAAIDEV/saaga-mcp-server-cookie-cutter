@@ -23,7 +23,7 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 
 - Python 3.11 or higher
 - Git
-- pip (Python package manager)
+- [UV](https://github.com/astral-sh/uv) - An extremely fast Python package manager
 
 ### Fork and Clone
 
@@ -36,20 +36,18 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 
 ## Development Setup
 
-1. Create a virtual environment:
+1. Create a virtual environment and install dependencies:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   uv venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   # Or simply use: uv shell
+   
+   uv sync --extra dev
    ```
 
-2. Install dependencies:
+2. Install pre-commit hooks:
    ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Install pre-commit hooks:
-   ```bash
-   pre-commit install
+   uv run pre-commit install
    ```
 
 ## Making Changes
@@ -79,7 +77,7 @@ Create branches using the following format:
 
 Run the full test suite:
 ```bash
-pytest tests/
+uv run pytest tests/
 ```
 
 ### Testing Template Generation
@@ -88,19 +86,19 @@ Test that the cookiecutter template works correctly:
 
 1. Test minimal generation:
    ```bash
-   cookiecutter . --no-input
+   uv run cookiecutter . --no-input
    ```
 
 2. Test with all features enabled:
    ```bash
-   cookiecutter . --no-input include_admin_ui=yes include_example_tools=yes include_parallel_example=yes
+   uv run cookiecutter . --no-input include_admin_ui=yes include_example_tools=yes include_parallel_example=yes
    ```
 
 3. Test generated project:
    ```bash
    cd my_mcp_server  # or whatever name was generated
-   pip install -e .
-   python -m pytest tests/
+   uv sync
+   uv run pytest tests/
    ```
 
 ### Adding New Tests
@@ -138,7 +136,8 @@ When adding new features:
 ```
 saaga-mcp-server-cookie-cutter/
 ├── cookiecutter.json              # Template configuration
-├── requirements.txt               # Development dependencies
+├── pyproject.toml                 # Project configuration and dependencies
+├── uv.lock                        # Locked dependency versions
 ├── .pre-commit-config.yaml       # Code quality hooks
 ├── .github/workflows/test.yml     # CI/CD pipeline
 ├── tests/                         # Test suite
@@ -227,8 +226,15 @@ docs(readme): update installation instructions
 
 ### Adding New Dependencies
 
-1. Add to the appropriate section in `requirements.txt`
-2. Update the generated `pyproject.toml` if needed
+1. Add to the appropriate section in `pyproject.toml`:
+   ```bash
+   # For main dependencies
+   uv add package-name
+   
+   # For development dependencies
+   uv add --dev package-name
+   ```
+2. Update the generated project's `pyproject.toml` template if needed
 3. Test compatibility with supported Python versions
 
 ## Getting Help

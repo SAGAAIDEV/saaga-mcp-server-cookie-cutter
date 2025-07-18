@@ -1,3 +1,7 @@
+# This project is configured for UV package manager
+# Install with: uv sync
+# Run with: uv run <command>
+
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
