@@ -219,6 +219,47 @@ def install_mcp_server_config():
         print("   You may need to manually add the server configuration.")
 
 
+def run_refresh_requirements():
+    """Run the refresh_requirements_txt.sh script to generate requirements.txt files for Bazel."""
+    print("\n📋 Generating requirements.txt files for Bazel...")
+    
+    try:
+        # Get the refresh script path
+        refresh_script = Path(get_project_path()) / "refresh_requirements_txt.sh"
+        
+        if not refresh_script.exists():
+            print("   ⚠️  Warning: refresh_requirements_txt.sh not found")
+            return
+        
+        # Make the script executable
+        if platform.system() != "Windows":
+            os.chmod(refresh_script, 0o755)
+        
+        # Run the script
+        print("   Running: ./refresh_requirements_txt.sh")
+        result = subprocess.run(
+            ["bash", str(refresh_script)] if platform.system() == "Windows" else [str(refresh_script)],
+            capture_output=True,
+            text=True,
+            cwd=get_project_path()
+        )
+        
+        if result.returncode == 0:
+            print("   ✅ Requirements files generated successfully")
+            if Path(get_project_path(), "requirements.txt").exists():
+                print("      - requirements.txt")
+            if Path(get_project_path(), "requirements_linux_arm64.txt").exists():
+                print("      - requirements_linux_arm64.txt")
+        else:
+            print(f"   ⚠️  Warning: Failed to generate requirements files")
+            if result.stderr:
+                print(f"      Error: {result.stderr}")
+                
+    except Exception as e:
+        print(f"   ⚠️  Warning: Failed to run refresh_requirements_txt.sh: {e}")
+        print("   You may need to run './refresh_requirements_txt.sh' manually.")
+
+
 def main():
     """Main entry point for the post-generation hook."""
     print("\n🔧 Running post-generation hook...")
@@ -233,6 +274,9 @@ def main():
     
     # Install dependencies with UV
     run_uv_commands()
+    
+    # Generate requirements.txt files for Bazel
+    run_refresh_requirements()
     
     # Install MCP server configuration if requested
     install_mcp_server_config()
