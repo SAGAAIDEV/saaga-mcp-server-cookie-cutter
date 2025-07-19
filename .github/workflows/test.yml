@@ -21,22 +21,27 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Install UV
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
+        uv sync --extra dev
+        
     - name: Test template generation (minimal)
       run: |
-        cookiecutter . --no-input
+        uv run cookiecutter . --no-input
 
     - name: Test template generation (with UI)
       run: |
-        cookiecutter . --no-input include_admin_ui=yes
+        uv run cookiecutter . --no-input include_admin_ui=yes
 
     - name: Test template generation (with examples)
       run: |
-        cookiecutter . --no-input include_example_tools=yes include_parallel_example=yes
+        uv run cookiecutter . --no-input include_example_tools=yes include_parallel_example=yes
 
     - name: Validate generated project structure
       run: |
@@ -56,9 +61,9 @@ jobs:
     - name: Test generated project installation
       run: |
         cd my_mcp_server
-        python -m pip install -e .
+        uv sync
 
     - name: Run generated project tests
       run: |
         cd my_mcp_server
-        python -m pytest tests/ -v
+        uv run pytest tests/ -v

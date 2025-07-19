@@ -1,0 +1,29 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+
+py_binary(
+    name = "{{ cookiecutter.project_slug }}",
+    srcs = ["{{ cookiecutter.project_slug }}/__main__.py"],
+    imports = ["."],
+    main = "{{ cookiecutter.project_slug }}/__main__.py",
+    visibility = ["//visibility:public"],
+    deps = [":{{ cookiecutter.project_slug }}_lib"],
+)
+
+py_library(
+    name = "{{ cookiecutter.project_slug }}_lib",
+    srcs = glob(["{{ cookiecutter.project_slug }}/**/*.py"]),
+    imports = ["."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@mcp_pypi//mcp",
+        "@mcp_pypi//pydantic",
+        "@mcp_pypi//pyyaml",
+        "@mcp_pypi//platformdirs",
+        {% if cookiecutter.include_admin_ui == "yes" -%}
+        "@mcp_pypi//streamlit",
+        "@mcp_pypi//pandas",
+        "@mcp_pypi//plotly",
+        {%- endif %}
+        # Add additional dependencies based on your requirements
+    ],
+)
