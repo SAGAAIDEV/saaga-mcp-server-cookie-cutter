@@ -48,6 +48,7 @@ def get_cookiecutter_context():
         "include_admin_ui": "{{ cookiecutter.include_admin_ui }}",
         "mcp_config_file_path": "{{ cookiecutter.mcp_config_file_path }}",
         "setup_mcp_server": "{{ cookiecutter.setup_mcp_server }}",
+        "update_aws_parameter_store": "{{ cookiecutter.update_aws_parameter_store }}",
     }
 
 
@@ -280,7 +281,12 @@ def run_claude_setup():
 
     # Placeholder for Claude setup instructions
 
-    claude_setup_instructions = """# MCP Server Setup Checklist
+    # Get the specific values we need from context
+    project_slug = context["project_slug"]
+    env_var_name = f"{project_slug.upper()}_URL"
+
+    # Build the instructions with proper string formatting
+    intro_section = f"""# MCP Server Setup Checklist
 
 ## Overview
 This checklist ensures proper configuration when adding a new MCP server to the SAAGA supergateway infrastructure. Use this alongside MCP_SERVER_SETUP_INSTRUCTIONS.md.
@@ -289,15 +295,18 @@ This checklist ensures proper configuration when adding a new MCP server to the 
 **All configuration updates can and should be performed IN PARALLEL using concurrent tool calls for maximum efficiency!**
 
 ## Auto-Detection
-First, check git to identify which MCP server has been added:
-```bash
-# Check for new untracked MCP directories
-git status | grep "mcp/research/" | grep "??"
+The MCP server being configured: **{project_slug}**
+
+## AWS Environment Variable
+**IMPORTANT**: The AWS SSM parameter `solve-env-prod` has been automatically updated with:
 ```
+{env_var_name}=http://usrpod:[PORT]/sse
+```
+This environment variable name **MUST** be used exactly in the TypeScript configuration.
 
-The detected server name: $ARGUMENTS
+"""
 
-## Pre-Setup Verification
+    rest_of_instructions = """## Pre-Setup Verification
 
 ### 1. Verify BUILD.bazel Configuration
 Before integrating the server, ensure the BUILD.bazel in your MCP server directory is correctly configured:
@@ -427,6 +436,8 @@ node main.js --stdio "${RUNFILES_ROOT}/mcp/research/<server_name>/<binary_name>_
 },
 ```
 
+**CRITICAL**: The environment variable name `<SERVER_NAME>_URL` must exactly match the AWS SSM parameter variable name that was automatically added to solve-env-prod. This ensures proper environment variable resolution in production.
+
 ### 7. Add Kubernetes Service Port
 **File**: `stacks/60.solve/service.tf`
 
@@ -521,6 +532,9 @@ When setting up a new MCP server, execute ALL of these operations in parallel:
 This parallel approach reduces setup time from ~5 minutes to ~30 seconds!
 """
 
+    # Combine the instruction sections
+    claude_setup_instructions = intro_section + rest_of_instructions
+
     try:
         # Run Claude with the setup instructions
         print('   Running: claude -p "<setup instructions>" --dangerously-skip-permissions')
@@ -557,6 +571,12 @@ def update_aws_ssm_parameter():
     # Get cookiecutter context
     context = get_cookiecutter_context()
     project_slug = context["project_slug"]
+    update_aws_parameter_store = context["update_aws_parameter_store"]
+
+    # Skip AWS parameter store update if not requested
+    if update_aws_parameter_store != "yes":
+        print(f"\n⏭️  Skipping AWS parameter store update (disabled in cookiecutter config)")
+        return
 
     print(f"\n☁️ Updating AWS SSM parameter for '{project_slug}'...")
 
@@ -684,11 +704,11 @@ def main():
     # Install MCP server configuration if requested
     install_mcp_server_config()
 
-    # Run Claude setup if requested
-    run_claude_setup()
-
-    # Update AWS SSM parameter
+    # Update AWS SSM parameter first to get the port
     update_aws_ssm_parameter()
+
+    # Run Claude setup if requested (after AWS parameter is updated)
+    run_claude_setup()
 
     print("\n✅ Post-generation hook completed!")
     # Don't fail the entire cookiecutter generation for any errors
