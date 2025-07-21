@@ -269,7 +269,7 @@ def run_refresh_requirements():
         print("   You may need to run './refresh_requirements_txt.sh' manually.")
 
 
-def run_claude_setup():
+def run_claude_setup(assigned_port=None):
     """Run Claude with setup instructions if setup_mcp_server is set to yes."""
     context = get_cookiecutter_context()
     setup_mcp_server = context["setup_mcp_server"]
@@ -285,6 +285,33 @@ def run_claude_setup():
     project_slug = context["project_slug"]
     env_var_name = f"{project_slug.upper()}_URL"
 
+    # Build port information section
+    if assigned_port:
+        port_info = f"""## Assigned Port
+**Your assigned port: {assigned_port}**
+
+## AWS Environment Variable
+**IMPORTANT**: The AWS SSM parameter `solve-env-prod` has been automatically updated with:
+```
+{env_var_name}=http://usrpod:{assigned_port}/sse
+```
+This environment variable name **MUST** be used exactly in the TypeScript configuration.
+Use port **{assigned_port}** in all configuration files below.
+
+"""
+    else:
+        port_info = f"""## Port Assignment
+**Note**: AWS parameter store update was disabled or failed. You'll need to manually assign a port.
+Check existing ports in solve-env-prod and use the next available 8XXX port.
+
+## Environment Variable
+The expected environment variable format:
+```
+{env_var_name}=http://usrpod:[YOUR_PORT]/sse
+```
+
+"""
+
     # Build the instructions with proper string formatting
     intro_section = f"""# MCP Server Setup Checklist
 
@@ -297,14 +324,7 @@ This checklist ensures proper configuration when adding a new MCP server to the 
 ## Auto-Detection
 The MCP server being configured: **{project_slug}**
 
-## AWS Environment Variable
-**IMPORTANT**: The AWS SSM parameter `solve-env-prod` has been automatically updated with:
-```
-{env_var_name}=http://usrpod:[PORT]/sse
-```
-This environment variable name **MUST** be used exactly in the TypeScript configuration.
-
-"""
+{port_info}"""
 
     rest_of_instructions = """## Pre-Setup Verification
 
@@ -532,8 +552,20 @@ When setting up a new MCP server, execute ALL of these operations in parallel:
 This parallel approach reduces setup time from ~5 minutes to ~30 seconds!
 """
 
-    # Combine the instruction sections
-    claude_setup_instructions = intro_section + rest_of_instructions
+    # Combine the instruction sections and replace placeholders
+    combined_instructions = intro_section + rest_of_instructions
+
+    # Replace generic placeholders with specific values if port is assigned
+    if assigned_port:
+        claude_setup_instructions = combined_instructions.replace(
+            "<port_number>", str(assigned_port)
+        )
+        claude_setup_instructions = claude_setup_instructions.replace("<server_name>", project_slug)
+        claude_setup_instructions = claude_setup_instructions.replace(
+            "<SERVER_NAME>", project_slug.upper()
+        )
+    else:
+        claude_setup_instructions = combined_instructions
 
     try:
         # Run Claude with the setup instructions
@@ -576,7 +608,7 @@ def update_aws_ssm_parameter():
     # Skip AWS parameter store update if not requested
     if update_aws_parameter_store != "yes":
         print(f"\n⏭️  Skipping AWS parameter store update (disabled in cookiecutter config)")
-        return
+        return None
 
     print(f"\n☁️ Updating AWS SSM parameter for '{project_slug}'...")
 
@@ -657,6 +689,8 @@ def update_aws_ssm_parameter():
         print(f"      Added: {new_line}")
         print(f"      Port: {next_port}")
 
+        return next_port
+
     except subprocess.CalledProcessError as e:
         if "aws" in str(e) and ("credentials" in str(e).lower() or "expired" in str(e).lower()):
             print("   🔐 AWS credentials issue detected, attempting SSO login...")
@@ -666,21 +700,24 @@ def update_aws_ssm_parameter():
                     check=True,
                 )
                 print("   ✅ AWS SSO login completed, retrying parameter update...")
-                # Retry the operation
-                update_aws_ssm_parameter()
-                return
+                # Retry the operation and return its result
+                return update_aws_ssm_parameter()
             except subprocess.CalledProcessError:
                 print("   ⚠️  Warning: AWS SSO login failed")
                 print("   Please run 'aws sso login' manually and retry.")
+                return None
         else:
             print(f"   ⚠️  Warning: Failed to update AWS SSM parameter: {e}")
             if e.stderr:
                 print(f"      Error: {e.stderr}")
+            return None
     except FileNotFoundError:
         print("   ⚠️  Warning: 'aws' command not found.")
         print("   Please install AWS CLI: https://aws.amazon.com/cli/")
+        return None
     except Exception as e:
         print(f"   ⚠️  Warning: Failed to update AWS SSM parameter: {e}")
+        return None
 
 
 def main():
@@ -705,10 +742,10 @@ def main():
     install_mcp_server_config()
 
     # Update AWS SSM parameter first to get the port
-    update_aws_ssm_parameter()
+    assigned_port = update_aws_ssm_parameter()
 
     # Run Claude setup if requested (after AWS parameter is updated)
-    run_claude_setup()
+    run_claude_setup(assigned_port)
 
     print("\n✅ Post-generation hook completed!")
     # Don't fail the entire cookiecutter generation for any errors
