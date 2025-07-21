@@ -547,6 +547,122 @@ This parallel approach reduces setup time from ~5 minutes to ~30 seconds!
         print(f"   ⚠️  Warning: Failed to run Claude setup: {e}")
 
 
+# =============================================================================
+# AWS SSM PARAMETER MANAGEMENT
+# =============================================================================
+
+
+def update_aws_ssm_parameter():
+    """Update AWS SSM parameter with incremented port for the new MCP server."""
+    # Get cookiecutter context
+    context = get_cookiecutter_context()
+    project_slug = context["project_slug"]
+
+    print(f"\n☁️ Updating AWS SSM parameter for '{project_slug}'...")
+
+    try:
+        # Get current parameter value
+        print("   Getting current solve-env-prod parameter...")
+        result = subprocess.run(
+            [
+                "aws",
+                "ssm",
+                "get-parameter",
+                "--name",
+                "solve-env-prod",
+                "--with-decryption",
+                "--query",
+                "Parameter.Value",
+                "--output",
+                "text",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        current_value = result.stdout.strip()
+
+        # Find the highest port starting with 8XXX
+        import re
+
+        port_pattern = r"http://usrpod:8(\d{3})/sse"
+        ports = []
+
+        for line in current_value.split("\n"):
+            matches = re.findall(port_pattern, line)
+            for match in matches:
+                port_num = int(f"8{match}")
+                ports.append(port_num)
+
+                # Determine next port
+        if not ports:
+            print(f"   ❌ Error: No existing ports starting with 8XXX found in AWS parameter")
+            print(f"   This suggests the solve-env-prod parameter may not be properly configured")
+            print(f"   Expected to find at least one URL like: http://usrpod:8XXX/sse")
+            print(f"   Stopping process to prevent misconfiguration.")
+            sys.exit(1)
+
+        next_port = max(ports) + 1
+
+        print(f"   Found existing ports: {sorted(ports)}")
+        print(f"   Using next available port: {next_port}")
+
+        # Create new parameter value
+        new_line = f"{project_slug.upper()}_URL=http://usrpod:{next_port}/sse"
+        new_value = f"{current_value}\n{new_line}"
+
+        # Update parameter
+        print("   Updating solve-env-prod parameter...")
+        subprocess.run(
+            [
+                "aws",
+                "ssm",
+                "put-parameter",
+                "--name",
+                "solve-env-prod",
+                "--value",
+                new_value,
+                "--type",
+                "SecureString",
+                "--overwrite",
+                "--no-cli-pager",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        print(f"   ✅ Successfully updated AWS SSM parameter")
+        print(f"      Added: {new_line}")
+        print(f"      Port: {next_port}")
+
+    except subprocess.CalledProcessError as e:
+        if "aws" in str(e) and ("credentials" in str(e).lower() or "expired" in str(e).lower()):
+            print("   🔐 AWS credentials issue detected, attempting SSO login...")
+            try:
+                subprocess.run(
+                    ["aws", "sso", "login"],
+                    check=True,
+                )
+                print("   ✅ AWS SSO login completed, retrying parameter update...")
+                # Retry the operation
+                update_aws_ssm_parameter()
+                return
+            except subprocess.CalledProcessError:
+                print("   ⚠️  Warning: AWS SSO login failed")
+                print("   Please run 'aws sso login' manually and retry.")
+        else:
+            print(f"   ⚠️  Warning: Failed to update AWS SSM parameter: {e}")
+            if e.stderr:
+                print(f"      Error: {e.stderr}")
+    except FileNotFoundError:
+        print("   ⚠️  Warning: 'aws' command not found.")
+        print("   Please install AWS CLI: https://aws.amazon.com/cli/")
+    except Exception as e:
+        print(f"   ⚠️  Warning: Failed to update AWS SSM parameter: {e}")
+
+
 def main():
     """Main entry point for the post-generation hook."""
     print("\n🔧 Running post-generation hook...")
@@ -570,6 +686,9 @@ def main():
 
     # Run Claude setup if requested
     run_claude_setup()
+
+    # Update AWS SSM parameter
+    update_aws_ssm_parameter()
 
     print("\n✅ Post-generation hook completed!")
     # Don't fail the entire cookiecutter generation for any errors
