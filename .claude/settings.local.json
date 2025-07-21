@@ -33,7 +33,9 @@
       "Bash(gh:*)",
       "Bash(ruff check:*)",
       "Bash(ruff format:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "mcp__conduit__create_jira_issue",
+      "Bash(mkdir:*)"
     ],
     "deny": []
   }
