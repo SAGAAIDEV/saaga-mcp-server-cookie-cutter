@@ -55,7 +55,7 @@ When adding new dependencies:
    ```python
    deps = [
        # ... existing deps ...
-       "@mcp_pypi//new_package",
+       "@mcp_{{ cookiecutter.project_slug }}//new_package",
    ]
    ```
 
