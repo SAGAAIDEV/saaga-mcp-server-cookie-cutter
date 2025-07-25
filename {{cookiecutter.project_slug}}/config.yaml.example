@@ -1,0 +1,85 @@
+# Example configuration file for {{ cookiecutter.project_name }}
+# Copy this file to config.yaml and customize as needed
+
+version: 1
+
+# Server configuration
+server:
+  name: "{{ cookiecutter.project_name }}"
+  description: "{{ cookiecutter.description }}"
+  port: {{ cookiecutter.server_port }}
+  host: "127.0.0.1"
+  transport: "stdio"
+  
+  # Logging configuration
+  log_level: "{{ cookiecutter.log_level }}"
+  log_retention_days: {{ cookiecutter.log_retention_days }}
+  
+  {% if cookiecutter.include_parallel_example == 'yes' -%}
+  # Parallel processing configuration
+  parallel:
+    max_workers: 4
+    timeout_seconds: 300
+    enable_multiprocessing: true
+  {% endif -%}
+
+# Logging system configuration
+logging:
+  level: "{{ cookiecutter.log_level }}"
+  retention_days: {{ cookiecutter.log_retention_days }}
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  database_logging: true
+  file_logging: true
+
+# Tool configuration
+tools:
+  # List of enabled tools (empty means all tools are enabled)
+  enabled_tools: []
+  
+  # Global tool timeout in seconds
+  tool_timeout_seconds: 300
+
+# Feature flags
+features:
+  admin_ui: {{ cookiecutter.include_admin_ui == 'yes' }}
+  example_tools: {{ cookiecutter.include_example_tools == 'yes' }}
+  parallel_examples: {{ cookiecutter.include_parallel_example == 'yes' }}
+  database_logging: true
+  file_logging: true
+  auto_reload: false
+
+{% if cookiecutter.include_admin_ui == 'yes' -%}
+# UI configuration
+ui:
+  title: "{{ cookiecutter.project_name }} Admin"
+  port: {{ cookiecutter.server_port | int + 1 }}
+  host: "127.0.0.1"
+  theme: "light"
+  show_logs: true
+  show_config: true
+  show_tools: true
+  refresh_interval_seconds: 30
+{% endif -%}
+
+# Security settings (customize for production)
+security:
+  enable_cors: false
+  allowed_origins: []
+  api_key_required: false
+  rate_limiting:
+    enabled: false
+    requests_per_minute: 60
+
+# Performance settings
+performance:
+  cache_enabled: true
+  cache_ttl_seconds: 3600
+  connection_pool_size: 10
+  request_timeout_seconds: 30
+
+# Development settings
+development:
+  debug_mode: false
+  auto_reload: false
+  profiling_enabled: false
+  mock_external_services: false
