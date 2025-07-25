@@ -1,1 +1,0 @@
-"""Test suite for minimal_server."""
