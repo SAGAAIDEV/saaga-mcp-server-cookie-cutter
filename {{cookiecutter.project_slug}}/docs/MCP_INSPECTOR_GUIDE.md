@@ -45,7 +45,7 @@ which mcp
 
 If you haven't already:
 ```bash
-pip install -e .
+uv sync
 ```
 
 ## Launching MCP Inspector
@@ -303,7 +303,7 @@ If you see `ModuleNotFoundError: No module named '{{ cookiecutter.project_slug }
 
 1. Ensure you're in the project root directory
 2. Check virtual environment is activated: `which python`
-3. Reinstall: `pip install -e .`
+3. Reinstall: `uv sync`
 4. Use full mcp path: `.venv/bin/mcp dev {{ cookiecutter.project_slug }}/server/app.py`
 
 ### MCP Inspector Not Loading

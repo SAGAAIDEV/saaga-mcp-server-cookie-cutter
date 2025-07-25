@@ -27,14 +27,16 @@ This MCP server was generated using the SAAGA MCP Server Cookie Cutter template.
 ### Prerequisites
 
 - Python 3.11 or higher
-- pip (Python package manager)
+- UV (Modern Python package manager)
 
 ### Install from Source
 
 ```bash
 git clone <your-repository-url>
 cd example_mcp_server
-pip install -e .
+uv venv
+source .venv/bin/activate  # Or use: uv shell
+uv sync
 ```
 
 ### Development Installation
@@ -42,7 +44,9 @@ pip install -e .
 ```bash
 git clone <your-repository-url>
 cd example_mcp_server
-pip install -e ".[dev]"
+uv venv
+source .venv/bin/activate  # Or use: uv shell
+uv sync --all-extras
 ```
 
 ## Usage

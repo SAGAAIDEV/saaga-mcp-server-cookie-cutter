@@ -23,8 +23,8 @@ Simply tell your AI assistant: *"I have a {{cookiecutter.project_name}} project.
 
 Quick start:
 ```bash
-source .venv/bin/activate
-mcp dev {{cookiecutter.project_slug}}/server/app.py
+source .venv/bin/activate  # Or use: uv shell
+uv run mcp dev {{cookiecutter.project_slug}}/server/app.py
 ```
 
 ## Overview
@@ -44,14 +44,19 @@ This MCP server was generated using the SAAGA MCP Server Cookie Cutter template.
 ### Prerequisites
 
 - Python {{cookiecutter.python_version}} or higher
-- pip (Python package manager)
+- [UV](https://github.com/astral-sh/uv) - An extremely fast Python package manager
 
 ### Install from Source
 
 ```bash
+# Install UV (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh  # On macOS/Linux
+# Or visit https://github.com/astral-sh/uv for Windows instructions
+
 git clone <your-repository-url>
 cd {{cookiecutter.project_slug}}
-pip install -e .
+uv venv
+uv sync
 ```
 
 ### Development Installation
@@ -59,7 +64,8 @@ pip install -e .
 ```bash
 git clone <your-repository-url>
 cd {{cookiecutter.project_slug}}
-pip install -e ".[dev]"
+uv venv
+uv sync --extra dev
 ```
 
 ## Usage
@@ -72,29 +78,29 @@ The server can be run in two modes:
 
 ```bash
 # Run with default settings
-python -m {{cookiecutter.project_slug}}.server.app
+uv run python -m {{cookiecutter.project_slug}}.server.app
 
 # Run with custom log level
-python -m {{cookiecutter.project_slug}}.server.app --log-level DEBUG
+uv run python -m {{cookiecutter.project_slug}}.server.app --log-level DEBUG
 
 # Run the server directly
-python {{cookiecutter.project_slug}}/server/app.py
+uv run python {{cookiecutter.project_slug}}/server/app.py
 ```
 
 #### 2. SSE Mode (for web-based clients)
 
 ```bash
 # Run with SSE transport
-python -m {{cookiecutter.project_slug}}.server.app --transport sse --port {{cookiecutter.server_port}}
+uv run python -m {{cookiecutter.project_slug}}.server.app --transport sse --port {{cookiecutter.server_port}}
 
 # Run with custom host and port
-python -m {{cookiecutter.project_slug}}.server.app --transport sse --host 0.0.0.0 --port 8080
+uv run python -m {{cookiecutter.project_slug}}.server.app --transport sse --host 0.0.0.0 --port 8080
 ```
 
 ### Command Line Options
 
 ```bash
-python -m {{cookiecutter.project_slug}}.server.app --help
+uv run python -m {{cookiecutter.project_slug}}.server.app --help
 ```
 
 Available options:
@@ -113,8 +119,9 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 {
   "mcpServers": {
     "{{cookiecutter.project_slug}}": {
-      "command": "python",
-      "args": ["-m", "{{cookiecutter.project_slug}}.server.app"]
+      "command": "uv",
+      "args": ["run", "python", "-m", "{{cookiecutter.project_slug}}.server.app"],
+      "cwd": "/path/to/{{cookiecutter.project_slug}}"
     }
   }
 }
@@ -126,26 +133,27 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 {
   "mcpServers": {
     "{{cookiecutter.project_slug}}": {
-      "command": "python",
+      "command": "uv",
       "args": [
-        "-m", "{{cookiecutter.project_slug}}.server.app",
+        "run", "python", "-m", "{{cookiecutter.project_slug}}.server.app",
         "--log-level", "DEBUG"
       ],
+      "cwd": "/path/to/{{cookiecutter.project_slug}}",
       "env": {
-        "PYTHONPATH": "/path/to/your/project"
+        "UV_PROJECT_ENVIRONMENT": "/path/to/specific/venv"
       }
     }
   }
 }
 ```
 
-#### Using with Virtual Environment
+#### Using with System Python (Alternative)
 
 ```json
 {
   "mcpServers": {
     "{{cookiecutter.project_slug}}": {
-      "command": "/path/to/your/venv/bin/python",
+      "command": "/path/to/{{cookiecutter.project_slug}}/.venv/bin/python",
       "args": ["-m", "{{cookiecutter.project_slug}}.server.app"]
     }
   }
@@ -164,7 +172,7 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 Launch the Streamlit admin interface:
 
 ```bash
-streamlit run {{cookiecutter.project_slug}}/ui/app.py
+uv run streamlit run {{cookiecutter.project_slug}}/ui/app.py
 ```
 
 #### Dashboard
@@ -247,7 +255,7 @@ example_tools.append(my_new_tool)
 **Testing with MCP Inspector:**
 ```bash
 # From the project root
-mcp dev {{cookiecutter.project_slug}}/server/app.py
+uv run mcp dev {{cookiecutter.project_slug}}/server/app.py
 ```
 
 **Debugging a tool:**
