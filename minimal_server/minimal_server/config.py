@@ -1,4 +1,4 @@
-"""Configuration management for {{cookiecutter.project_name}}
+"""Configuration management for Minimal Server
 
 This module provides platform-aware configuration management using platformdirs
 to ensure configuration files are stored in appropriate locations across different
@@ -21,17 +21,17 @@ class ServerConfig:
     """Configuration class for the MCP server."""
     
     # Server settings
-    name: str = "{{cookiecutter.project_name}}"
-    description: str = "{{cookiecutter.description}}"
+    name: str = "Minimal Server"
+    description: str = "MCP server with SAAGA decorators"
     
     # Logging configuration
-    log_level: str = "{{cookiecutter.log_level}}"
-    log_retention_days: int = {{cookiecutter.log_retention_days}}
+    log_level: str = "ERROR"
+    log_retention_days: int = 1
     
     # Server transport settings
     default_transport: str = "stdio"
     default_host: str = "127.0.0.1"
-    default_port: int = {{cookiecutter.server_port}}
+    default_port: int = 9000
     
     # Platform-aware paths
     config_dir: Path = None
@@ -46,11 +46,11 @@ class ServerConfig:
     def __post_init__(self):
         """Initialize platform-aware paths after dataclass creation."""
         if self.config_dir is None:
-            self.config_dir = Path(platformdirs.user_config_dir("{{cookiecutter.project_slug}}"))
+            self.config_dir = Path(platformdirs.user_config_dir("minimal_server"))
         if self.data_dir is None:
-            self.data_dir = Path(platformdirs.user_data_dir("{{cookiecutter.project_slug}}"))
+            self.data_dir = Path(platformdirs.user_data_dir("minimal_server"))
         if self.log_dir is None:
-            self.log_dir = Path(platformdirs.user_log_dir("{{cookiecutter.project_slug}}"))
+            self.log_dir = Path(platformdirs.user_log_dir("minimal_server"))
         
         # Ensure directories exist
         self.config_dir.mkdir(parents=True, exist_ok=True)
@@ -59,8 +59,8 @@ class ServerConfig:
         
         # Set file paths
         self.config_file_path = self.config_dir / "config.yaml"
-        self.log_file_path = self.log_dir / "{{cookiecutter.project_slug}}.log"
-        self.database_path = self.data_dir / "{{cookiecutter.project_slug}}.db"
+        self.log_file_path = self.log_dir / "minimal_server.log"
+        self.database_path = self.data_dir / "minimal_server.db"
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary for serialization."""
@@ -78,13 +78,13 @@ class ServerConfig:
     def from_dict(cls, data: Dict[str, Any]) -> "ServerConfig":
         """Create configuration from dictionary."""
         return cls(
-            name=data.get("name", "{{cookiecutter.project_name}}"),
-            description=data.get("description", "{{cookiecutter.description}}"),
-            log_level=data.get("log_level", "{{cookiecutter.log_level}}"),
-            log_retention_days=data.get("log_retention_days", {{cookiecutter.log_retention_days}}),
+            name=data.get("name", "Minimal Server"),
+            description=data.get("description", "MCP server with SAAGA decorators"),
+            log_level=data.get("log_level", "ERROR"),
+            log_retention_days=data.get("log_retention_days", 1),
             default_transport=data.get("default_transport", "stdio"),
             default_host=data.get("default_host", "127.0.0.1"),
-            default_port=data.get("default_port", {{cookiecutter.server_port}}),
+            default_port=data.get("default_port", 9000),
         )
     
     def save(self) -> None:
@@ -256,13 +256,13 @@ def migrate_config(old_config: Dict[str, Any]) -> Dict[str, Any]:
         
         # Add missing server fields with defaults
         server_defaults = {
-            "name": "{{cookiecutter.project_name}}",
-            "description": "{{cookiecutter.description}}",
-            "port": {{cookiecutter.server_port}},
+            "name": "Minimal Server",
+            "description": "MCP server with SAAGA decorators",
+            "port": 9000,
             "host": "127.0.0.1",
             "transport": "stdio",
-            "log_level": "{{cookiecutter.log_level}}",
-            "log_retention_days": {{cookiecutter.log_retention_days}}
+            "log_level": "ERROR",
+            "log_retention_days": 1
         }
         
         for key, value in server_defaults.items():
@@ -272,8 +272,8 @@ def migrate_config(old_config: Dict[str, Any]) -> Dict[str, Any]:
         # Migrate logging section
         if "logging" not in migrated_config:
             migrated_config["logging"] = {
-                "level": migrated_config["server"].get("log_level", "{{cookiecutter.log_level}}"),
-                "retention_days": migrated_config["server"].get("log_retention_days", {{cookiecutter.log_retention_days}}),
+                "level": migrated_config["server"].get("log_level", "ERROR"),
+                "retention_days": migrated_config["server"].get("log_retention_days", 1),
                 "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
                 "database_logging": True,
                 "file_logging": True
@@ -289,9 +289,9 @@ def migrate_config(old_config: Dict[str, Any]) -> Dict[str, Any]:
         # Migrate features section
         if "features" not in migrated_config:
             migrated_config["features"] = {
-                "admin_ui": {{cookiecutter.include_admin_ui == 'yes'}},
-                "example_tools": {{cookiecutter.include_example_tools == 'yes'}},
-                "parallel_examples": {{cookiecutter.include_parallel_example == 'yes'}},
+                "admin_ui": False,
+                "example_tools": False,
+                "parallel_examples": False,
                 "database_logging": True,
                 "file_logging": True,
                 "auto_reload": False
@@ -342,8 +342,8 @@ def get_example_configurations() -> Dict[str, Dict[str, Any]]:
         "development": {
             "version": 1,
             "server": {
-                "name": "{{cookiecutter.project_name}} Dev",
-                "port": {{cookiecutter.server_port}},
+                "name": "Minimal Server Dev",
+                "port": 9000,
                 "log_level": "DEBUG"
             },
             "development": {
@@ -359,8 +359,8 @@ def get_example_configurations() -> Dict[str, Dict[str, Any]]:
         "production": {
             "version": 1,
             "server": {
-                "name": "{{cookiecutter.project_name}} Prod",
-                "port": {{cookiecutter.server_port}},
+                "name": "Minimal Server Prod",
+                "port": 9000,
                 "log_level": "INFO"
             },
             "security": {
@@ -379,8 +379,8 @@ def get_example_configurations() -> Dict[str, Dict[str, Any]]:
         "testing": {
             "version": 1,
             "server": {
-                "name": "{{cookiecutter.project_name}} Test",
-                "port": {{cookiecutter.server_port}},
+                "name": "Minimal Server Test",
+                "port": 9000,
                 "log_level": "WARNING"
             },
             "development": {
@@ -450,7 +450,7 @@ def perform_config_health_check(config_path: Optional[Path] = None) -> Dict[str,
             health_status["overall_health"] = "critical"
         
         # Port availability check (simplified)
-        server_port = config.get("server", {}).get("port", {{cookiecutter.server_port}})
+        server_port = config.get("server", {}).get("port", 9000)
         health_status["checks"]["port_valid"] = isinstance(server_port, int) and 1 <= server_port <= 65535
         
         # Directory permissions check
@@ -474,57 +474,6 @@ def perform_config_health_check(config_path: Optional[Path] = None) -> Dict[str,
     return health_status
 
 
-{% if cookiecutter.include_admin_ui == "yes" -%}
-@dataclass
-class UIConfig:
-    """Configuration class for the Streamlit admin UI."""
-    
-    # UI settings
-    page_title: str = "{{cookiecutter.project_name}} Admin"
-    page_icon: str = "🔧"
-    layout: str = "wide"
-    
-    # Server connection settings
-    server_host: str = "127.0.0.1"
-    server_port: int = {{cookiecutter.server_port}}
-    
-    # UI features
-    show_logs: bool = True
-    show_config: bool = True
-    show_tools: bool = True
-    
-    # Shared configuration (from ServerConfig)
-    server_config: Optional[ServerConfig] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert UI configuration to dictionary."""
-        return {
-            "page_title": self.page_title,
-            "page_icon": self.page_icon,
-            "layout": self.layout,
-            "server_host": self.server_host,
-            "server_port": self.server_port,
-            "show_logs": self.show_logs,
-            "show_config": self.show_config,
-            "show_tools": self.show_tools,
-        }
-    
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "UIConfig":
-        """Create UI configuration from dictionary."""
-        return cls(
-            page_title=data.get("page_title", "{{cookiecutter.project_name}} Admin"),
-            page_icon=data.get("page_icon", "🔧"),
-            layout=data.get("layout", "wide"),
-            server_host=data.get("server_host", "127.0.0.1"),
-            server_port=data.get("server_port", {{cookiecutter.server_port}}),
-            show_logs=data.get("show_logs", True),
-            show_config=data.get("show_config", True),
-            show_tools=data.get("show_tools", True),
-        )
-{% endif -%}
-
-
 # Global configuration instance
 _config: Optional[ServerConfig] = None
 
@@ -544,23 +493,13 @@ def reload_config() -> ServerConfig:
     return _config
 
 
-{% if cookiecutter.include_admin_ui == "yes" -%}
-def get_ui_config() -> UIConfig:
-    """Get UI configuration with shared server config."""
-    server_config = get_config()
-    ui_config = UIConfig()
-    ui_config.server_config = server_config
-    return ui_config
-{% endif -%}
-
-
 def get_platform_info() -> Dict[str, str]:
     """Get platform-specific directory information."""
     return {
-        "config_dir": str(platformdirs.user_config_dir("{{cookiecutter.project_slug}}")),
-        "data_dir": str(platformdirs.user_data_dir("{{cookiecutter.project_slug}}")),
-        "log_dir": str(platformdirs.user_log_dir("{{cookiecutter.project_slug}}")),
-        "cache_dir": str(platformdirs.user_cache_dir("{{cookiecutter.project_slug}}")),
+        "config_dir": str(platformdirs.user_config_dir("minimal_server")),
+        "data_dir": str(platformdirs.user_data_dir("minimal_server")),
+        "log_dir": str(platformdirs.user_log_dir("minimal_server")),
+        "cache_dir": str(platformdirs.user_cache_dir("minimal_server")),
     }
 
 

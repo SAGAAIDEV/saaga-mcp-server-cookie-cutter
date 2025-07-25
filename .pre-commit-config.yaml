@@ -33,3 +33,67 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [types-all]
+
+  - repo: local
+    hooks:
+      - id: validate-config-template
+        name: Validate Configuration Template
+        entry: python -c "
+import yaml, sys, os
+from pathlib import Path
+def validate_template():
+    template_path = Path('{{cookiecutter.project_slug}}/config.yaml.j2')
+    if not template_path.exists():
+        return True  # Skip if template doesn't exist
+    try:
+        # Basic YAML structure validation (ignoring Jinja2 syntax)
+        with open(template_path, 'r') as f:
+            content = f.read()
+        # Check for required sections in template
+        required_sections = ['version:', 'server:', 'logging:', 'tools:', 'features:']
+        missing = [s for s in required_sections if s not in content]
+        if missing:
+            print(f'Missing required sections in config template: {missing}')
+            return False
+        print('✅ Configuration template structure is valid')
+        return True
+    except Exception as e:
+        print(f'❌ Configuration template validation failed: {e}')
+        return False
+sys.exit(0 if validate_template() else 1)
+        "
+        language: system
+        files: "config\\.yaml\\.j2$"
+        pass_filenames: false
+
+      - id: validate-cookiecutter-config
+        name: Validate Cookiecutter Configuration
+        entry: python -c "
+import json, sys
+def validate_cookiecutter():
+    try:
+        with open('cookiecutter.json', 'r') as f:
+            config = json.load(f)
+        # Check required fields
+        required = ['project_name', 'project_slug', 'log_level', 'server_port']
+        missing = [f for f in required if f not in config]
+        if missing:
+            print(f'Missing required cookiecutter fields: {missing}')
+            return False
+        # Validate log level choices
+        if isinstance(config.get('log_level'), list):
+            valid_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
+            invalid = [l for l in config['log_level'] if l not in valid_levels]
+            if invalid:
+                print(f'Invalid log levels in cookiecutter.json: {invalid}')
+                return False
+        print('✅ Cookiecutter configuration is valid')
+        return True
+    except Exception as e:
+        print(f'❌ Cookiecutter configuration validation failed: {e}')
+        return False
+sys.exit(0 if validate_cookiecutter() else 1)
+        "
+        language: system
+        files: "cookiecutter\\.json$"
+        pass_filenames: false
