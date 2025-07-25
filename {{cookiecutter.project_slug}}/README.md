@@ -85,6 +85,8 @@ uv run python -m {{cookiecutter.project_slug}}.server.app --log-level DEBUG
 
 # Run the server directly
 uv run python {{cookiecutter.project_slug}}/server/app.py
+
+uv run {{ cookiecutter.project_slug }}-server
 ```
 
 #### 2. SSE Mode (for web-based clients)
@@ -155,6 +157,19 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
     "{{cookiecutter.project_slug}}": {
       "command": "/path/to/{{cookiecutter.project_slug}}/.venv/bin/python",
       "args": ["-m", "{{cookiecutter.project_slug}}.server.app"]
+    }
+  }
+}
+```
+
+#### Using with uv tool
+
+```json
+{
+  "mcpServers": {
+    "{{cookiecutter.project_slug}}": {
+      "command": "uv",
+      "args": ["--directory=/path/to/{{cookiecutter.project_slug}}", "run" ,"{{ cookiecutter.project_slug }}-server"]
     }
   }
 }
