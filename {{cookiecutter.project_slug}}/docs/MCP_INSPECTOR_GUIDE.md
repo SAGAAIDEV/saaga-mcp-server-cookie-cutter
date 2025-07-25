@@ -71,37 +71,30 @@ These tools work with the standard form interface in MCP Inspector.
 
 #### 1. echo_tool
 
-**Purpose**: Echoes back your input with optional case transformation
+**Purpose**: Echoes back your input message
 
 **Test Examples**:
 ```
-text: "Hello, MCP!"
-transform: "upper"
-Expected: "HELLO, MCP!"
+message: "Hello, MCP!"
+Expected: "Echo: Hello, MCP!"
 
-text: "Testing SAAGA decorators"
-transform: "lower"
-Expected: "testing saaga decorators"
+message: "Testing SAAGA decorators"
+Expected: "Echo: Testing SAAGA decorators"
 
-text: "Reverse this"
-transform: null (leave empty)
-Expected: "Reverse this"
+message: "Hello World"
+Expected: "Echo: Hello World"
 ```
 
 #### 2. get_time
 
-**Purpose**: Returns current time in specified timezone
+**Purpose**: Returns the current time in human-readable format
 
 **Test Examples**:
 ```
-timezone: "America/New_York"
-Expected: Current time in NY timezone
+No parameters required - just click "Run Tool"
+Expected: "Current time: YYYY-MM-DD HH:MM:SS"
 
-timezone: "Europe/London"
-Expected: Current time in London timezone
-
-timezone: "UTC"
-Expected: Current UTC time
+Example output: "Current time: 2025-01-15 10:30:45"
 ```
 
 #### 3. random_number
@@ -112,11 +105,14 @@ Expected: Current UTC time
 ```
 min_value: 1
 max_value: 10
-Expected: {"number": <1-10>, "range": "1-10"}
+Expected: {"number": <1-10>, "range": "1-10", "timestamp": 1234567890.123}
 
 min_value: 100
 max_value: 200
-Expected: {"number": <100-200>, "range": "100-200"}
+Expected: {"number": <100-200>, "range": "100-200", "timestamp": 1234567890.123}
+
+Leave both empty to use defaults (1-100)
+Expected: {"number": <1-100>, "range": "1-100", "timestamp": 1234567890.123}
 ```
 
 #### 4. calculate_fibonacci
@@ -126,19 +122,19 @@ Expected: {"number": <100-200>, "range": "100-200"}
 **Test Examples**:
 ```
 n: 5
-Expected: {"position": 5, "value": 5, "sequence": [0, 1, 1, 2, 3, 5]}
+Expected: {"position": 5, "value": 5, "calculation_time": 0.0000XX}
 
 n: 10
-Expected: {"position": 10, "value": 55, "sequence": [...]}
+Expected: {"position": 10, "value": 55, "calculation_time": 0.0000XX}
 
 n: 20
-Expected: {"position": 20, "value": 6765, "sequence": [...]}
+Expected: {"position": 20, "value": 6765, "calculation_time": 0.0000XX}
 ```
 
 {% if cookiecutter.include_parallel_example == "yes" -%}
 ### Parallel Tools (JSON Mode Required)
 
-⚠️ **Important**: The MCP Inspector's form interface doesn't handle `List[Dict]` parameters well. Switch to JSON mode for these tools.
+⚠️ **Important**: The parallelization decorator transforms these tools to accept a single parameter `kwargs_list` containing a list of dictionaries. Each dictionary in the list represents one execution of the original function.
 
 **How to Use JSON Mode**:
 1. Select the parallel tool
@@ -148,36 +144,18 @@ Expected: {"position": 20, "value": 6765, "sequence": [...]}
 
 #### 5. process_batch_data
 
-**Purpose**: Processes multiple data batches in parallel
+**Purpose**: Processes multiple batches of data in parallel
 
-**Test Example 1** - Mixed operations:
+**Decorated Signature**: `process_batch_data(kwargs_list: List[Dict[str, Any]])`
+
+**Original function parameters**:
+- `items`: List of strings to process
+- `operation`: Operation to perform ('upper', 'lower', 'reverse')
+
+**Test Example 1** - Process three batches with different operations:
 ```json
 {
-  "batches": [
-    {"items": ["hello", "world"], "operation": "upper"},
-    {"items": ["FOO", "BAR"], "operation": "lower"},
-    {"items": ["test"], "operation": "reverse"}
-  ]
-}
-```
-
-Expected output:
-```json
-{
-  "results": [
-    {"processed": ["HELLO", "WORLD"], "count": 2},
-    {"processed": ["foo", "bar"], "count": 2},
-    {"processed": ["tset"], "count": 1}
-  ],
-  "total_processed": 5,
-  "parallel_execution_time": "0.XX seconds"
-}
-```
-
-**Test Example 2** - Large batch:
-```json
-{
-  "batches": [
+  "kwargs_list": [
     {"items": ["apple", "banana", "cherry"], "operation": "upper"},
     {"items": ["DOG", "CAT", "BIRD"], "operation": "lower"},
     {"items": ["hello", "world"], "operation": "reverse"}
@@ -185,22 +163,85 @@ Expected output:
 }
 ```
 
-#### 6. simulate_heavy_computation
+Expected output (list of results for each batch):
+```json
+[
+  {
+    "original": ["apple", "banana", "cherry"],
+    "processed": ["APPLE", "BANANA", "CHERRY"],
+    "operation": "upper",
+    "timestamp": 1234567890.123
+  },
+  {
+    "original": ["DOG", "CAT", "BIRD"],
+    "processed": ["dog", "cat", "bird"],
+    "operation": "lower",
+    "timestamp": 1234567890.124
+  },
+  {
+    "original": ["hello", "world"],
+    "processed": ["olleh", "dlrow"],
+    "operation": "reverse",
+    "timestamp": 1234567890.125
+  }
+]
+```
 
-**Purpose**: Simulates parallel computation tasks
-
-**Test Example** - Mixed complexity:
+**Test Example 2** - Single batch processing:
 ```json
 {
-  "tasks": [
-    {"task_id": "task1", "complexity": 5},
-    {"task_id": "task2", "complexity": 1},
-    {"task_id": "task3", "complexity": 10}
+  "kwargs_list": [
+    {"items": ["test", "data"], "operation": "upper"}
   ]
 }
 ```
 
-Expected: Results with computation times proportional to complexity
+#### 6. simulate_heavy_computation
+
+**Purpose**: Simulates multiple heavy computation tasks in parallel
+
+**Decorated Signature**: `simulate_heavy_computation(kwargs_list: List[Dict[str, Any]])`
+
+**Original function parameter**:
+- `complexity`: Complexity level from 1-10 (default: 5)
+
+**Test Example** - Multiple computations with different complexities:
+```json
+{
+  "kwargs_list": [
+    {"complexity": 2},
+    {"complexity": 5},
+    {"complexity": 8}
+  ]
+}
+```
+
+Expected output (list of results for each computation):
+```json
+[
+  {
+    "complexity": 2,
+    "iterations": 200000,
+    "result": <calculated_value>,
+    "computation_time": 0.XXX,
+    "operations_per_second": XXXXX.XX
+  },
+  {
+    "complexity": 5,
+    "iterations": 500000,
+    "result": <calculated_value>,
+    "computation_time": 0.XXX,
+    "operations_per_second": XXXXX.XX
+  },
+  {
+    "complexity": 8,
+    "iterations": 800000,
+    "result": <calculated_value>,
+    "computation_time": 0.XXX,
+    "operations_per_second": XXXXX.XX
+  }
+]
+```
 {% endif -%}
 
 ## Testing Error Handling
