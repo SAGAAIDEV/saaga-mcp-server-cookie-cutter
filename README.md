@@ -147,6 +147,7 @@ your-project/
 ├── tests/                     # Test suite
 ├── docs/                      # Documentation
 │   └── DECORATOR_PATTERNS.md # Detailed decorator guidance
+├── BUILD.bazel               # Bazel build configuration
 ├── .ai-prompts.md            # AI assistant context
 ├── pyproject.toml            # Project configuration
 ├── README.md                 # Project documentation
@@ -155,6 +156,13 @@ your-project/
 ```
 
 ## Key Features
+
+### Bazel Integration
+
+Generated projects include a `BUILD.bazel` file for seamless integration with the SAAGA build system. This enables:
+- Automatic registration with the SAAGA infrastructure
+- Consistent dependency management through Bazel
+- Easy integration with other SAAGA components
 
 ### SAAGA Decorators
 
