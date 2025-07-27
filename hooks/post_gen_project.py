@@ -92,7 +92,8 @@ def update_readme_with_paths():
         f'"/path/to/{project_slug}"': f'"{project_path_json}"',
         f'"cwd": "/path/to/{project_slug}"': f'"cwd": "{project_path_json}"',
         f'"/path/to/{project_slug}/.venv/bin/python"': f'"{python_exe_path_json}"',
-        '"UV_PROJECT_ENVIRONMENT": "/path/to/specific/venv"': f'"UV_PROJECT_ENVIRONMENT": "{escape_path_for_json(str(Path(python_exe_path).parent.parent))}"',
+        f'"--directory=/path/to/{project_slug}"': f'"--directory={project_path_json}"',
+        '"UV_PROJECT_ENVIRONMENT": "/path/to/specific/venv"': f'"UV_PROJECT_ENVIRONMENT": "{escape_path_for_json(str(Path(python_exe_path).parent.parent))}"'
     }
 
     for placeholder, actual_path in replacements.items():
