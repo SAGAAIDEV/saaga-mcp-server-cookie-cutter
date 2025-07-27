@@ -151,6 +151,40 @@ def run_uv_commands():
 # =============================================================================
 
 
+def create_integration_test_config():
+    """Create mcp.integration_test.json with single server configuration."""
+    # Get cookiecutter context
+    context = get_cookiecutter_context()
+    project_slug = context["project_slug"]
+    
+    print(f"\n🧪 Creating mcp.integration_test.json for Claude testing...")
+    
+    try:
+        # Get absolute project path
+        project_path = get_project_path()
+        
+        # Create the configuration
+        integration_config = {
+            "mcpServers": {
+                project_slug: {
+                    "command": "uv",
+                    "args": ["run", "--directory", project_path, f"{project_slug}-server"],
+                }
+            }
+        }
+        
+        # Write the integration test configuration
+        integration_config_path = Path(project_path) / "mcp.integration_test.json"
+        with open(integration_config_path, "w", encoding="utf-8") as f:
+            json.dump(integration_config, f, indent=2, ensure_ascii=False)
+        
+        print(f"   ✅ Created mcp.integration_test.json")
+        print(f"   📋 Test with: claude --config {integration_config_path}")
+        
+    except Exception as e:
+        print(f"   ⚠️  Warning: Failed to create integration test config: {e}")
+
+
 def install_mcp_server_config():
     """Install the MCP server configuration into a specified JSON config file."""
     # Get cookiecutter context
@@ -740,6 +774,9 @@ def main():
 
     # Install MCP server configuration if requested
     install_mcp_server_config()
+    
+    # Create integration test config for Claude
+    create_integration_test_config()
 
     # Update AWS SSM parameter first to get the port
     assigned_port = update_aws_ssm_parameter()
