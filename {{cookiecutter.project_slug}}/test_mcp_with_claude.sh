@@ -77,7 +77,7 @@ echo -e "${YELLOW}Prompt:${NC} $PROMPT"
 echo ""
 
 # Run Claude with the MCP server
-claude -p "$PROMPT" \
+echo "$PROMPT" | claude \
     --model sonnet \
     --mcp-config "$CONFIG_FILE" \
     --dangerously-skip-permissions \

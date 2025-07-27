@@ -68,7 +68,7 @@ Write-Host "${Yellow}Prompt:${Reset} $PromptString"
 Write-Host ""
 
 # Run Claude with the MCP server
-& claude -p $PromptString `
+$PromptString | & claude `
     --model sonnet `
     --mcp-config $ConfigFile `
     --dangerously-skip-permissions `
