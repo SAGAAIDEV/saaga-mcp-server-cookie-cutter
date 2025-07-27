@@ -27,6 +27,30 @@ source .venv/bin/activate  # Or use: uv shell
 uv run mcp dev {{cookiecutter.project_slug}}/server/app.py
 ```
 
+## Testing with Claude CLI
+
+This project includes a convenient test script for testing your MCP server with Claude:
+
+```bash
+# Test with a simple prompt
+./test_mcp_with_claude.sh "List all available tools"
+
+# Test a specific tool
+./test_mcp_with_claude.sh "Run the echo_tool with message 'Hello World'"
+
+# Test with a custom config file
+./test_mcp_with_claude.sh -c custom_config.json "Test my server"
+
+# On Windows
+.\test_mcp_with_claude.ps1 "List all available tools"
+```
+
+The script automatically:
+- Uses the generated `mcp.integration_test.json` configuration
+- Runs Claude with the Sonnet model
+- Includes proper MCP configuration flags
+- Provides colored output for better readability
+
 ## Overview
 
 This MCP server was generated using the SAAGA MCP Server Cookie Cutter template. It includes:
