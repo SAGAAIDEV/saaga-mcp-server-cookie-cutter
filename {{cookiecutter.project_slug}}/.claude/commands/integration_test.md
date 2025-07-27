@@ -11,14 +11,14 @@ I'll test the MCP tool "$ARGUMENTS" using Claude subprocess.
 The test will use the following Claude subprocess command:
 
 ```bash
-claude -p "Use the $ARGUMENTS MCP tool. Use the 'saaga' site alias if applicable. Return the results in a clear, formatted manner." --dangerously-skip-permissions
+test_mcp_with_claude.sh "<Prompt that explains what tool to run.>" 
 ```
 
-## Executing Test
 
-!claude -p "Use the $ARGUMENTS MCP tool. Use the 'saaga' site alias if applicable. Return the results in a clear, formatted manner." --dangerously-skip-permissions
 
 ## Next Steps
+
+Use the bash to call the test_mcp_with_claude script and pass in instructions of how to use the tool that was just made.
 
 After the test completes, I'll:
 1. Analyze the output for correctness
