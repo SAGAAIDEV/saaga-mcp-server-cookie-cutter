@@ -38,15 +38,15 @@ This project includes a convenient test script for testing your MCP server with 
 # Test a specific tool
 ./test_mcp_with_claude.sh "Run the echo_tool with message 'Hello World'"
 
-# Test with a custom config file
-./test_mcp_with_claude.sh -c custom_config.json "Test my server"
+# Test with multiple tools
+./test_mcp_with_claude.sh "Test calculate_fibonacci with n=10 and echo_tool with message 'Done'"
 
 # On Windows
 .\test_mcp_with_claude.ps1 "List all available tools"
 ```
 
 The script automatically:
-- Uses the generated `mcp.integration_test.json` configuration
+- Uses the generated `mcp.integration_test.json` configuration (created by cookiecutter)
 - Runs Claude with the Sonnet model
 - Includes proper MCP configuration flags
 - Provides colored output for better readability
