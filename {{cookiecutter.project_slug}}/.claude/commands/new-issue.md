@@ -1,6 +1,6 @@
 ---
 description: Create a new Jira issue by gathering details from the user and using Conduit
-usage: /project:new-issue [PROJECT-KEY] [SITE-ALIAS]
+usage: /project:new-issue 
 example: /project:new-issue CLD saaga
 ---
 
@@ -9,7 +9,7 @@ I'll help you create a new Jira issue in project $ARGUMENTS.
 ## Parse Arguments
 Let me extract the project key and site alias from the provided arguments:
 - Arguments provided: $ARGUMENTS
-- Expected format: [PROJECT-KEY] [SITE-ALIAS] (e.g., "CLD saaga")
+- Expected format: [PROJECT-KEY] default (e.g., "CLD saaga")
 
 ## Step 1: Gather Information from User
 
