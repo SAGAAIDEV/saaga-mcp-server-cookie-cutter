@@ -80,5 +80,4 @@ echo ""
 claude -p "$PROMPT" \
     --model sonnet \
     --mcp-config "$CONFIG_FILE" \
-    --dangerously-skip-permissions \
-    "@"
+    --dangerously-skip-permissions

@@ -71,5 +71,4 @@ Write-Host ""
 & claude -p $PromptString `
     --model sonnet `
     --mcp-config $ConfigFile `
-    --dangerously-skip-permissions `
-    "@"
+    --dangerously-skip-permissions
