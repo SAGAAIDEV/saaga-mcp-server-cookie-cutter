@@ -12,6 +12,7 @@
   "server_port": "3001",
   "log_level": ["INFO", "DEBUG", "WARNING", "ERROR"],
   "log_retention_days": "30",
-  "setup_mcp_server": ["yes", "no"],
-  "update_aws_parameter_store": ["no", "yes"]
+  "configure_bazel_build_files": ["yes", "no"],
+  "update_aws_parameter_store": ["no", "yes"],
+  "jira_project_key": ""
 }
