@@ -47,7 +47,7 @@ def get_cookiecutter_context():
         "project_slug": "{{ cookiecutter.project_slug }}",
         "include_admin_ui": "{{ cookiecutter.include_admin_ui }}",
         "mcp_config_file_path": "{{ cookiecutter.mcp_config_file_path }}",
-        "setup_mcp_server": "{{ cookiecutter.setup_mcp_server }}",
+        "configure_bazel_build_files": "{{ cookiecutter.configure_bazel_build_files }}",
         "update_aws_parameter_store": "{{ cookiecutter.update_aws_parameter_store }}",
     }
 
@@ -93,7 +93,7 @@ def update_readme_with_paths():
         f'"cwd": "/path/to/{project_slug}"': f'"cwd": "{project_path_json}"',
         f'"/path/to/{project_slug}/.venv/bin/python"': f'"{python_exe_path_json}"',
         f'"--directory=/path/to/{project_slug}"': f'"--directory={project_path_json}"',
-        '"UV_PROJECT_ENVIRONMENT": "/path/to/specific/venv"': f'"UV_PROJECT_ENVIRONMENT": "{escape_path_for_json(str(Path(python_exe_path).parent.parent))}"'
+        '"UV_PROJECT_ENVIRONMENT": "/path/to/specific/venv"': f'"UV_PROJECT_ENVIRONMENT": "{escape_path_for_json(str(Path(python_exe_path).parent.parent))}"',
     }
 
     for placeholder, actual_path in replacements.items():
@@ -157,13 +157,13 @@ def create_integration_test_config():
     # Get cookiecutter context
     context = get_cookiecutter_context()
     project_slug = context["project_slug"]
-    
+
     print(f"\n🧪 Creating mcp.integration_test.json for Claude testing...")
-    
+
     try:
         # Get absolute project path
         project_path = get_project_path()
-        
+
         # Create the configuration
         integration_config = {
             "mcpServers": {
@@ -173,15 +173,15 @@ def create_integration_test_config():
                 }
             }
         }
-        
+
         # Write the integration test configuration
         integration_config_path = Path(project_path) / "mcp.integration_test.json"
         with open(integration_config_path, "w", encoding="utf-8") as f:
             json.dump(integration_config, f, indent=2, ensure_ascii=False)
-        
+
         print(f"   ✅ Created mcp.integration_test.json")
         print(f"   📋 Test with: claude --config {integration_config_path}")
-        
+
     except Exception as e:
         print(f"   ⚠️  Warning: Failed to create integration test config: {e}")
 
@@ -305,11 +305,11 @@ def run_refresh_requirements():
 
 
 def run_claude_setup(assigned_port=None):
-    """Run Claude with setup instructions if setup_mcp_server is set to yes."""
+    """Run Claude with setup instructions if configure_bazel_build_files is set to yes."""
     context = get_cookiecutter_context()
-    setup_mcp_server = context["setup_mcp_server"]
+    configure_bazel_build_files = context["configure_bazel_build_files"]
 
-    if setup_mcp_server != "yes":
+    if configure_bazel_build_files != "yes":
         return
 
     print("\n🤖 Running Claude setup assistant...")
@@ -647,6 +647,56 @@ def update_aws_ssm_parameter():
 
     print(f"\n☁️ Updating AWS SSM parameter for '{project_slug}'...")
 
+    # Proactively ensure AWS SSO login
+    print("   🔐 Ensuring AWS SSO login...")
+    try:
+        # Check if AWS CLI is available
+        subprocess.run(
+            ["aws", "--version"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        # Attempt AWS SSO login
+        result = subprocess.run(
+            ["aws", "sso", "login"],
+            capture_output=False,  # Allow interactive prompts
+            text=True,
+        )
+
+        if result.returncode != 0:
+            print("   ❌ AWS SSO login failed or was declined")
+            print("   📋 Manual setup required:")
+            print(f"      1. Run 'aws sso login' manually")
+            print(f"      2. Add this line to the solve-env-prod AWS SSM parameter:")
+            print(f"         {project_slug.upper()}_URL=http://usrpod:[NEXT_PORT]/sse")
+            print(f"      3. Find the next available port by checking existing 8XXX ports")
+            print(f"      4. Contact saaga@saaga.dev or evan@saaga.dev for assistance")
+            return None
+
+        print("   ✅ AWS SSO login completed")
+
+    except FileNotFoundError:
+        print("   ❌ AWS CLI not found")
+        print("   📋 Manual setup required:")
+        print(f"      1. Install AWS CLI: https://aws.amazon.com/cli/")
+        print(f"      2. Run 'aws sso login'")
+        print(f"      3. Add this line to the solve-env-prod AWS SSM parameter:")
+        print(f"         {project_slug.upper()}_URL=http://usrpod:[NEXT_PORT]/sse")
+        print(f"      4. Find the next available port by checking existing 8XXX ports")
+        print(f"      5. Contact saaga@saaga.dev or evan@saaga.dev for assistance")
+        return None
+    except Exception as e:
+        print(f"   ❌ Unexpected error during AWS setup: {e}")
+        print("   📋 Manual setup required:")
+        print(f"      1. Run 'aws sso login' manually")
+        print(f"      2. Add this line to the solve-env-prod AWS SSM parameter:")
+        print(f"         {project_slug.upper()}_URL=http://usrpod:[NEXT_PORT]/sse")
+        print(f"      3. Find the next available port by checking existing 8XXX ports")
+        print(f"      4. Contact saaga@saaga.dev or evan@saaga.dev for assistance")
+        return None
+
     try:
         # Get current parameter value
         print("   Getting current solve-env-prod parameter...")
@@ -727,31 +777,24 @@ def update_aws_ssm_parameter():
         return next_port
 
     except subprocess.CalledProcessError as e:
-        if "aws" in str(e) and ("credentials" in str(e).lower() or "expired" in str(e).lower()):
-            print("   🔐 AWS credentials issue detected, attempting SSO login...")
-            try:
-                subprocess.run(
-                    ["aws", "sso", "login"],
-                    check=True,
-                )
-                print("   ✅ AWS SSO login completed, retrying parameter update...")
-                # Retry the operation and return its result
-                return update_aws_ssm_parameter()
-            except subprocess.CalledProcessError:
-                print("   ⚠️  Warning: AWS SSO login failed")
-                print("   Please run 'aws sso login' manually and retry.")
-                return None
-        else:
-            print(f"   ⚠️  Warning: Failed to update AWS SSM parameter: {e}")
-            if e.stderr:
-                print(f"      Error: {e.stderr}")
-            return None
-    except FileNotFoundError:
-        print("   ⚠️  Warning: 'aws' command not found.")
-        print("   Please install AWS CLI: https://aws.amazon.com/cli/")
+        print(f"   ❌ Failed to update AWS SSM parameter: {e}")
+        if e.stderr:
+            print(f"      Error: {e.stderr}")
+        print("   📋 Manual setup required:")
+        print(f"      1. Run 'aws sso login' manually if needed")
+        print(f"      2. Add this line to the solve-env-prod AWS SSM parameter:")
+        print(f"         {project_slug.upper()}_URL=http://usrpod:[NEXT_PORT]/sse")
+        print(f"      3. Find the next available port by checking existing 8XXX ports")
+        print(f"      4. Contact saaga@saaga.dev or evan@saaga.dev for assistance")
         return None
     except Exception as e:
-        print(f"   ⚠️  Warning: Failed to update AWS SSM parameter: {e}")
+        print(f"   ❌ Failed to update AWS SSM parameter: {e}")
+        print("   📋 Manual setup required:")
+        print(f"      1. Run 'aws sso login' manually if needed")
+        print(f"      2. Add this line to the solve-env-prod AWS SSM parameter:")
+        print(f"         {project_slug.upper()}_URL=http://usrpod:[NEXT_PORT]/sse")
+        print(f"      3. Find the next available port by checking existing 8XXX ports")
+        print(f"      4. Contact saaga@saaga.dev or evan@saaga.dev for assistance")
         return None
 
 
@@ -775,7 +818,7 @@ def main():
 
     # Install MCP server configuration if requested
     install_mcp_server_config()
-    
+
     # Create integration test config for Claude
     create_integration_test_config()
 

@@ -1,7 +1,8 @@
 ---
 description: Create a new Jira issue by gathering details from the user and using Conduit
-usage: /project:new-issue 
-example: /project:new-issue CLD saaga
+usage: /project:new-issue issue-type
+example: /project:new-issue bug 
+
 ---
 
 I'll help you create a new Jira issue in project $ARGUMENTS.
@@ -60,10 +61,10 @@ I will use the gathered information and the structured description to create the
 ```python
 # Use Conduit to create the issue
 mcp__<conduit|jira>__create_jira_issue(
-    project="[PROJECT-KEY from arguments]",
+    project="{{cookiecutter.jira_project_key}}",
     summary="[Descriptive summary from user]",
     description="[Formatted description using template above]",
-    issue_type="Task"
+    issue_type="[issue-type from arguments]"
 )
 ```
 
