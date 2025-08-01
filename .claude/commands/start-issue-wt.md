@@ -119,9 +119,9 @@ Use mcp__Conduit__update_jira_status to update the issue to 'In Progress' status
 ## Step 7: Research Technical Requirements
 If needed, I'll research unfamiliar technologies mentioned in the issue:
 
-1. **First**: Check RAG system for MCP/Claude Code topics using `/rag-search-knowledge`
-2. **Then**: Use Context7 for other technologies/libraries/frameworks
-3. **Priority**: RAG has current docs, Context7 may be 2-3 weeks behind for MCP/Claude topics
+1. **Use Context7 MCP server** for researching technologies, libraries, and frameworks
+2. **For MCP/Claude Code topics**: Context7 has comprehensive documentation
+3. **Note**: Context7 provides up-to-date documentation for most major libraries and frameworks
 
 ## Step 8: Determine Testing Approach
 Based on the issue details and acceptance criteria, I'll identify the testing strategy:
