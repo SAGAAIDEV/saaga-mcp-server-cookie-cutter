@@ -1,12 +1,12 @@
-# {{cookiecutter.project_name}}
+# Test MCP Server
 
-{{cookiecutter.description}}
+Test MCP server generated for development testing
 
 ## Quick Start with AI Assistant
 
 **Need help getting started?** Have your AI coding assistant guide you!
 
-Simply tell your AI assistant: *"I have a {{cookiecutter.project_name}} project. Please read and follow [WORKING_WITH_SAAGA_PROMPT.md](WORKING_WITH_SAAGA_PROMPT.md) to help me understand and work with this MCP server."*
+Simply tell your AI assistant: *"I have a Test MCP Server project. Please read and follow [WORKING_WITH_SAAGA_PROMPT.md](WORKING_WITH_SAAGA_PROMPT.md) to help me understand and work with this MCP server."*
 
 **For quick reference**, the [.ai-prompts.md](.ai-prompts.md) file contains a condensed version of key patterns.
 
@@ -24,7 +24,7 @@ Simply tell your AI assistant: *"I have a {{cookiecutter.project_name}} project.
 Quick start:
 ```bash
 source .venv/bin/activate  # Or use: uv shell
-uv run mcp dev {{cookiecutter.project_slug}}/server/app.py
+uv run mcp dev test_mcp_server/server/app.py
 ```
 
 ## Testing with Claude CLI
@@ -51,69 +51,6 @@ The script automatically:
 - Includes proper MCP configuration flags
 - Provides colored output for better readability
 
-## MCP Integration Testing
-
-This project includes comprehensive integration tests that validate tools work correctly with real MCP client interactions:
-
-### Running Integration Tests
-
-```bash
-# Run all integration tests
-test-mcp-integration
-
-# Run with verbose output
-test-mcp-integration --verbose
-
-# Test specific tool
-test-mcp-integration --tool echo_tool
-
-# List all available tools
-test-mcp-integration --list
-
-# Cross-platform scripts also available
-./test_mcp_integration.sh        # Unix/Mac
-.\test_mcp_integration.ps1        # Windows
-```
-
-### What's Tested
-
-The integration tests validate:
-- **Tool Discovery**: All tools are discoverable with correct schemas (no "kwargs" parameters)
-- **Parameter Conversion**: String parameters from MCP are converted to appropriate types
-- **Error Handling**: Invalid parameters and exceptions return proper error responses
-- **SAAGA Integration**: Decorators work correctly in the full MCP protocol flow
-- **Protocol Compliance**: Tools work with real MCP client connections
-
-### Generating Tests for New Tools
-
-When you add a new tool, generate integration tests for it:
-
-```bash
-# Generate test template
-generate-mcp-tests my_new_tool
-
-# This creates a test template you can customize
-# Add it to tests/integration/test_mcp_integration.py
-```
-
-### Integration vs Unit Tests
-
-- **Unit Tests** (`test_decorators.py`): Test SAAGA decorators in isolation
-- **Integration Tests** (`test_mcp_integration.py`): Test complete MCP protocol flow with real client
-
-Run both test suites to ensure full coverage:
-
-```bash
-# Run all tests
-pytest
-
-# Run only unit tests
-pytest tests/test_decorators.py
-
-# Run only integration tests
-test-mcp-integration
-```
-
 ## Overview
 
 This MCP server was generated using the SAAGA MCP Server Cookie Cutter template. It includes:
@@ -121,16 +58,14 @@ This MCP server was generated using the SAAGA MCP Server Cookie Cutter template.
 - **FastMCP Integration**: Modern MCP framework with dual transport support
 - **SAAGA Decorators**: Automatic exception handling, logging, and parallelization
 - **Platform-Aware Configuration**: Cross-platform configuration management
-{% if cookiecutter.include_admin_ui == "yes" -%}
 - **Streamlit Admin UI**: Web-based configuration and monitoring interface
-{% endif -%}
 - **SQLite Logging**: Comprehensive logging with database persistence
 
 ## Installation
 
 ### Prerequisites
 
-- Python {{cookiecutter.python_version}} or higher
+- Python 3.11 or higher
 - [UV](https://github.com/astral-sh/uv) - An extremely fast Python package manager
 
 ### Install from Source
@@ -141,7 +76,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh  # On macOS/Linux
 # Or visit https://github.com/astral-sh/uv for Windows instructions
 
 git clone <your-repository-url>
-cd {{cookiecutter.project_slug}}
+cd test_mcp_server
 uv venv
 uv sync
 ```
@@ -150,7 +85,7 @@ uv sync
 
 ```bash
 git clone <your-repository-url>
-cd {{cookiecutter.project_slug}}
+cd test_mcp_server
 uv venv
 uv sync --extra dev
 ```
@@ -165,38 +100,38 @@ The server can be run in two modes:
 
 ```bash
 # Run with default settings
-uv run python -m {{cookiecutter.project_slug}}.server.app
+uv run python -m test_mcp_server.server.app
 
 # Run with custom log level
-uv run python -m {{cookiecutter.project_slug}}.server.app --log-level DEBUG
+uv run python -m test_mcp_server.server.app --log-level DEBUG
 
 # Run the server directly
-uv run python {{cookiecutter.project_slug}}/server/app.py
+uv run python test_mcp_server/server/app.py
 
-uv run {{ cookiecutter.project_slug }}-server
+uv run test_mcp_server-server
 ```
 
 #### 2. SSE Mode (for web-based clients)
 
 ```bash
 # Run with SSE transport
-uv run python -m {{cookiecutter.project_slug}}.server.app --transport sse --port {{cookiecutter.server_port}}
+uv run python -m test_mcp_server.server.app --transport sse --port 3001
 
 # Run with custom host and port
-uv run python -m {{cookiecutter.project_slug}}.server.app --transport sse --host 0.0.0.0 --port 8080
+uv run python -m test_mcp_server.server.app --transport sse --host 0.0.0.0 --port 8080
 ```
 
 ### Command Line Options
 
 ```bash
-uv run python -m {{cookiecutter.project_slug}}.server.app --help
+uv run python -m test_mcp_server.server.app --help
 ```
 
 Available options:
 - `--transport`: Choose between "stdio" (default) or "sse"
 - `--host`: Host to bind to for SSE transport (default: 127.0.0.1)
-- `--port`: Port to bind to for SSE transport (default: {{cookiecutter.server_port}})
-- `--log-level`: Logging level - DEBUG, INFO, WARNING, ERROR (default: {{cookiecutter.log_level}})
+- `--port`: Port to bind to for SSE transport (default: 3001)
+- `--log-level`: Logging level - DEBUG, INFO, WARNING, ERROR (default: DEBUG)
 
 ### MCP Client Configuration
 
@@ -207,10 +142,10 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 ```json
 {
   "mcpServers": {
-    "{{cookiecutter.project_slug}}": {
+    "test_mcp_server": {
       "command": "uv",
-      "args": ["run", "python", "-m", "{{cookiecutter.project_slug}}.server.app"],
-      "cwd": "/path/to/{{cookiecutter.project_slug}}"
+      "args": ["run", "python", "-m", "test_mcp_server.server.app"],
+      "cwd": "/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter/generated_servers/test_mcp_server"
     }
   }
 }
@@ -221,15 +156,15 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 ```json
 {
   "mcpServers": {
-    "{{cookiecutter.project_slug}}": {
+    "test_mcp_server": {
       "command": "uv",
       "args": [
-        "run", "python", "-m", "{{cookiecutter.project_slug}}.server.app",
+        "run", "python", "-m", "test_mcp_server.server.app",
         "--log-level", "DEBUG"
       ],
-      "cwd": "/path/to/{{cookiecutter.project_slug}}",
+      "cwd": "/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter/generated_servers/test_mcp_server",
       "env": {
-        "UV_PROJECT_ENVIRONMENT": "/path/to/specific/venv"
+        "UV_PROJECT_ENVIRONMENT": "/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter/generated_servers/test_mcp_server/.venv"
       }
     }
   }
@@ -241,9 +176,9 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 ```json
 {
   "mcpServers": {
-    "{{cookiecutter.project_slug}}": {
-      "command": "/path/to/{{cookiecutter.project_slug}}/.venv/bin/python",
-      "args": ["-m", "{{cookiecutter.project_slug}}.server.app"]
+    "test_mcp_server": {
+      "command": "/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter/generated_servers/test_mcp_server/.venv/bin/python",
+      "args": ["-m", "test_mcp_server.server.app"]
     }
   }
 }
@@ -254,9 +189,9 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 ```json
 {
   "mcpServers": {
-    "{{cookiecutter.project_slug}}": {
+    "test_mcp_server": {
       "command": "uv",
-      "args": ["--directory=/path/to/{{cookiecutter.project_slug}}", "run" ,"{{ cookiecutter.project_slug }}-server"]
+      "args": ["--directory=/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter/generated_servers/test_mcp_server", "run" ,"test_mcp_server-server"]
     }
   }
 }
@@ -268,13 +203,12 @@ Add the following to your Claude Desktop MCP settings (`claude_desktop_config.js
 - **Linux**: `~/.config/Claude/claude_desktop_config.json`
 - **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
 
-{% if cookiecutter.include_admin_ui == "yes" -%}
 ### Admin UI
 
 Launch the Streamlit admin interface:
 
 ```bash
-uv run streamlit run {{cookiecutter.project_slug}}/ui/app.py
+uv run streamlit run test_mcp_server/ui/app.py
 ```
 
 #### Dashboard
@@ -306,10 +240,9 @@ The log viewer includes:
 - Export capabilities for further analysis
 - Real-time log updates
 
-{% endif -%}
 ## AI Assistant Instructions
 
-When working with this {{cookiecutter.project_name}} MCP server in an AI coding assistant (like Claude, Cursor, or GitHub Copilot):
+When working with this Test MCP Server MCP server in an AI coding assistant (like Claude, Cursor, or GitHub Copilot):
 
 ### Understanding the Server Architecture
 
@@ -335,21 +268,21 @@ This server uses SAAGA decorators that automatically wrap all MCP tools with:
 4. **Async Support**: Both sync and async tools are supported. The decorators automatically detect and handle both patterns.
 
 5. **Logging**: Check logs at the platform-specific data directory for debugging:
-   - macOS: `~/Library/Application Support/{{cookiecutter.project_slug}}/logs.db`
-   - Linux: `~/.local/share/{{cookiecutter.project_slug}}/logs.db`
-   - Windows: `%APPDATA%/{{cookiecutter.project_slug}}/logs.db`
+   - macOS: `~/Library/Application Support/test_mcp_server/logs.db`
+   - Linux: `~/.local/share/test_mcp_server/logs.db`
+   - Windows: `%APPDATA%/test_mcp_server/logs.db`
 
 ### Common Tasks
 
 **Adding a new tool:**
 ```python
-# In {{cookiecutter.project_slug}}/tools/my_new_tool.py
+# In test_mcp_server/tools/my_new_tool.py
 def my_new_tool(param: str) -> dict:
     """Description of what this tool does."""
     # Implementation
     return {"result": "processed"}
 
-# In {{cookiecutter.project_slug}}/tools/__init__.py
+# In test_mcp_server/tools/__init__.py
 from .my_new_tool import my_new_tool
 example_tools.append(my_new_tool)
 ```
@@ -357,7 +290,7 @@ example_tools.append(my_new_tool)
 **Testing with MCP Inspector:**
 ```bash
 # From the project root
-uv run mcp dev {{cookiecutter.project_slug}}/server/app.py
+uv run mcp dev test_mcp_server/server/app.py
 ```
 
 **Debugging a tool:**
@@ -375,23 +308,23 @@ uv run mcp dev {{cookiecutter.project_slug}}/server/app.py
 ## Configuration
 
 Configuration files are stored in platform-specific locations:
-- **macOS**: `~/Library/Application Support/{{cookiecutter.project_slug}}/`
-- **Linux**: `~/.local/share/{{cookiecutter.project_slug}}/`
-- **Windows**: `%APPDATA%/{{cookiecutter.project_slug}}/`
+- **macOS**: `~/Library/Application Support/test_mcp_server/`
+- **Linux**: `~/.local/share/test_mcp_server/`
+- **Windows**: `%APPDATA%/test_mcp_server/`
 
 ### Configuration Options
 
-- `log_level`: Logging level ({{cookiecutter.log_level}})
-- `log_retention_days`: Days to retain logs ({{cookiecutter.log_retention_days}})
-- `server_port`: HTTP server port ({{cookiecutter.server_port}})
+- `log_level`: Logging level (DEBUG)
+- `log_retention_days`: Days to retain logs (30)
+- `server_port`: HTTP server port (3001)
 
 ## Development
 
 ### Project Structure
 
 ```
-{{cookiecutter.project_slug}}/
-├── {{cookiecutter.project_slug}}/
+test_mcp_server/
+├── test_mcp_server/
 │   ├── config.py              # Platform-aware configuration
 │   ├── server/
 │   │   └── app.py             # FastMCP server with decorators
@@ -405,14 +338,14 @@ Configuration files are stored in platform-specific locations:
 
 ### Adding New Tools
 
-1. Create a new Python file in `{{cookiecutter.project_slug}}/tools/`
+1. Create a new Python file in `test_mcp_server/tools/`
 2. Define your tool function
 3. Import and register it in `server/app.py`
 
 Example:
 
 ```python
-# {{cookiecutter.project_slug}}/tools/my_tool.py
+# test_mcp_server/tools/my_tool.py
 def my_tool(message: str) -> str:
     """Example MCP tool."""
     return f"Processed: {message}"
@@ -432,12 +365,12 @@ This project uses several code quality tools:
 
 ```bash
 # Format code
-black {{cookiecutter.project_slug}}/
-isort {{cookiecutter.project_slug}}/
+black test_mcp_server/
+isort test_mcp_server/
 
 # Lint code
-flake8 {{cookiecutter.project_slug}}/
-mypy {{cookiecutter.project_slug}}/
+flake8 test_mcp_server/
+mypy test_mcp_server/
 ```
 
 ## SAAGA Decorators

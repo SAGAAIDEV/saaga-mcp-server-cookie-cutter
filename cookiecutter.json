@@ -14,5 +14,13 @@
   "log_retention_days": "30",
   "configure_bazel_build_files": ["yes", "no"],
   "update_aws_parameter_store": ["no", "yes"],
-  "jira_project_key": ""
+  "jira_project_key": "",
+  "_copy_without_render": [
+    ".claude",
+    "*.png",
+    "*.jpg",
+    "*.jpeg",
+    "*.gif",
+    "*.ico"
+  ]
 }
