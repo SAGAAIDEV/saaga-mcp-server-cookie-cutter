@@ -41,67 +41,17 @@ except ImportError as e:
 
 # Note: Page configuration is handled by main app.py
 
-def generate_mock_log_data() -> pd.DataFrame:
-    """Generate mock log data for demonstration"""
-    import random
-    from datetime import datetime, timedelta
-    
-    # Mock log entries
-    log_levels = ["INFO", "DEBUG", "WARNING", "ERROR"]
-    tools = ["example_tool", "list_files", "search_content", "get_config", "health_check"]
-    statuses = ["success", "error", "timeout"]
-    
-    logs = []
-    base_time = datetime.now() - timedelta(days=7)
-    
-    for i in range(100):
-        timestamp = base_time + timedelta(
-            hours=random.randint(0, 168),
-            minutes=random.randint(0, 59),
-            seconds=random.randint(0, 59)
-        )
+def render_correlation_id_info():
+    """Render information about correlation IDs"""
+    with st.expander("ℹ️ About Correlation IDs"):
+        st.markdown("""
+        **Correlation IDs** help track related log events across your application:
         
-        tool_name = random.choice(tools)
-        status = random.choice(statuses)
-        level = random.choice(log_levels)
-        
-        # Generate realistic error rates
-        if status == "error":
-            level = random.choice(["WARNING", "ERROR"])
-        elif status == "success":
-            level = random.choice(["INFO", "DEBUG"])
-            
-        duration_ms = random.randint(10, 5000)
-        
-        logs.append({
-            "timestamp": timestamp,
-            "level": level,
-            "tool_name": tool_name,
-            "status": status,
-            "duration_ms": duration_ms,
-            "input_args": '{"arg1": "value' + str(i) + '", "arg2": ' + str(random.randint(1, 100)) + '}',
-            "output_summary": "Processed " + str(random.randint(1, 50)) + " items" if status == "success" else "Failed to process",
-            "error_message": "Error code: " + str(random.randint(400, 500)) if status == "error" else None
-        })
-    
-    return pd.DataFrame(logs)
-
-def render_placeholder_notice():
-    """Render notice that this is a placeholder implementation"""
-    st.info("""
-    🚧 **Placeholder Implementation**
-    
-    This log viewer interface is part of Phase 4, Issue 1 (Base Structure).
-    Full log management functionality will be implemented in Phase 4, Issue 3.
-    
-    **Planned Features:**
-    - Real SQLite database integration
-    - Advanced filtering and search
-    - Export to multiple formats (CSV, JSON, Excel)
-    - Real-time log streaming
-    - Performance analytics and charts
-    - Log retention management
-    """)
+        - Each tool execution gets a unique ID (e.g., `req_a1b2c3d4e5f6`)
+        - All logs from the same request share the same correlation ID
+        - Use correlation IDs to trace complete request flows
+        - Filter by correlation ID to see all related events
+        """)
 
 def render_log_metrics_section(df: pd.DataFrame):
     """Render log metrics and statistics"""
@@ -114,42 +64,77 @@ def render_log_metrics_section(df: pd.DataFrame):
         st.metric("Total Logs", f"{total_logs:,}")
     
     with col2:
-        error_count = len(df[df['status'] == 'error'])
-        error_rate = (error_count / total_logs * 100) if total_logs > 0 else 0
-        st.metric("Error Rate", f"{error_rate:.1f}%", delta=f"{error_count} errors")
+        if not df.empty and 'status' in df.columns:
+            error_count = len(df[df['status'] == 'error'])
+            error_rate = (error_count / total_logs * 100) if total_logs > 0 else 0
+            st.metric("Error Rate", f"{error_rate:.1f}%", delta=f"{error_count} errors")
+        else:
+            st.metric("Error Rate", "0.0%", delta="0 errors")
     
     with col3:
-        avg_duration = df['duration_ms'].mean()
-        st.metric("Avg Duration", f"{avg_duration:.0f}ms")
+        if not df.empty and 'duration_ms' in df.columns:
+            avg_duration = df['duration_ms'].mean()
+            if pd.notna(avg_duration):
+                st.metric("Avg Duration", f"{avg_duration:.0f}ms")
+            else:
+                st.metric("Avg Duration", "0ms")
+        else:
+            st.metric("Avg Duration", "0ms")
     
     with col4:
-        unique_tools = df['tool_name'].nunique()
-        st.metric("Active Tools", unique_tools)
+        if not df.empty and 'tool_name' in df.columns:
+            unique_tools = df['tool_name'].nunique()
+            st.metric("Active Tools", unique_tools)
+        else:
+            st.metric("Active Tools", 0)
 
 def render_log_filters_section():
     """Render log filtering controls"""
     st.subheader("🔍 Filters")
     
+    # First row of filters
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        log_level = st.selectbox(
-            "Log Level",
-            options=["All", "DEBUG", "INFO", "WARNING", "ERROR"],
-            key="log_level_filter"
+        # Quick filter buttons
+        quick_filter = st.radio(
+            "Quick Filter",
+            options=["All Levels", "Errors Only", "Custom"],
+            horizontal=True,
+            key="quick_log_filter"
         )
+        
+        # Set default based on quick filter
+        if quick_filter == "All Levels":
+            default_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        elif quick_filter == "Errors Only":
+            default_levels = ["ERROR", "CRITICAL"]
+        else:
+            default_levels = st.session_state.get("custom_log_levels", ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
+        
+        log_levels = st.multiselect(
+            "Log Level",
+            options=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+            default=default_levels,
+            key="log_level_filter",
+            disabled=(quick_filter != "Custom")
+        )
+        
+        # Store custom selection
+        if quick_filter == "Custom":
+            st.session_state["custom_log_levels"] = log_levels
     
     with col2:
-        tool_filter = st.selectbox(
-            "Tool",
-            options=["All", "example_tool", "list_files", "search_content", "get_config", "health_check"],
-            key="tool_filter"
+        log_type = st.selectbox(
+            "Log Type",
+            options=["All", "tool_execution", "internal", "framework"],
+            key="log_type_filter"
         )
     
     with col3:
         status_filter = st.selectbox(
             "Status",
-            options=["All", "success", "error", "timeout"],
+            options=["All", "success", "error", "running"],
             key="status_filter"
         )
     
@@ -161,41 +146,82 @@ def render_log_filters_section():
             key="time_range_filter"
         )
     
+    # Second row for search
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        search_term = st.text_input(
+            "Search (correlation ID, tool name, or message)",
+            placeholder="e.g., req_a1b2c3d4e5f6",
+            key="search_filter"
+        )
+    
+    with col2:
+        st.markdown("<br>", unsafe_allow_html=True)  # Spacer
+        if st.button("Clear Filters", use_container_width=True):
+            # Clear all filter-related session state by setting to specific values
+            st.session_state["quick_log_filter"] = "All Levels"
+            st.session_state["log_level_filter"] = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+            st.session_state["log_type_filter"] = "All"
+            st.session_state["status_filter"] = "All"
+            st.session_state["time_range_filter"] = "Last 7 Days"
+            st.session_state["search_filter"] = ""
+            if "custom_log_levels" in st.session_state:
+                del st.session_state["custom_log_levels"]
+            st.rerun()
+    
     return {
-        "log_level": log_level if log_level != "All" else None,
-        "tool": tool_filter if tool_filter != "All" else None,
+        "log_levels": log_levels if log_levels else None,
+        "log_type": log_type if log_type != "All" else None,
         "status": status_filter if status_filter != "All" else None,
-        "time_range": time_range
+        "time_range": time_range,
+        "search": search_term if search_term else None
     }
 
 def apply_filters(df: pd.DataFrame, filters: Dict[str, Any]) -> pd.DataFrame:
     """Apply filters to the log dataframe"""
+    if df.empty:
+        return df  # Return empty DataFrame immediately if no data
+    
     filtered_df = df.copy()
     
-    if filters["log_level"]:
-        filtered_df = filtered_df[filtered_df['level'] == filters["log_level"]]
+    if filters.get("log_levels") and 'level' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['level'].isin(filters["log_levels"])]
     
-    if filters["tool"]:
-        filtered_df = filtered_df[filtered_df['tool_name'] == filters["tool"]]
+    if filters.get("log_type") and 'log_type' in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df['log_type'] == filters["log_type"]]
     
-    if filters["status"]:
+    if filters.get("status") and 'status' in filtered_df.columns:
         filtered_df = filtered_df[filtered_df['status'] == filters["status"]]
     
-    # Apply time range filter
-    now = datetime.now()
-    if filters["time_range"] == "Last Hour":
-        cutoff = now - timedelta(hours=1)
-    elif filters["time_range"] == "Last 24 Hours":
-        cutoff = now - timedelta(days=1)
-    elif filters["time_range"] == "Last 7 Days":
-        cutoff = now - timedelta(days=7)
-    elif filters["time_range"] == "Last 30 Days":
-        cutoff = now - timedelta(days=30)
-    else:
-        cutoff = None
+    # Apply search filter
+    if filters.get("search"):
+        search_term = filters["search"].lower()
+        # Check columns exist before filtering
+        if all(col in filtered_df.columns for col in ['correlation_id', 'tool_name', 'message']):
+            mask = (
+                (filtered_df['correlation_id'].astype(str).str.lower().str.contains(search_term, na=False)) |
+                (filtered_df['tool_name'].astype(str).str.lower().str.contains(search_term, na=False)) |
+                (filtered_df['message'].astype(str).str.lower().str.contains(search_term, na=False))
+            )
+            filtered_df = filtered_df[mask]
     
-    if cutoff:
-        filtered_df = filtered_df[filtered_df['timestamp'] >= cutoff]
+    # Apply time range filter
+    if 'timestamp' in filtered_df.columns:
+        now = datetime.now()
+        if filters["time_range"] == "Last Hour":
+            cutoff = now - timedelta(hours=1)
+        elif filters["time_range"] == "Last 24 Hours":
+            cutoff = now - timedelta(days=1)
+        elif filters["time_range"] == "Last 7 Days":
+            cutoff = now - timedelta(days=7)
+        elif filters["time_range"] == "Last 30 Days":
+            cutoff = now - timedelta(days=30)
+        else:
+            cutoff = None
+        
+        if cutoff:
+            filtered_df = filtered_df[filtered_df['timestamp'] >= cutoff]
     
     return filtered_df
 
@@ -213,8 +239,17 @@ def render_log_table_section(df: pd.DataFrame):
         if st.button("🔄 Refresh"):
             st.rerun()
     
+    # Check if DataFrame is empty before sorting
+    if df.empty:
+        st.info("No log entries match the current filters.")
+        return
+    
     # Sort and paginate
-    df_sorted = df.sort_values('timestamp', ascending=False)
+    if 'timestamp' in df.columns:
+        df_sorted = df.sort_values('timestamp', ascending=False)
+    else:
+        df_sorted = df  # Can't sort without timestamp column
+    
     total_rows = len(df_sorted)
     total_pages = (total_rows + page_size - 1) // page_size
     
@@ -235,25 +270,28 @@ def render_log_table_section(df: pd.DataFrame):
         # Color code status
         def color_status(val):
             if val == 'success':
-                return 'background-color: #d4edda'
+                return 'background-color: #d4edda; color: #155724'
             elif val == 'error':
-                return 'background-color: #f8d7da'
+                return 'background-color: #f8d7da; color: #721c24'
             elif val == 'timeout':
-                return 'background-color: #fff3cd'
+                return 'background-color: #fff3cd; color: #856404'
             return ''
         
         # Display the styled dataframe
-        styled_df = df_display.style.applymap(color_status, subset=['status'])
+        styled_df = df_display.style.map(color_status, subset=['status'])
         st.dataframe(
             styled_df,
             use_container_width=True,
             hide_index=True,
             column_config={
                 "timestamp": "Timestamp",
+                "correlation_id": "Correlation ID",
                 "level": "Level",
+                "log_type": "Type",
                 "tool_name": "Tool",
                 "status": "Status",
                 "duration_ms": st.column_config.NumberColumn("Duration (ms)", format="%d ms"),
+                "message": "Message",
                 "input_args": "Input",
                 "output_summary": "Output",
                 "error_message": "Error"
@@ -286,15 +324,35 @@ def main():
     """Main logs page content"""
     # Page header
     st.title("📊 {{cookiecutter.project_name}} Logs")
-    st.markdown("View and analyze server logs with filtering and export capabilities.")
+    st.markdown("View and analyze server logs from the unified logging system.")
     st.markdown("---")
     
-    # Placeholder notice
-    render_placeholder_notice()
-    st.markdown("---")
+    # Correlation ID info
+    render_correlation_id_info()
     
-    # Generate mock data
-    log_data = generate_mock_log_data()
+    # Load real data from database
+    try:
+        # Load logs from unified database
+        log_entries = load_logs_from_database(limit=5000)
+        
+        if log_entries:
+            # Convert to DataFrame
+            log_data = pd.DataFrame(log_entries)
+            
+            # Ensure timestamp is datetime
+            if 'timestamp' in log_data.columns:
+                log_data['timestamp'] = pd.to_datetime(log_data['timestamp'])
+            
+            st.success(f"Loaded {len(log_data)} log entries from unified database")
+        else:
+            st.warning("No log entries found. Start using the server to generate logs.")
+            log_data = pd.DataFrame()  # Empty DataFrame, NO mock data
+    except Exception as e:
+        st.error(f"Error loading logs: {str(e)}")
+        st.error(f"Database connection failed. Please check the logs database.")
+        log_data = pd.DataFrame()  # Empty DataFrame, NO mock data
+    
+    st.markdown("---")
     
     # Render filters
     filters = render_log_filters_section()
@@ -330,7 +388,7 @@ def main():
             st.switch_page("pages/2_⚙️_Configuration.py")
     
     # Footer
-    st.caption("Log viewer interface • Phase 4, Issue 1 placeholder with mock data")
+    st.caption("Unified logging system with correlation IDs and pluggable destinations")
 
 if __name__ == "__main__":
     main()

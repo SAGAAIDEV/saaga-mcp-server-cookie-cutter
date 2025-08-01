@@ -14,6 +14,12 @@ from mcp.server.fastmcp import FastMCP
 
 from {{ cookiecutter.project_slug }}.config import ServerConfig, get_config
 from {{ cookiecutter.project_slug }}.logging_config import setup_logging, logger
+from {{ cookiecutter.project_slug }}.logging.correlation import (
+    generate_correlation_id,
+    set_initialization_correlation_id,
+    clear_initialization_correlation_id
+)
+from {{ cookiecutter.project_slug }}.logging.unified_logger import UnifiedLogger
 {% if cookiecutter.include_example_tools == "yes" -%}
 from {{ cookiecutter.project_slug }}.tools.example_tools import example_tools, parallel_example_tools
 {% endif -%}
@@ -30,8 +36,39 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     if config is None:
         config = get_config()
     
-    # Set up logging first using reference implementation pattern
-    setup_logging(config)
+    # Set startup correlation ID BEFORE initializing logging
+    startup_correlation_id = "startup_" + generate_correlation_id().split('_')[1]
+    set_initialization_correlation_id(startup_correlation_id)
+    
+    # Initialize unified logging using factory pattern
+    # Convert logging_destinations dict to DestinationConfig objects
+    from {{ cookiecutter.project_slug }}.logging.destinations import DestinationConfig
+    
+    destinations_list = []
+    if config.logging_destinations and 'destinations' in config.logging_destinations:
+        for dest_dict in config.logging_destinations['destinations']:
+            dest_config = DestinationConfig(
+                type=dest_dict.get('type', 'sqlite'),
+                enabled=dest_dict.get('enabled', True),
+                settings=dest_dict.get('settings', {})
+            )
+            destinations_list.append(dest_config)
+    
+    # Initialize with configured destinations or default to SQLite
+    if destinations_list:
+        UnifiedLogger.initialize_from_config(destinations_list, config)
+    else:
+        UnifiedLogger.initialize_default(config)
+    
+    # Set up traditional logging as fallback
+    # IMPORTANT: This must come BEFORE UnifiedLogger.initialize to avoid overriding
+    # setup_logging(config)  # Temporarily disabled to test unified logging
+    
+    # Log startup info using unified logger
+    import logging
+    unified_logger = logging.getLogger('{{ cookiecutter.project_slug }}')
+    unified_logger.info(f"Unified logging initialized with {len(UnifiedLogger.get_available_destinations())} available destination types")
+    unified_logger.info(f"Server config: {config.name} at log level {config.log_level}")
     
     mcp_server = FastMCP(config.name or "{{ cookiecutter.project_name }}")
     
@@ -40,8 +77,12 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     register_tools(mcp_server, config)
     {% else -%}
     # No example tools included
-    logger.info("No example tools configured. Add your tools and register them here.")
+    unified_logger.info("No example tools configured. Add your tools and register them here.")
     {% endif -%}
+    
+    # Clear initialization correlation ID after initialization
+    unified_logger.info("Server initialization complete")
+    clear_initialization_correlation_id()
     
     return mcp_server
 
@@ -53,6 +94,10 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
     Registers decorated functions directly with MCP to preserve function signatures
     for proper parameter introspection.
     """
+    
+    # Get unified logger for registration logs
+    import logging
+    unified_logger = logging.getLogger('{{ cookiecutter.project_slug }}')
     
     # Import SAAGA decorators
     from {{ cookiecutter.project_slug }}.decorators.exception_handler import exception_handler
@@ -73,7 +118,7 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
             name=tool_name
         )(decorated_func)
         
-        logger.info(f"Registered tool: {tool_name}")
+        unified_logger.info(f"Registered tool: {tool_name}")
     
     {% if cookiecutter.include_parallel_example == "yes" -%}
     # Register parallel tools with SAAGA decorators  
@@ -89,10 +134,10 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
             name=tool_name
         )(decorated_func)
         
-        logger.info(f"Registered parallel tool: {tool_name}")
+        unified_logger.info(f"Registered parallel tool: {tool_name}")
     {% endif -%}
     
-    logger.info(f"Server '{mcp_server.name}' initialized with SAAGA decorators")
+    unified_logger.info(f"Server '{mcp_server.name}' initialized with SAAGA decorators")
 {% endif -%}
 
 # Create a server instance that can be imported by the MCP CLI
@@ -112,14 +157,25 @@ server = create_mcp_server()
 )
 def main(port: int, transport: str) -> int:
     """Run the {{ cookiecutter.project_name }} server with specified transport."""
+    async def run_server():
+        """Inner async function to run the server and manage the event loop."""
+        # Set the event loop in UnifiedLogger for async operations
+        UnifiedLogger.set_event_loop(asyncio.get_running_loop())
+        
+        try:
+            if transport == "stdio":
+                logger.info("Starting server with STDIO transport")
+                await server.run_stdio_async()
+            else:
+                logger.info(f"Starting server with SSE transport on port {port}")
+                server.settings.port = port
+                await server.run_sse_async()
+        finally:
+            # Clean up unified logger
+            await UnifiedLogger.close()
+    
     try:
-        if transport == "stdio":
-            logger.info("Starting server with STDIO transport")
-            asyncio.run(server.run_stdio_async())
-        else:
-            logger.info(f"Starting server with SSE transport on port {port}")
-            server.settings.port = port
-            asyncio.run(server.run_sse_async())
+        asyncio.run(run_server())
         return 0
     except KeyboardInterrupt:
         logger.info("Server stopped by user")

@@ -17,6 +17,8 @@ Let me extract the project name and UI inclusion preference:
 First, I'll ensure no conflicting processes are running and clean up any previous test server:
 
 !pkill -f "mcp dev" || true
+!pkill -f "mcp-inspector" || true
+!pkill -f "@modelcontextprotocol/inspector" || true
 !pkill -f "streamlit run" || true
 
 Check if a previous test server exists and clean it up:
