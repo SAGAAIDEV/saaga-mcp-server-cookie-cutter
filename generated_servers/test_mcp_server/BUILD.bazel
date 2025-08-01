@@ -1,0 +1,29 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+
+py_binary(
+    name = "test_mcp_server_bin",
+    srcs = ["test_mcp_server/__main__.py"],
+    imports = ["test_mcp_server"],
+    main = "test_mcp_server/__main__.py",
+    visibility = ["//visibility:public"],
+    deps = [":test_mcp_server_lib"],
+)
+
+py_library(
+    name = "test_mcp_server_lib",
+    srcs = glob(["test_mcp_server/**/*.py"]),
+    imports = ["."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@mcp_test_mcp_server//mcp",
+        "@mcp_test_mcp_server//pydantic",
+        "@mcp_test_mcp_server//pyyaml",
+        "@mcp_test_mcp_server//platformdirs",
+        "@mcp_test_mcp_server//pydantic_settings",
+        "@mcp_test_mcp_server//loguru",
+        "@mcp_test_mcp_server//streamlit",
+        "@mcp_test_mcp_server//pandas",
+        "@mcp_test_mcp_server//plotly",
+        # Add additional dependencies based on your requirements
+    ],
+)
