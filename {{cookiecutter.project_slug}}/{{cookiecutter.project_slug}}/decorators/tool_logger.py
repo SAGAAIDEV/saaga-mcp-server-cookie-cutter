@@ -33,11 +33,18 @@ from {{ cookiecutter.project_slug }}.decorators.sqlite_logger import log_tool_ex
 logger = logging.getLogger(__name__)
 
 
-def tool_logger(func: Callable[..., Awaitable[Any]], config: dict = None) -> Callable[..., Awaitable[Any]]:
+def tool_logger(func: Callable[..., Awaitable[Any]] = None, config: dict = None) -> Callable[..., Awaitable[Any]]:
     """Enhanced tool logger with configuration - SAAGA Pattern.
     
     Preserves function signature for MCP introspection while adding
     comprehensive logging capabilities. Async-only pattern following SAAGA standards.
+    
+    Can be used as:
+        @tool_logger
+        async def my_tool(...): ...
+        
+    Or with config:
+        decorated = tool_logger(my_tool, config)
     
     Args:
         func: The async function to decorate
@@ -47,56 +54,64 @@ def tool_logger(func: Callable[..., Awaitable[Any]], config: dict = None) -> Cal
         The decorated async function with logging
     """
     
-    @wraps(func)
-    async def wrapper(*args, **kwargs) -> Any:
-        start_time = time.time()
-        tool_name = func.__name__
-        
-        # Log input parameters (sanitized)
-        try:
-            input_args = json.dumps({"args": args, "kwargs": kwargs}, default=str)
-        except Exception:
-            input_args = f"args={len(args)}, kwargs={len(kwargs)}"
-        
-        logger.info(f"Starting tool: {tool_name}")
-        
-        try:
-            result = await func(*args, **kwargs)
-            duration_ms = int((time.time() - start_time) * 1000)
+    def decorator(f: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
+        @wraps(f)
+        async def wrapper(*args, **kwargs) -> Any:
+            start_time = time.time()
+            tool_name = f.__name__
             
-            # Log successful execution
+            # Log input parameters (sanitized)
             try:
-                output_summary = str(result)[:200] + "..." if len(str(result)) > 200 else str(result)
+                input_args = json.dumps({"args": args, "kwargs": kwargs}, default=str)
             except Exception:
-                output_summary = f"<{type(result).__name__}>"
+                input_args = f"args={len(args)}, kwargs={len(kwargs)}"
             
-            # Log to SQLite database
-            log_tool_execution(
-                tool_name=tool_name,
-                duration_ms=duration_ms,
-                status="success",
-                input_args=input_args,
-                output_summary=output_summary,
-                error_message=None
-            )
+            logger.info(f"Starting tool: {tool_name}")
             
-            logger.info(f"Completed tool: {tool_name} in {duration_ms}ms")
-            return result
-            
-        except Exception as e:
-            duration_ms = int((time.time() - start_time) * 1000)
-            
-            # Log failed execution
-            log_tool_execution(
-                tool_name=tool_name,
-                duration_ms=duration_ms,
-                status="error",
-                input_args=input_args,
-                output_summary=None,
-                error_message=str(e)
-            )
-            
-            logger.error(f"Tool {tool_name} failed after {duration_ms}ms: {e}")
-            raise  # Re-raise for exception_handler
+            try:
+                result = await f(*args, **kwargs)
+                duration_ms = int((time.time() - start_time) * 1000)
+                
+                # Log successful execution
+                try:
+                    output_summary = str(result)[:200] + "..." if len(str(result)) > 200 else str(result)
+                except Exception:
+                    output_summary = f"<{type(result).__name__}>"
+                
+                # Log to SQLite database
+                log_tool_execution(
+                    tool_name=tool_name,
+                    duration_ms=duration_ms,
+                    status="success",
+                    input_args=input_args,
+                    output_summary=output_summary,
+                    error_message=None
+                )
+                
+                logger.info(f"Completed tool: {tool_name} in {duration_ms}ms")
+                return result
+                
+            except Exception as e:
+                duration_ms = int((time.time() - start_time) * 1000)
+                
+                # Log failed execution
+                log_tool_execution(
+                    tool_name=tool_name,
+                    duration_ms=duration_ms,
+                    status="error",
+                    input_args=input_args,
+                    output_summary=None,
+                    error_message=str(e)
+                )
+                
+                logger.error(f"Tool {tool_name} failed after {duration_ms}ms: {e}")
+                raise  # Re-raise for exception_handler
+        
+        return wrapper
     
-    return wrapper
+    # Handle being called as @tool_logger (without parentheses)
+    if func is not None:
+        return decorator(func)
+    
+    # Handle being called as tool_logger(func, config)
+    return decorator

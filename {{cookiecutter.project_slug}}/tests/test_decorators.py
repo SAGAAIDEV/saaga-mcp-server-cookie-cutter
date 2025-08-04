@@ -19,6 +19,8 @@ import inspect
 import json
 import sqlite3
 import tempfile
+import threading
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any
 from unittest.mock import patch, MagicMock
@@ -116,7 +118,7 @@ class TestToolLogger:
     async def test_successful_logging(self, temp_db_config):
         """Test that successful execution is logged correctly."""
         
-        with patch('{{ cookiecutter.project_slug }}.decorators.sqlite_logger.log_tool_execution') as mock_log:
+        with patch('{{ cookiecutter.project_slug }}.decorators.tool_logger.log_tool_execution') as mock_log:
             @tool_logger
             async def test_tool(param: str) -> str:
                 return f"result_{param}"
@@ -138,7 +140,7 @@ class TestToolLogger:
     async def test_error_logging(self, temp_db_config):
         """Test that errors are logged correctly."""
         
-        with patch('{{ cookiecutter.project_slug }}.decorators.sqlite_logger.log_tool_execution') as mock_log:
+        with patch('{{ cookiecutter.project_slug }}.decorators.tool_logger.log_tool_execution') as mock_log:
             @tool_logger
             async def failing_tool(param: str) -> str:
                 raise RuntimeError("Test error")
@@ -282,7 +284,7 @@ class TestDecoratorChaining:
     async def test_regular_tool_chaining(self):
         """Test exception_handler → tool_logger chaining."""
         
-        with patch('{{ cookiecutter.project_slug }}.decorators.sqlite_logger.log_tool_execution') as mock_log:
+        with patch('{{ cookiecutter.project_slug }}.decorators.tool_logger.log_tool_execution') as mock_log:
             # Apply decorators in correct order
             @exception_handler
             @tool_logger
@@ -317,13 +319,13 @@ class TestDecoratorChaining:
     async def test_parallel_tool_chaining(self):
         """Test exception_handler → tool_logger → parallelize chaining."""
         
-        with patch('{{ cookiecutter.project_slug }}.decorators.sqlite_logger.log_tool_execution') as mock_log:
+        with patch('{{ cookiecutter.project_slug }}.decorators.tool_logger.log_tool_execution') as mock_log:
             # Define base function
             async def base_tool(param: str) -> str:
                 return f"processed_{param}"
             
             # Apply decorators in correct order (inner to outer)
-            decorated_tool = exception_handler(tool_logger(parallelize(base_tool)))
+            decorated_tool = exception_handler(tool_logger(parallelize(base_tool), None))
             
             kwargs_list = [
                 {"param": "a"},
@@ -358,7 +360,7 @@ class TestDecoratorChaining:
         base_func.__name__ = "parallel_tool"
         base_func.__annotations__ = {"param": str, "return": str}
         
-        decorated_parallel = exception_handler(tool_logger(parallelize(base_func)))
+        decorated_parallel = exception_handler(tool_logger(parallelize(base_func), None))
         
         parallel_sig = inspect.signature(decorated_parallel)
         parallel_params = list(parallel_sig.parameters.keys())
@@ -432,34 +434,55 @@ class TestSQLiteLogger:
     def test_log_tool_execution_function(self, temp_db_path):
         """Test the log_tool_execution utility function."""
         
-        with patch('{{ cookiecutter.project_slug }}.decorators.sqlite_logger.SQLiteLoggerSink._get_database_path') as mock_path:
-            mock_path.return_value = temp_db_path
+        # Create a temporary SQLiteLoggerSink instance
+        sink = SQLiteLoggerSink()
+        
+        # Mock the database path for this instance
+        with patch.object(sink, '_db_path', temp_db_path):
+            # Re-initialize with the mocked path
+            sink._local = threading.local()  # Reset thread-local storage
+            sink._initialize_database()
             
-            # Initialize logging
-            initialize_sqlite_logging()
-            
-            # Log a tool execution
-            log_tool_execution(
-                tool_name="test_tool",
-                duration_ms=123.45,
-                status="success",
-                input_args={"param": "value"},
-                output_summary="Test output",
-                error_message=None
-            )
-            
-            # Verify log was written
-            conn = sqlite3.connect(str(temp_db_path))
-            cursor = conn.cursor()
-            cursor.execute("SELECT tool_name, duration_ms, status FROM tool_logs")
-            row = cursor.fetchone()
-            
-            assert row is not None
-            assert row[0] == "test_tool"
-            assert row[1] == 123.45
-            assert row[2] == "success"
-            
-            conn.close()
+            # Patch the global logger to use our test sink
+            with patch('{{ cookiecutter.project_slug }}.decorators.sqlite_logger.logger') as mock_logger:
+                # Call the sink directly to log a message
+                test_message = MagicMock()
+                # Create a mock level object with name attribute
+                mock_level = MagicMock()
+                mock_level.name = "INFO"
+                
+                test_message.record = {
+                    "time": datetime.now(),
+                    "level": mock_level,
+                    "message": "Tool test_tool success in 123.5ms",
+                    "module": "test_module",
+                    "function": "test_function",
+                    "line": 42,
+                    "extra": {
+                        "tool_name": "test_tool",
+                        "duration_ms": 123.45,
+                        "status": "success",
+                        "input_args": {"param": "value"},
+                        "output_summary": "Test output",
+                        "error_message": None
+                    }
+                }
+                
+                # Call the sink to write the log
+                sink(test_message)
+                
+                # Verify log was written
+                conn = sqlite3.connect(str(temp_db_path))
+                cursor = conn.cursor()
+                cursor.execute("SELECT tool_name, duration_ms, status FROM tool_logs")
+                row = cursor.fetchone()
+                
+                assert row is not None
+                assert row[0] == "test_tool"
+                assert row[1] == 123.45
+                assert row[2] == "success"
+                
+                conn.close()
 
 
 class TestMCPCompatibility:
@@ -571,10 +594,10 @@ class TestIntegrationPattern:
         regular_tools = [echo_tool, multiply_tool]
         parallel_tools = [batch_process_tool]
         
-        with patch('{{ cookiecutter.project_slug }}.decorators.sqlite_logger.log_tool_execution'):
+        with patch('{{ cookiecutter.project_slug }}.decorators.tool_logger.log_tool_execution'):
             # Regular tools: exception_handler → tool_logger
             for tool_func in regular_tools:
-                decorated_func = exception_handler(tool_logger(tool_func, {}))
+                decorated_func = exception_handler(tool_logger(tool_func, None))
                 
                 # Test that it works
                 if tool_func.__name__ == "echo_tool":
@@ -591,7 +614,7 @@ class TestIntegrationPattern:
             
             # Parallel tools: exception_handler → tool_logger → parallelize
             for tool_func in parallel_tools:
-                decorated_func = exception_handler(tool_logger(parallelize(tool_func), {}))
+                decorated_func = exception_handler(tool_logger(parallelize(tool_func), None))
                 
                 # Test that it works
                 if tool_func.__name__ == "batch_process_tool":

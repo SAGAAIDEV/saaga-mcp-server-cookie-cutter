@@ -78,7 +78,9 @@ def _build_parallelized_docstring(func: Callable) -> str:
     params = []
     for name, param in sig.parameters.items():
         if param.annotation != inspect.Parameter.empty:
-            params.append(f"{name}: {param.annotation}")
+            # Get the type name instead of the full class representation
+            type_name = param.annotation.__name__ if hasattr(param.annotation, '__name__') else str(param.annotation)
+            params.append(f"{name}: {type_name}")
         else:
             params.append(name)
     params_str = ", ".join(params)
