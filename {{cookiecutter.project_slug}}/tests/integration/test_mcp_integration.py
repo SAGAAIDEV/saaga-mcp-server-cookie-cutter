@@ -14,12 +14,13 @@ rather than testing decorators in isolation.
 
 import asyncio
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 import pytest
 from mcp import ClientSession, StdioServerParameters, types
-from mcp.client.stdio import stdio_client
+from mcp.client.stdio import stdio_client, get_default_environment
 
 
 # Use anyio instead of pytest-asyncio to match SDK approach
@@ -36,15 +37,39 @@ async def create_test_session():
     project_root = Path(__file__).parent.parent.parent
     server_module = f"{{ cookiecutter.project_slug }}.server.app"
     
-    # Create server parameters for stdio connection
+    # Build environment with coverage tracking support
+    env = get_default_environment()  # Get MCP SDK's safe defaults
+    
+    # Add coverage-related environment variables if they exist
+    coverage_vars = [
+        "COVERAGE_PROCESS_START",
+        "COVERAGE_FILE",
+        "COVERAGE_CORE",
+        "COV_CORE_SOURCE",
+        "COV_CORE_CONFIG",
+        "COV_CORE_DATAFILE",
+    ]
+    
+    for var in coverage_vars:
+        if var in os.environ:
+            env[var] = os.environ[var]
+    
+    # Add PYTHONPATH to ensure sitecustomize.py can be found
+    if "PYTHONPATH" in os.environ:
+        env["PYTHONPATH"] = os.environ["PYTHONPATH"]
+    else:
+        # Add project root to PYTHONPATH so sitecustomize.py can be imported
+        env["PYTHONPATH"] = str(project_root)
+    
+    # Create server parameters for stdio connection with coverage environment
     server_params = StdioServerParameters(
         command=sys.executable,
         args=["-m", server_module],
-        env=None
+        env=env  # Pass the environment with coverage variables
     )
     
-    # Start the stdio client
-    stdio_context = stdio_client(server_params)
+    # Start the stdio client with error output visible
+    stdio_context = stdio_client(server_params, errlog=sys.stderr)
     read, write = await stdio_context.__aenter__()
     
     # Create and initialize session
