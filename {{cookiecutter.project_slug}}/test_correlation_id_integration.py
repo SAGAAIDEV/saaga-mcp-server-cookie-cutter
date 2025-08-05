@@ -270,7 +270,7 @@ async def test_all_tools(server_script_path: str):
             
             # Test WITHOUT client-provided correlation IDs
             console.print("[bold]Testing all example tools WITHOUT client-provided correlation IDs:[/bold]")
-            console.print("[dim]These should auto-generate correlation IDs in the format 'req_xxxxxxxxxxxx'[/dim]")
+            console.print("[dim]These should auto-generate correlation IDs in the format 'req_01ARZ3NDEKTSV4RRFFQ69G5FAV' (ULID)[/dim]")
             console.print()
             
             # Define test cases without correlation IDs
