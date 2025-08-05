@@ -104,7 +104,7 @@ class UnifiedLogger:
                                    "input_args", "output_summary", "error_message"]}
         )
         
-        # Write to destination asynchronously
+        # Write to destination
         try:
             # Try to get the event loop
             loop = cls._event_loop or asyncio.get_event_loop()
@@ -117,12 +117,11 @@ class UnifiedLogger:
                 # If loop is not running, run until complete
                 loop.run_until_complete(cls._destination.write(entry))
         except RuntimeError:
-            # No event loop available, try to create one
-            try:
-                asyncio.run(cls._destination.write(entry))
-            except Exception as e:
-                # Fall back to stderr if we can't write to destination
-                print(f"Failed to write log entry: {e}", file=sys.stderr)
+            # No event loop available, use synchronous write if available
+            if hasattr(cls._destination, 'write_sync'):
+                cls._destination.write_sync(entry)
+            else:
+                print(f"No event loop available to write log entry", file=sys.stderr)
     
     @classmethod
     def get_logger(cls, name: Optional[str] = None):

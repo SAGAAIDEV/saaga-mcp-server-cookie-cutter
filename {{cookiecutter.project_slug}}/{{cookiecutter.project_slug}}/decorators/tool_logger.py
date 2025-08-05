@@ -35,6 +35,9 @@ from functools import wraps
 from typing import Callable, Any, Awaitable
 import time
 import json
+import inspect
+
+from mcp.server.fastmcp import Context
 
 from {{ cookiecutter.project_slug }}.logging.correlation import set_correlation_id, get_correlation_id, clear_correlation_id, generate_correlation_id
 from {{ cookiecutter.project_slug }}.logging.unified_logger import UnifiedLogger
@@ -59,21 +62,31 @@ def tool_logger(func: Callable[..., Awaitable[Any]], config: dict = None) -> Cal
         # Check if MCP client provided a correlation ID via context metadata
         correlation_id = None
         
-        # Look for Context parameter in kwargs to access request metadata
-        ctx = None
-        for key, value in kwargs.items():
-            if hasattr(value, 'request_context'):
-                ctx = value
+        # Get function signature to find Context parameter
+        sig = inspect.signature(func)
+        params = sig.parameters
+        
+        # Check if function expects a Context parameter
+        context_param_name = None
+        for param_name, param in params.items():
+            if param.annotation == Context or param_name == 'ctx':
+                context_param_name = param_name
                 break
         
-        if ctx and hasattr(ctx.request_context, 'meta') and ctx.request_context.meta:
-            # Try to get correlation ID from metadata
-            if hasattr(ctx.request_context.meta, 'get'):
-                # Meta is a dict-like object
-                correlation_id = ctx.request_context.meta.get('correlationId')
-            elif hasattr(ctx.request_context.meta, 'correlationId'):
-                # Meta has correlationId as an attribute
-                correlation_id = getattr(ctx.request_context.meta, 'correlationId', None)
+        # Extract Context from kwargs if present
+        ctx = None
+        if context_param_name and context_param_name in kwargs:
+            ctx = kwargs[context_param_name]
+            
+            # Extract correlation ID from context metadata
+            if ctx and hasattr(ctx, 'request_context') and hasattr(ctx.request_context, 'meta'):
+                meta = ctx.request_context.meta
+                if meta:
+                    # Meta can be a dict or object with attributes
+                    if hasattr(meta, 'get'):
+                        correlation_id = meta.get('correlationId')
+                    elif hasattr(meta, 'correlationId'):
+                        correlation_id = getattr(meta, 'correlationId', None)
         
         # If no correlation ID from client, generate one
         if not correlation_id:
@@ -92,7 +105,8 @@ def tool_logger(func: Callable[..., Awaitable[Any]], config: dict = None) -> Cal
         # MCP passes parameters directly as keyword arguments
         try:
             # For MCP tools, we only have kwargs (no positional args)
-            input_args_dict = kwargs if kwargs else {}
+            # Exclude Context objects which can't be pickled
+            input_args_dict = {k: v for k, v in kwargs.items() if not isinstance(v, Context)} if kwargs else {}
             input_args_str = json.dumps(input_args_dict, default=str)
         except Exception:
             input_args_dict = {}

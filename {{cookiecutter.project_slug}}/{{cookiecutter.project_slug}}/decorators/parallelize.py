@@ -38,25 +38,47 @@ def _set_parallelized_signature_and_annotations(
     wrapper_func: Callable, 
     param_name: str, 
     param_annotation: Any, 
-    return_annotation: Any
+    return_annotation: Any,
+    preserve_context: bool = True
 ):
     """Sets the __signature__ and __annotations__ for the wrapper function."""
-    new_param = inspect.Parameter(
+    params = []
+    
+    # Add the kwargs_list parameter
+    kwargs_param = inspect.Parameter(
         name=param_name,
         kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
         annotation=param_annotation
     )
+    params.append(kwargs_param)
+    
+    # Add Context parameter if requested (for MCP compatibility)
+    if preserve_context:
+        # Import here to avoid circular imports
+        from mcp.server.fastmcp import Context
+        
+        ctx_param = inspect.Parameter(
+            name='ctx',
+            kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=Context
+        )
+        params.append(ctx_param)
     
     new_sig = inspect.Signature(
-        parameters=[new_param],
+        parameters=params,
         return_annotation=return_annotation
     )
     
     wrapper_func.__signature__ = new_sig
-    wrapper_func.__annotations__ = {
+    annotations = {
         param_name: param_annotation,
         'return': return_annotation
     }
+    if preserve_context:
+        from mcp.server.fastmcp import Context
+        annotations['ctx'] = Context
+    
+    wrapper_func.__annotations__ = annotations
 
 def _build_parallelized_docstring(func: Callable) -> str:
     """Constructs the docstring for the parallelized wrapper function."""
@@ -83,6 +105,8 @@ Args:
     kwargs_list (List[Dict[str, Any]]): A list of dictionaries, where each
                                       dictionary provides the keyword arguments
                                       for a single call to `{func_name}`.
+    ctx: Optional MCP Context object (automatically injected by MCP runtime).
+         If provided, it will be passed to each parallel execution.
 
 Returns:
     List[Any]: A list containing the results of each call to `{func_name}`,
@@ -123,8 +147,13 @@ def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], A
     original_signature = inspect.signature(func)
     
     @wraps(func)
-    async def wrapper(kwargs_list: List[Dict]) -> List[Any]:
-        """Execute function in parallel for each kwargs dict."""
+    async def wrapper(kwargs_list: List[Dict], ctx = None) -> List[Any]:
+        """Execute function in parallel for each kwargs dict.
+        
+        Args:
+            kwargs_list: List of dictionaries containing arguments for each parallel call
+            ctx: Optional MCP Context object (passed by MCP runtime)
+        """
         
         if not isinstance(kwargs_list, list):
             raise TypeError("Parallel tools require List[Dict] parameter")
@@ -140,15 +169,26 @@ def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], A
             if not isinstance(kwargs, dict):
                 raise TypeError(f"Item {i} in kwargs_list must be a dict, got {type(kwargs).__name__}")
         
+        # Check if original function expects a Context parameter
+        original_params = list(original_signature.parameters.keys())
+        expects_context = 'ctx' in original_params
+        
         # Execute all calls concurrently
         tasks = []
         for i, kwargs in enumerate(kwargs_list):
             try:
+                # Make a copy to avoid modifying the original
+                call_kwargs = kwargs.copy()
+                
+                # If the original function expects Context and we have one, add it
+                if expects_context and ctx is not None:
+                    call_kwargs['ctx'] = ctx
+                
                 # Validate parameters against original function signature
-                bound_args = original_signature.bind(**kwargs)
+                bound_args = original_signature.bind(**call_kwargs)
                 bound_args.apply_defaults()
                 
-                task = func(**kwargs)
+                task = func(**call_kwargs)
                 tasks.append(task)
             except Exception as e:
                 # If function call fails immediately, create a failed task

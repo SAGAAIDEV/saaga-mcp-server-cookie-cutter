@@ -17,9 +17,10 @@ import random
 from typing import List, Dict, Any, Optional
 
 {% if cookiecutter.include_example_tools == "yes" -%}
+from mcp.server.fastmcp import Context
 
 
-async def echo_tool(message: str) -> str:
+async def echo_tool(message: str, ctx: Context = None) -> str:
     """Echo back the input message.
     
     This is a simple example tool that demonstrates basic MCP tool functionality.
@@ -35,7 +36,7 @@ async def echo_tool(message: str) -> str:
     return f"Echo: {message}"
 
 
-async def get_time() -> str:
+async def get_time(ctx: Context = None) -> str:
     """Get the current time.
     
     Returns the current time in a human-readable format.
@@ -46,7 +47,7 @@ async def get_time() -> str:
     return f"Current time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
 
 
-async def random_number(min_value: int = 1, max_value: int = 100) -> Dict[str, Any]:
+async def random_number(min_value: int = 1, max_value: int = 100, ctx: Context = None) -> Dict[str, Any]:
     """Generate a random number within a specified range.
     
     Args:
@@ -67,7 +68,7 @@ async def random_number(min_value: int = 1, max_value: int = 100) -> Dict[str, A
     }
 
 
-async def calculate_fibonacci(n: int) -> Dict[str, Any]:
+async def calculate_fibonacci(n: int, ctx: Context = None) -> Dict[str, Any]:
     """Calculate the nth Fibonacci number.
     
     This is a more computationally intensive example that demonstrates
@@ -102,7 +103,7 @@ async def calculate_fibonacci(n: int) -> Dict[str, Any]:
 
 
 {% if cookiecutter.include_parallel_example == "yes" -%}
-async def process_batch_data(items: List[str], operation: str = "upper") -> Dict[str, Any]:
+async def process_batch_data(items: List[str], operation: str = "upper", ctx: Context = None) -> Dict[str, Any]:
     """Process a batch of data items.
     
     This is an example of a tool that benefits from parallelization.
@@ -140,7 +141,7 @@ async def process_batch_data(items: List[str], operation: str = "upper") -> Dict
     }
 
 
-async def simulate_heavy_computation(complexity: int = 5) -> Dict[str, Any]:
+async def simulate_heavy_computation(complexity: int = 5, ctx: Context = None) -> Dict[str, Any]:
     """Simulate a heavy computation task.
     
     This tool demonstrates parallelization benefits by performing

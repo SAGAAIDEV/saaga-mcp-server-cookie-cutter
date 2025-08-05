@@ -90,6 +90,49 @@ class SQLiteDestination(LogDestination):
         """)
         conn.commit()
     
+    def write_sync(self, entry: LogEntry) -> None:
+        """Write a log entry to SQLite synchronously.
+        
+        Args:
+            entry: The log entry to write
+        """
+        conn = self._get_connection()
+        
+        # Serialize complex fields to JSON
+        input_args_json = json.dumps(entry.input_args) if entry.input_args else None
+        extra_data_json = json.dumps(entry.extra_data) if entry.extra_data else None
+        
+        # Convert timestamp to string format for SQLite
+        timestamp_str = entry.timestamp.isoformat() if isinstance(entry.timestamp, datetime) else str(entry.timestamp)
+        
+        conn.execute("""
+            INSERT INTO unified_logs (
+                correlation_id, timestamp, level, log_type, message,
+                tool_name, duration_ms, status, input_args, output_summary,
+                error_message, module, function, line, thread_name,
+                process_id, extra_data
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            entry.correlation_id,
+            timestamp_str,
+            entry.level,
+            entry.log_type,
+            entry.message,
+            entry.tool_name,
+            entry.duration_ms,
+            entry.status,
+            input_args_json,
+            entry.output_summary,
+            entry.error_message,
+            entry.module,
+            entry.function,
+            entry.line,
+            entry.thread_name,
+            entry.process_id,
+            extra_data_json
+        ))
+        conn.commit()
+    
     async def write(self, entry: LogEntry) -> None:
         """Write a log entry to SQLite.
         
