@@ -34,57 +34,48 @@ def event_loop():
 
 
 @pytest.fixture
-def backup_and_cleanup_db():
-    """Backup existing database before tests and restore after."""
-    # Get the real database path
-    real_db_path = Path(platformdirs.user_data_dir("{{ cookiecutter.project_slug }}")) / "unified_logs.db"
-    backup_path = None
+def test_directories(tmp_path: Path) -> Dict[str, Path]:
+    """Create temporary directories for testing."""
+    base_dir = tmp_path / "mcp_integration_test"
+    dirs = {
+        "config_dir": base_dir / "config",
+        "data_dir": base_dir / "data",
+        "log_dir": base_dir / "logs",
+        "db_path": base_dir / "data" / "unified_logs.db"
+    }
     
-    # Backup existing database if it exists
-    if real_db_path.exists():
-        backup_path = real_db_path.with_suffix('.db.backup')
-        shutil.copy2(real_db_path, backup_path)
+    # Create directories
+    for name, path in dirs.items():
+        if name != "db_path":  # db_path is a file, not a directory
+            path.mkdir(parents=True, exist_ok=True)
     
-    # Let tests run
-    yield
-    
-    # Cleanup test data from database
-    if real_db_path.exists():
-        try:
-            # Remove the test database
-            real_db_path.unlink()
-        except Exception as e:
-            print(f"Warning: Failed to remove test database: {e}")
-    
-    # Restore backup if it existed
-    if backup_path and backup_path.exists():
-        try:
-            shutil.move(backup_path, real_db_path)
-        except Exception as e:
-            print(f"Warning: Failed to restore database backup: {e}")
+    return dirs
 
 
 @pytest_asyncio.fixture
-async def mcp_server(backup_and_cleanup_db) -> AsyncGenerator[Dict[str, Any], None]:
-    """Start MCP server subprocess for tests."""
+async def mcp_server(test_directories: Dict[str, Path]) -> AsyncGenerator[Dict[str, Any], None]:
+    """Start MCP server subprocess for tests with custom directories."""
     # Environment variables for the subprocess
     env = os.environ.copy()
     env['PYTHONWARNINGS'] = 'ignore::RuntimeWarning'
     
-    # Use the standard server - tests will use the real user directories
+    # Set directory overrides using environment variables
+    env['{{ cookiecutter.project_slug|upper }}_CONFIG_DIR'] = str(test_directories["config_dir"])
+    env['{{ cookiecutter.project_slug|upper }}_DATA_DIR'] = str(test_directories["data_dir"])
+    env['{{ cookiecutter.project_slug|upper }}_LOG_DIR'] = str(test_directories["log_dir"])
+    
+    # Use the standard server with environment overrides
     server_params = StdioServerParameters(
         command=sys.executable,
         args=["-m", "{{ cookiecutter.project_slug }}.server.app", "--transport", "stdio"],
         env=env
     )
     
-    # Store server info - we'll use the real user directory for the database
-    real_db_path = Path(platformdirs.user_data_dir("{{ cookiecutter.project_slug }}")) / "unified_logs.db"
-    
+    # Store server info with test paths
     server_info = {
         "params": server_params,
-        "db_path": real_db_path,
-        "real_data_dir": Path(platformdirs.user_data_dir("{{ cookiecutter.project_slug }}"))
+        "db_path": test_directories["db_path"],
+        "test_directories": test_directories
     }
     
     yield server_info

@@ -135,6 +135,27 @@ Available options:
 - `--port`: Port to bind to for SSE transport (default: {{cookiecutter.server_port}})
 - `--log-level`: Logging level - DEBUG, INFO, WARNING, ERROR (default: {{cookiecutter.log_level}})
 
+### Environment Variables
+
+The server supports environment variable overrides for flexible deployment:
+
+- `{{ cookiecutter.project_slug|upper }}_CONFIG_DIR`: Override configuration directory location
+- `{{ cookiecutter.project_slug|upper }}_DATA_DIR`: Override data directory location (database, etc.)
+- `{{ cookiecutter.project_slug|upper }}_LOG_DIR`: Override log directory location
+
+Example usage:
+```bash
+# Custom directories for Docker deployment
+export {{ cookiecutter.project_slug|upper }}_DATA_DIR=/app/data
+export {{ cookiecutter.project_slug|upper }}_CONFIG_DIR=/app/config
+export {{ cookiecutter.project_slug|upper }}_LOG_DIR=/app/logs
+uv run python -m {{cookiecutter.project_slug}}.server.app
+
+# Development with separate data
+export {{ cookiecutter.project_slug|upper }}_DATA_DIR=/tmp/{{cookiecutter.project_slug}}_dev
+uv run python -m {{cookiecutter.project_slug}}.server.app
+```
+
 ### MCP Client Configuration
 
 #### Claude Desktop Configuration

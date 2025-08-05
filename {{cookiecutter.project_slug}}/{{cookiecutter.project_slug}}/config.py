@@ -46,12 +46,18 @@ class ServerConfig:
     
     def __post_init__(self):
         """Initialize platform-aware paths after dataclass creation."""
+        # Allow environment variable overrides for flexible deployment
         if self.config_dir is None:
-            self.config_dir = Path(platformdirs.user_config_dir("{{cookiecutter.project_slug}}"))
+            override = os.environ.get("{{ cookiecutter.project_slug|upper }}_CONFIG_DIR")
+            self.config_dir = Path(override) if override else Path(platformdirs.user_config_dir("{{cookiecutter.project_slug}}"))
+        
         if self.data_dir is None:
-            self.data_dir = Path(platformdirs.user_data_dir("{{cookiecutter.project_slug}}"))
+            override = os.environ.get("{{ cookiecutter.project_slug|upper }}_DATA_DIR")
+            self.data_dir = Path(override) if override else Path(platformdirs.user_data_dir("{{cookiecutter.project_slug}}"))
+        
         if self.log_dir is None:
-            self.log_dir = Path(platformdirs.user_log_dir("{{cookiecutter.project_slug}}"))
+            override = os.environ.get("{{ cookiecutter.project_slug|upper }}_LOG_DIR")
+            self.log_dir = Path(override) if override else Path(platformdirs.user_log_dir("{{cookiecutter.project_slug}}"))
         
         # Ensure directories exist
         self.config_dir.mkdir(parents=True, exist_ok=True)
