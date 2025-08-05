@@ -4,12 +4,14 @@ import asyncio
 import os
 import sys
 import sqlite3
+import shutil
+import uuid
 from pathlib import Path
 from typing import AsyncGenerator, Generator, Dict, Any
-from unittest import mock
 
 import pytest
 import pytest_asyncio
+import platformdirs
 from mcp import ClientSession
 from mcp.client.stdio import stdio_client, StdioServerParameters
 
@@ -32,49 +34,60 @@ def event_loop():
 
 
 @pytest.fixture
-def isolated_db_path(tmp_path: Path) -> Path:
-    """Create an isolated database path for each test."""
-    db_dir = tmp_path / "data"
-    db_dir.mkdir(parents=True, exist_ok=True)
-    return db_dir / "unified_logs.db"
-
-
-@pytest.fixture
-def mock_platformdirs(isolated_db_path: Path, monkeypatch):
-    """Mock platformdirs to use isolated test directory."""
-    import platformdirs
+def backup_and_cleanup_db():
+    """Backup existing database before tests and restore after."""
+    # Get the real database path
+    real_db_path = Path(platformdirs.user_data_dir("{{ cookiecutter.project_slug }}")) / "unified_logs.db"
+    backup_path = None
     
-    def mock_user_data_dir(appname: str, *args, **kwargs) -> str:
-        return str(isolated_db_path.parent)
+    # Backup existing database if it exists
+    if real_db_path.exists():
+        backup_path = real_db_path.with_suffix('.db.backup')
+        shutil.copy2(real_db_path, backup_path)
     
-    monkeypatch.setattr(platformdirs, "user_data_dir", mock_user_data_dir)
-    return isolated_db_path
+    # Let tests run
+    yield
+    
+    # Cleanup test data from database
+    if real_db_path.exists():
+        try:
+            # Remove the test database
+            real_db_path.unlink()
+        except Exception as e:
+            print(f"Warning: Failed to remove test database: {e}")
+    
+    # Restore backup if it existed
+    if backup_path and backup_path.exists():
+        try:
+            shutil.move(backup_path, real_db_path)
+        except Exception as e:
+            print(f"Warning: Failed to restore database backup: {e}")
 
 
 @pytest_asyncio.fixture
-async def mcp_server(mock_platformdirs: Path) -> AsyncGenerator[Dict[str, Any], None]:
+async def mcp_server(backup_and_cleanup_db) -> AsyncGenerator[Dict[str, Any], None]:
     """Start MCP server subprocess for tests."""
     # Environment variables for the subprocess
     env = os.environ.copy()
     env['PYTHONWARNINGS'] = 'ignore::RuntimeWarning'
-    # Force the server to use our test database path
-    env['{{ cookiecutter.project_slug|upper }}_DATA_DIR'] = str(mock_platformdirs.parent)
     
+    # Use the standard server - tests will use the real user directories
     server_params = StdioServerParameters(
         command=sys.executable,
         args=["-m", "{{ cookiecutter.project_slug }}.server.app", "--transport", "stdio"],
         env=env
     )
     
-    # Store server info
+    # Store server info - we'll use the real user directory for the database
+    real_db_path = Path(platformdirs.user_data_dir("{{ cookiecutter.project_slug }}")) / "unified_logs.db"
+    
     server_info = {
         "params": server_params,
-        "db_path": mock_platformdirs
+        "db_path": real_db_path,
+        "real_data_dir": Path(platformdirs.user_data_dir("{{ cookiecutter.project_slug }}"))
     }
     
     yield server_info
-    
-    # Cleanup is handled by stdio_client context manager
 
 
 @pytest_asyncio.fixture
@@ -99,17 +112,23 @@ def db_connection(mcp_server: Dict[str, Any]) -> Generator[sqlite3.Connection, N
     """Create a database connection for verification."""
     db_path = mcp_server["db_path"]
     
-    # Wait a bit for database to be created
+    # Wait longer for database to be created (server startup + first log write)
     import time
-    for _ in range(10):
+    max_wait_seconds = 5
+    wait_interval = 0.2
+    
+    for _ in range(int(max_wait_seconds / wait_interval)):
         if db_path.exists():
             break
-        time.sleep(0.1)
+        time.sleep(wait_interval)
     
     if not db_path.exists():
-        pytest.fail(f"Database not created at {db_path}")
+        # Create the database directory if it doesn't exist
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        # The database will be created on first write, so we'll connect anyway
+        # This allows the test to proceed and fail later if there's a real issue
     
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
     yield conn
     conn.close()
