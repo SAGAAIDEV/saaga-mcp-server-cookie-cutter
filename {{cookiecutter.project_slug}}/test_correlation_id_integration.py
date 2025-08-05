@@ -106,7 +106,7 @@ def get_sqlite_logs(correlation_id: str) -> List[Dict]:
     # Get the SQLite database path using platformdirs
     import platformdirs
     app_data = platformdirs.user_data_dir("{{ cookiecutter.project_slug }}")
-    db_path = Path(app_data) / "logs.db"
+    db_path = Path(app_data) / "unified_logs.db"
     
     if not db_path.exists():
         console.print(f"[red]Database not found at {db_path}[/red]")
@@ -121,7 +121,7 @@ def get_sqlite_logs(correlation_id: str) -> List[Dict]:
         cursor.execute("""
             SELECT timestamp, tool_name, duration_ms, status, 
                    input_args, output_summary, error_message
-            FROM logs
+            FROM unified_logs
             WHERE correlation_id = ?
             ORDER BY timestamp
         """, (correlation_id,))
@@ -165,7 +165,7 @@ async def test_all_tools(server_script_path: str):
             test_cases = [
                 {
                     "tool": "echo_tool",
-                    "args": {"text": "Testing correlation ID feature!"},
+                    "args": {"message": "Testing correlation ID feature!"},
                     "correlation_id": "test_echo_abc123"
                 },
                 {
@@ -276,7 +276,7 @@ async def test_all_tools(server_script_path: str):
             console.print("4. Verify that each correlation ID shows the corresponding tool execution")
             
             # Show database location
-            db_path = Path.home() / ".local" / "share" / "{{ cookiecutter.project_slug }}" / "logs.db"
+            db_path = Path.home() / ".local" / "share" / "{{ cookiecutter.project_slug }}" / "unified_logs.db"
             console.print(f"\n[dim]SQLite database location: {db_path}[/dim]")
 
 
