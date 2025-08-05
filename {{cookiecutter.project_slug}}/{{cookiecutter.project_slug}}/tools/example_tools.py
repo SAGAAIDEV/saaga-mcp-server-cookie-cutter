@@ -34,7 +34,7 @@ async def echo_tool(message: str, ctx: Context = None) -> str:
     Returns:
         The echoed message with a prefix
     """
-    logger = UnifiedLogger.get_logger("tool.echo_tool")
+    logger = UnifiedLogger.get_logger("tool.echo_tool").bind(tool_name="echo_tool")
     logger.info(f"Echoing message: {message[:50]}..." if len(message) > 50 else f"Echoing message: {message}")
     return f"Echo: {message}"
 
@@ -47,7 +47,7 @@ async def get_time(ctx: Context = None) -> str:
     Returns:
         Current time as a string
     """
-    logger = UnifiedLogger.get_logger("tool.get_time")
+    logger = UnifiedLogger.get_logger("tool.get_time").bind(tool_name="get_time")
     current_time = time.strftime('%Y-%m-%d %H:%M:%S')
     logger.info(f"Retrieved current time: {current_time}")
     return f"Current time: {current_time}"
@@ -63,7 +63,7 @@ async def random_number(min_value: int = 1, max_value: int = 100, ctx: Context =
     Returns:
         Dictionary containing the random number and range info
     """
-    logger = UnifiedLogger.get_logger("tool.random_number")
+    logger = UnifiedLogger.get_logger("tool.random_number").bind(tool_name="random_number")
     logger.info(f"Generating random number between {min_value} and {max_value}")
     
     if min_value > max_value:
@@ -91,7 +91,7 @@ async def calculate_fibonacci(n: int, ctx: Context = None) -> Dict[str, Any]:
     Returns:
         Dictionary containing the Fibonacci number and calculation info
     """
-    logger = UnifiedLogger.get_logger("tool.calculate_fibonacci")
+    logger = UnifiedLogger.get_logger("tool.calculate_fibonacci").bind(tool_name="calculate_fibonacci")
     logger.info(f"Calculating Fibonacci number at position {n}")
     
     if n < 0:
@@ -133,7 +133,7 @@ async def process_batch_data(items: List[str], operation: str = "upper", ctx: Co
     Returns:
         Processed items with metadata
     """
-    logger = UnifiedLogger.get_logger("tool.process_batch_data")
+    logger = UnifiedLogger.get_logger("tool.process_batch_data").bind(tool_name="process_batch_data")
     logger.info(f"Processing {len(items)} items with operation '{operation}'")
     
     # Simulate some processing time
@@ -178,7 +178,7 @@ async def simulate_heavy_computation(complexity: int = 5, ctx: Context = None) -
     Returns:
         Dictionary containing computation results
     """
-    logger = UnifiedLogger.get_logger("tool.simulate_heavy_computation")
+    logger = UnifiedLogger.get_logger("tool.simulate_heavy_computation").bind(tool_name="simulate_heavy_computation")
     logger.info(f"Starting heavy computation with complexity level {complexity}")
     
     if complexity < 1 or complexity > 10:
