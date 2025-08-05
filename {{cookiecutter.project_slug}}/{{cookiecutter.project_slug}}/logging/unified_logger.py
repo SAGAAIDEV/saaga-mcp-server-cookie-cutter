@@ -14,7 +14,7 @@ from datetime import datetime
 
 from loguru import logger
 
-from .correlation import get_correlation_id, get_initialization_correlation_id
+from .correlation import get_correlation_id, get_initialization_correlation_id, get_tool_name
 from .destinations.base import LogDestination, LogEntry
 from .destinations.factory import LogDestinationFactory, DestinationConfig
 from .destinations.sqlite import SQLiteDestination
@@ -131,11 +131,16 @@ class UnifiedLogger:
             name: Optional logger name for identification
             
         Returns:
-            A Loguru logger instance bound with correlation ID and name
+            A Loguru logger instance bound with correlation ID, tool name, and logger name
         """
         bindings = {
             "correlation_id": get_correlation_id()
         }
+        
+        # Automatically bind tool_name from context if available
+        tool_name = get_tool_name()
+        if tool_name:
+            bindings["tool_name"] = tool_name
         
         if name:
             bindings["logger_name"] = name

@@ -18,6 +18,18 @@ REQUIREMENTS:
 - Ensure all dependencies are installed (pip install -e .)
 """
 
+# Set up warning filters BEFORE any imports that might trigger them
+import warnings
+# Suppress the specific RuntimeWarning about coroutines not being awaited
+# This is expected behavior in our logging system where we use synchronous fallback
+warnings.filterwarnings("ignore", 
+                       message="coroutine 'SQLiteDestination.write' was never awaited",
+                       category=RuntimeWarning)
+# Also suppress the frozen runpy warning which is normal for subprocess execution
+warnings.filterwarnings("ignore", 
+                       message=".*found in sys.modules after import.*", 
+                       category=RuntimeWarning)
+
 import asyncio
 import sqlite3
 import uuid
@@ -138,11 +150,16 @@ def get_sqlite_logs(correlation_id: str) -> List[Dict]:
 async def test_all_tools(server_script_path: str):
     """Test all 6 example tools with correlation IDs."""
     
-    # Server params for stdio transport
+    # Server params for stdio transport with warning suppression
+    import os
+    env = os.environ.copy()
+    # Set Python to not show warnings in the subprocess
+    env['PYTHONWARNINGS'] = 'ignore::RuntimeWarning'
+    
     server_params = StdioServerParameters(
         command="python",
         args=["-m", "{{ cookiecutter.project_slug }}.server.app", "--transport", "stdio"],
-        env=None
+        env=env
     )
     
     console.print(Panel.fit("🧪 [bold]Correlation ID Integration Test[/bold]", border_style="blue"))

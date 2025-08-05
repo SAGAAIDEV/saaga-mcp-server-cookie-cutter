@@ -14,6 +14,9 @@ from ulid import ULID
 # Thread-safe context variable for storing correlation IDs
 correlation_id_var: ContextVar[Optional[str]] = ContextVar('correlation_id', default=None)
 
+# Thread-safe context variable for storing tool names
+tool_name_var: ContextVar[Optional[str]] = ContextVar('tool_name', default=None)
+
 # Module-level initialization correlation ID for server startup
 _initialization_correlation_id: Optional[str] = None
 
@@ -101,6 +104,39 @@ def clear_initialization_correlation_id() -> None:
     """
     global _initialization_correlation_id
     _initialization_correlation_id = None
+
+
+def set_tool_name(tool_name: str) -> None:
+    """Set the tool name for the current context.
+    
+    This is typically called by the tool_logger decorator at the start of
+    tool execution to make the tool name available to all logging within
+    that tool's execution context.
+    
+    Args:
+        tool_name: The name of the tool being executed
+    """
+    tool_name_var.set(tool_name)
+
+
+def get_tool_name() -> Optional[str]:
+    """Get the current tool name from context.
+    
+    Returns None if no tool name is set in the current context.
+    
+    Returns:
+        The current tool name or None if not set
+    """
+    return tool_name_var.get()
+
+
+def clear_tool_name() -> None:
+    """Clear the tool name from the current context.
+    
+    This is typically called by the tool_logger decorator at the end of
+    tool execution to ensure clean state.
+    """
+    tool_name_var.set(None)
 
 
 class CorrelationContext:

@@ -39,7 +39,10 @@ import inspect
 
 from mcp.server.fastmcp import Context
 
-from {{ cookiecutter.project_slug }}.logging.correlation import set_correlation_id, get_correlation_id, clear_correlation_id, generate_correlation_id
+from {{ cookiecutter.project_slug }}.logging.correlation import (
+    set_correlation_id, get_correlation_id, clear_correlation_id, generate_correlation_id,
+    set_tool_name, clear_tool_name
+)
 from {{ cookiecutter.project_slug }}.logging.unified_logger import UnifiedLogger
 
 
@@ -95,11 +98,14 @@ def tool_logger(func: Callable[..., Awaitable[Any]], config: dict = None) -> Cal
         # Set the correlation ID for this request
         set_correlation_id(correlation_id)
         
+        # Set the tool name in context for automatic binding in all loggers
+        tool_name = func.__name__
+        set_tool_name(tool_name)
+        
         # Get correlation-aware logger
-        logger = UnifiedLogger.get_logger(f"tool.{func.__name__}")
+        logger = UnifiedLogger.get_logger(f"tool.{tool_name}")
         
         start_time = time.time()
-        tool_name = func.__name__
         
         # Prepare input args for logging
         # MCP passes parameters directly as keyword arguments
@@ -157,7 +163,8 @@ def tool_logger(func: Callable[..., Awaitable[Any]], config: dict = None) -> Cal
             
             raise  # Re-raise for exception_handler
         finally:
-            # Clear correlation ID after tool execution
+            # Clear correlation ID and tool name after tool execution
             clear_correlation_id()
+            clear_tool_name()
     
     return wrapper
