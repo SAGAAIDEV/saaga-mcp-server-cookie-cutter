@@ -1,1 +1,0 @@
-"""Streamlit administrative UI for MCP server."""

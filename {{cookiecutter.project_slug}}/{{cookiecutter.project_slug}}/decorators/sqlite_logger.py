@@ -22,9 +22,10 @@ from loguru import logger
 import platformdirs
 
 from {{ cookiecutter.project_slug }}.config import ServerConfig
+from {{ cookiecutter.project_slug }}.decorators.base_logger_sink import BaseLoggerSink
 
 
-class SQLiteLoggerSink:
+class SQLiteLoggerSink(BaseLoggerSink):
     """Loguru sink for SQLite database logging with MCP tool support."""
     
     def __init__(self, config: Optional[ServerConfig] = None):
@@ -33,7 +34,7 @@ class SQLiteLoggerSink:
         Args:
             config: Server configuration for database path and retention
         """
-        self.config = config or ServerConfig()
+        super().__init__(config)
         self._db_path = self._get_database_path()
         self._local = threading.local()
         self._initialize_database()
@@ -43,6 +44,14 @@ class SQLiteLoggerSink:
         data_dir = Path(platformdirs.user_data_dir("{{ cookiecutter.project_slug }}"))
         data_dir.mkdir(parents=True, exist_ok=True)
         return data_dir / "tool_logs.db"
+    
+    def get_log_location(self) -> str:
+        """Get the location where logs are stored.
+        
+        Returns:
+            String path to the SQLite database file
+        """
+        return str(self._db_path)
     
     def _get_connection(self) -> sqlite3.Connection:
         """Get thread-local database connection."""

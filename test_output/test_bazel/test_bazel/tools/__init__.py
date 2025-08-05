@@ -1,1 +1,0 @@
-"""MCP tools with automatic decorator application."""
