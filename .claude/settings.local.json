@@ -35,7 +35,10 @@
       "Bash(ruff format:*)",
       "Bash(git reset:*)",
       "mcp__conduit__create_jira_issue",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "mcp__conduit__search_jira_issues",
+      "mcp__conduit__list_atlassian_sites",
+      "mcp__conduit__update_jira_status"
     ],
     "deny": []
   }
