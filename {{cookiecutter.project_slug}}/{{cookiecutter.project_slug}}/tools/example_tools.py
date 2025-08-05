@@ -18,6 +18,7 @@ from typing import List, Dict, Any, Optional
 
 {% if cookiecutter.include_example_tools == "yes" -%}
 from mcp.server.fastmcp import Context
+from {{ cookiecutter.project_slug }}.logging.unified_logger import UnifiedLogger
 
 
 async def echo_tool(message: str, ctx: Context = None) -> str:
@@ -33,6 +34,8 @@ async def echo_tool(message: str, ctx: Context = None) -> str:
     Returns:
         The echoed message with a prefix
     """
+    logger = UnifiedLogger.get_logger("tool.echo_tool")
+    logger.info(f"Echoing message: {message[:50]}..." if len(message) > 50 else f"Echoing message: {message}")
     return f"Echo: {message}"
 
 
@@ -44,7 +47,10 @@ async def get_time(ctx: Context = None) -> str:
     Returns:
         Current time as a string
     """
-    return f"Current time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
+    logger = UnifiedLogger.get_logger("tool.get_time")
+    current_time = time.strftime('%Y-%m-%d %H:%M:%S')
+    logger.info(f"Retrieved current time: {current_time}")
+    return f"Current time: {current_time}"
 
 
 async def random_number(min_value: int = 1, max_value: int = 100, ctx: Context = None) -> Dict[str, Any]:
@@ -57,10 +63,15 @@ async def random_number(min_value: int = 1, max_value: int = 100, ctx: Context =
     Returns:
         Dictionary containing the random number and range info
     """
+    logger = UnifiedLogger.get_logger("tool.random_number")
+    logger.info(f"Generating random number between {min_value} and {max_value}")
+    
     if min_value > max_value:
         raise ValueError("min_value must be less than or equal to max_value")
     
     number = random.randint(min_value, max_value)
+    logger.info(f"Generated random number: {number}")
+    
     return {
         "number": number,
         "range": f"{min_value}-{max_value}",
@@ -80,10 +91,14 @@ async def calculate_fibonacci(n: int, ctx: Context = None) -> Dict[str, Any]:
     Returns:
         Dictionary containing the Fibonacci number and calculation info
     """
+    logger = UnifiedLogger.get_logger("tool.calculate_fibonacci")
+    logger.info(f"Calculating Fibonacci number at position {n}")
+    
     if n < 0:
         raise ValueError("n must be non-negative")
     
     if n <= 1:
+        logger.info(f"Base case: F({n}) = {n}")
         return {"position": n, "value": n, "calculation_time": 0}
     
     start_time = time.time()
@@ -94,6 +109,7 @@ async def calculate_fibonacci(n: int, ctx: Context = None) -> Dict[str, Any]:
         a, b = b, a + b
     
     calculation_time = time.time() - start_time
+    logger.info(f"Calculated F({n}) = {b} in {calculation_time:.6f} seconds")
     
     return {
         "position": n,
@@ -117,12 +133,15 @@ async def process_batch_data(items: List[str], operation: str = "upper", ctx: Co
     Returns:
         Processed items with metadata
     """
+    logger = UnifiedLogger.get_logger("tool.process_batch_data")
+    logger.info(f"Processing {len(items)} items with operation '{operation}'")
+    
     # Simulate some processing time
     import asyncio
     await asyncio.sleep(0.1)
     
     processed_items = []
-    for item in items:
+    for i, item in enumerate(items):
         if operation == "upper":
             processed = item.upper()
         elif operation == "lower":
@@ -132,6 +151,12 @@ async def process_batch_data(items: List[str], operation: str = "upper", ctx: Co
         else:
             raise ValueError(f"Unknown operation: {operation}")
         processed_items.append(processed)
+        
+        # Log progress for large batches
+        if len(items) > 10 and (i + 1) % 10 == 0:
+            logger.info(f"Processed {i + 1}/{len(items)} items")
+    
+    logger.info(f"Completed processing {len(items)} items")
     
     return {
         "original": items,
@@ -153,6 +178,9 @@ async def simulate_heavy_computation(complexity: int = 5, ctx: Context = None) -
     Returns:
         Dictionary containing computation results
     """
+    logger = UnifiedLogger.get_logger("tool.simulate_heavy_computation")
+    logger.info(f"Starting heavy computation with complexity level {complexity}")
+    
     if complexity < 1 or complexity > 10:
         raise ValueError("complexity must be between 1 and 10")
     
@@ -161,6 +189,7 @@ async def simulate_heavy_computation(complexity: int = 5, ctx: Context = None) -
     # Simulate heavy computation
     result = 0
     iterations = complexity * 100000  # Reduced for async context
+    logger.info(f"Running {iterations:,} iterations")
     
     for i in range(iterations):
         result += i * 2
@@ -168,15 +197,23 @@ async def simulate_heavy_computation(complexity: int = 5, ctx: Context = None) -
             # Yield control to allow other tasks to run
             import asyncio
             await asyncio.sleep(0.001)
+            
+            # Log progress periodically
+            if i > 0 and i % 100000 == 0:
+                progress = (i / iterations) * 100
+                logger.info(f"Computation progress: {progress:.1f}% ({i:,}/{iterations:,} iterations)")
     
     computation_time = time.time() - start_time
+    ops_per_second = iterations / computation_time if computation_time > 0 else 0
+    
+    logger.info(f"Completed {iterations:,} iterations in {computation_time:.3f} seconds ({ops_per_second:,.0f} ops/sec)")
     
     return {
         "complexity": complexity,
         "iterations": iterations,
         "result": result,
         "computation_time": computation_time,
-        "operations_per_second": iterations / computation_time if computation_time > 0 else 0
+        "operations_per_second": ops_per_second
     }
 
 

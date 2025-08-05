@@ -31,6 +31,8 @@ from typing import Callable, Any, Awaitable, List, Dict, Union
 import logging
 import inspect
 
+from {{ cookiecutter.project_slug }}.logging.unified_logger import UnifiedLogger
+
 logger = logging.getLogger(__name__)
 
 
@@ -159,10 +161,12 @@ def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], A
             raise TypeError("Parallel tools require List[Dict] parameter")
         
         if not kwargs_list:
-            logger.warning(f"Empty kwargs_list provided to {func.__name__}")
+            unified_logger = UnifiedLogger.get_logger("decorator.parallelize")
+            unified_logger.warning(f"Empty kwargs_list provided to {func.__name__}")
             return []
         
-        logger.info(f"Parallel execution of {func.__name__} with {len(kwargs_list)} items")
+        unified_logger = UnifiedLogger.get_logger("decorator.parallelize")
+        unified_logger.info(f"Parallel execution of {func.__name__} with {len(kwargs_list)} items")
         
         # Validate all items are dictionaries
         for i, kwargs in enumerate(kwargs_list):
