@@ -11,6 +11,7 @@ Features:
 - Execution time tracking with microsecond precision
 - Unified logging system with pluggable destinations
 - Correlation ID tracking across related logs
+- Client-provided correlation ID support via MCP metadata
 - Error logging with full stack traces
 - Query interface for log analysis
 - Async-only pattern for consistency
@@ -20,6 +21,13 @@ Usage:
     async def my_tool(param: str) -> str:
         # Tool implementation
         return result
+
+Correlation ID Support:
+    MCP clients can pass a correlation ID through request metadata:
+    - Client includes {"correlationId": "client_req_123"} in _meta field
+    - Decorator checks ctx.request_context.meta for correlationId
+    - Uses client-provided ID if present, otherwise generates one
+    - Enables end-to-end request tracing from frontend to backend
 """
 
 import asyncio
@@ -48,8 +56,31 @@ def tool_logger(func: Callable[..., Awaitable[Any]], config: dict = None) -> Cal
     
     @wraps(func)
     async def wrapper(*args, **kwargs) -> Any:
-        # Always generate a new correlation ID for each tool invocation
-        correlation_id = set_correlation_id(f"req_{generate_correlation_id().split('_')[1]}")
+        # Check if MCP client provided a correlation ID via context metadata
+        correlation_id = None
+        
+        # Look for Context parameter in kwargs to access request metadata
+        ctx = None
+        for key, value in kwargs.items():
+            if hasattr(value, 'request_context'):
+                ctx = value
+                break
+        
+        if ctx and hasattr(ctx.request_context, 'meta') and ctx.request_context.meta:
+            # Try to get correlation ID from metadata
+            if hasattr(ctx.request_context.meta, 'get'):
+                # Meta is a dict-like object
+                correlation_id = ctx.request_context.meta.get('correlationId')
+            elif hasattr(ctx.request_context.meta, 'correlationId'):
+                # Meta has correlationId as an attribute
+                correlation_id = getattr(ctx.request_context.meta, 'correlationId', None)
+        
+        # If no correlation ID from client, generate one
+        if not correlation_id:
+            correlation_id = f"req_{generate_correlation_id().split('_')[1]}"
+        
+        # Set the correlation ID for this request
+        set_correlation_id(correlation_id)
         
         # Get correlation-aware logger
         logger = UnifiedLogger.get_logger(f"tool.{func.__name__}")
