@@ -256,15 +256,134 @@ async def test_all_tools(server_script_path: str):
             console.print(verification_table)
             console.print()
             
-            # Summary
+            # Summary for WITH correlation IDs
             if all_verified:
-                console.print("[bold green]✅ SUCCESS:[/bold green] All correlation IDs were properly logged!")
+                console.print("[bold green]✅ SUCCESS:[/bold green] All client-provided correlation IDs were properly logged!")
             else:
-                console.print("[bold red]❌ FAILURE:[/bold red] Some correlation IDs were not found in logs")
+                console.print("[bold red]❌ FAILURE:[/bold red] Some client-provided correlation IDs were not found in logs")
                 console.print("\n[yellow]Troubleshooting:[/yellow]")
                 console.print("1. Ensure the server is using the updated tool_logger decorator")
                 console.print("2. Check that SQLite logging destination is enabled in config.yaml")
                 console.print("3. Verify the database path is correct for your platform")
+            
+            console.print("\n" + "="*80 + "\n")
+            
+            # Test WITHOUT client-provided correlation IDs
+            console.print("[bold]Testing all example tools WITHOUT client-provided correlation IDs:[/bold]")
+            console.print("[dim]These should auto-generate correlation IDs in the format 'req_xxxxxxxxxxxx'[/dim]")
+            console.print()
+            
+            # Define test cases without correlation IDs
+            test_cases_no_id = [
+                {"tool": "echo_tool", "args": {"message": "Testing auto-generated ID!"}},
+                {"tool": "get_time", "args": {}},
+                {"tool": "random_number", "args": {"min_value": 10, "max_value": 50}},
+                {"tool": "calculate_fibonacci", "args": {"n": 15}},
+                {"tool": "simulate_heavy_computation", "args": {"kwargs_list": [{"complexity": 2}]}},
+                {"tool": "process_batch_data", "args": {"kwargs_list": [{"items": ["test1", "test2"], "operation": "reverse"}]}}
+            ]
+            
+            auto_generated_ids = {}
+            
+            for test_case in test_cases_no_id:
+                tool_name = test_case["tool"]
+                
+                # Call tool WITHOUT correlation ID
+                console.print(f"[blue]→[/blue] Calling '{tool_name}' WITHOUT correlation ID")
+                
+                try:
+                    # Standard MCP call without custom metadata
+                    request = types.ClientRequest(
+                        types.CallToolRequest(
+                            method="tools/call",
+                            params=types.CallToolRequestParams(
+                                name=tool_name,
+                                arguments=test_case["args"]
+                            )
+                        )
+                    )
+                    
+                    result = await session.send_request(
+                        request,
+                        types.CallToolResult,
+                        request_read_timeout_seconds=timedelta(seconds=30)
+                    )
+                    
+                    console.print(f"[green]✓[/green] {tool_name} completed successfully")
+                    
+                    # Sleep briefly to ensure logs are written
+                    await asyncio.sleep(0.2)
+                    
+                    # Query for the most recent log entry for this tool
+                    import platformdirs
+                    app_data = platformdirs.user_data_dir("{{ cookiecutter.project_slug }}")
+                    db_path = Path(app_data) / "unified_logs.db"
+                    
+                    if db_path.exists():
+                        conn = sqlite3.connect(db_path)
+                        conn.row_factory = sqlite3.Row
+                        cursor = conn.cursor()
+                        
+                        # Get the most recent tool execution log for this tool
+                        cursor.execute("""
+                            SELECT correlation_id 
+                            FROM unified_logs 
+                            WHERE tool_name = ? AND status = 'success'
+                            ORDER BY timestamp DESC 
+                            LIMIT 1
+                        """, (tool_name,))
+                        
+                        row = cursor.fetchone()
+                        if row:
+                            auto_generated_ids[tool_name] = row['correlation_id']
+                            console.print(f"  [yellow]Auto-generated ID: {row['correlation_id']}[/yellow]")
+                        else:
+                            console.print(f"  [red]No correlation ID found in logs[/red]")
+                        
+                        conn.close()
+                    
+                except Exception as e:
+                    console.print(f"[red]✗[/red] {tool_name} failed: {e}")
+                
+                await asyncio.sleep(0.1)
+            
+            console.print()
+            
+            # Verify auto-generated IDs
+            console.print("[bold]Verifying auto-generated correlation IDs:[/bold]")
+            console.print()
+            
+            auto_gen_table = Table(title="Auto-Generated Correlation ID Verification")
+            auto_gen_table.add_column("Tool", style="cyan")
+            auto_gen_table.add_column("Generated ID", style="yellow")
+            auto_gen_table.add_column("Format Valid", style="green")
+            auto_gen_table.add_column("Status", style="bold")
+            
+            all_auto_verified = True
+            
+            for tool_name, correlation_id in auto_generated_ids.items():
+                if correlation_id and correlation_id.startswith("req_") and len(correlation_id) > 4:
+                    format_valid = "✓ Yes"
+                    status = "[green]PASSED[/green]"
+                else:
+                    format_valid = "✗ No"
+                    status = "[red]FAILED[/red]"
+                    all_auto_verified = False
+                
+                auto_gen_table.add_row(
+                    tool_name,
+                    correlation_id if correlation_id else "None",
+                    format_valid,
+                    status
+                )
+            
+            console.print(auto_gen_table)
+            console.print()
+            
+            if all_auto_verified:
+                console.print("[bold green]✅ SUCCESS:[/bold green] All tools auto-generated correlation IDs correctly!")
+            else:
+                console.print("[bold red]❌ FAILURE:[/bold red] Some tools did not auto-generate correlation IDs correctly")
             
             # Manual verification instructions
             console.print("\n[bold]Manual Verification Instructions:[/bold]")

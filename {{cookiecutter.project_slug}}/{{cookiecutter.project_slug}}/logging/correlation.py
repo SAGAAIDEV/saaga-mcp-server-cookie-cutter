@@ -6,9 +6,9 @@ using Python's contextvars to ensure IDs are properly isolated between
 concurrent requests.
 """
 
+import uuid
 from contextvars import ContextVar
 from typing import Optional
-from ulid import ULID
 
 
 # Thread-safe context variable for storing correlation IDs
@@ -19,19 +19,12 @@ _initialization_correlation_id: Optional[str] = None
 
 
 def generate_correlation_id() -> str:
-    """Generate a unique correlation ID using ULID.
-    
-    ULID provides:
-    - Lexicographically sortable IDs
-    - Timestamp encoding in the first 48 bits (millisecond precision)
-    - 80 bits of randomness 
-    - 128-bit UUID compatibility
-    - Case-insensitive encoding using Crockford's base32
+    """Generate a unique correlation ID.
     
     Returns:
-        A unique ID in the format 'req_01ARZ3NDEKTSV4RRFFQ69G5FAV'
+        A unique ID in the format 'req_xxxxxxxxxxxx' where x is a hex character
     """
-    return f"req_{str(ULID())}"
+    return f"req_{uuid.uuid4().hex[:12]}"
 
 
 def set_correlation_id(correlation_id: Optional[str] = None) -> str:
