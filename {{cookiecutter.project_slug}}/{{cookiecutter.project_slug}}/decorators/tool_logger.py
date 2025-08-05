@@ -28,7 +28,7 @@ import time
 import logging
 import json
 
-from {{ cookiecutter.project_slug }}.decorators.sqlite_logger import log_tool_execution
+from {{ cookiecutter.project_slug }}.decorators.sqlite_logger import log_tool_execution, get_sqlite_sink
 
 logger = logging.getLogger(__name__)
 
@@ -98,5 +98,14 @@ def tool_logger(func: Callable[..., Awaitable[Any]], config: dict = None) -> Cal
             
             logger.error(f"Tool {tool_name} failed after {duration_ms}ms: {e}")
             raise  # Re-raise for exception_handler
+    
+    # Append log location to the wrapper's docstring
+    sink = get_sqlite_sink()
+    if sink:
+        log_location = sink.get_log_location()
+        if wrapper.__doc__ is None:
+            wrapper.__doc__ = f"Log Location: {log_location}"
+        else:
+            wrapper.__doc__ = wrapper.__doc__.rstrip() + f"\n\nLog Location: {log_location}"
     
     return wrapper
