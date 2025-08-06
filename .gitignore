@@ -186,3 +186,21 @@ my_mcp_server/
 # test_*/  # Commented out to allow example_server/test_asep40_server
 # Local MCP configuration
 .mcp.json
+
+# Generated test servers and output
+generated_servers/
+test_output/
+
+# Process ID files
+*.pid
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Log files (already covered by *.log above)
+# *.log
+
+# Python egg info directories (already covered above)
+# *.egg-info/

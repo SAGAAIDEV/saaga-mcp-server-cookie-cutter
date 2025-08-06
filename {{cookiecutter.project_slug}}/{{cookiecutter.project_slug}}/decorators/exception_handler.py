@@ -25,8 +25,8 @@ from functools import wraps
 from typing import Callable, Any, Awaitable
 import logging
 import traceback
-
-logger = logging.getLogger(__name__)
+from {{ cookiecutter.project_slug }}.logging.unified_logger import UnifiedLogger
+from {{ cookiecutter.project_slug }}.logging.correlation import get_correlation_id
 
 
 def exception_handler(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
@@ -47,16 +47,22 @@ def exception_handler(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awai
         try:
             return await func(*args, **kwargs)
         except Exception as e:
+            # Get correlation-aware logger with tool name
+            logger = UnifiedLogger.get_logger(f"tool.{func.__name__}")
+            
             # Log the full traceback for debugging
             tb_str = traceback.format_exc()
-            logger.error(f"Exception in {func.__name__}: {tb_str}")
+            logger.error(
+                f"Exception in {func.__name__}: {tb_str}",
+                log_type="tool_execution",
+                tool_name=func.__name__,
+                status="error",
+                error_message=str(e),
+                exception_type=type(e).__name__
+            )
             
-            # Return SAAGA-format error response
-            return {
-                "Status": "Exception",
-                "Message": str(e),
-                "ExceptionType": type(e).__name__,
-                "Traceback": tb_str
-            }
+            # Re-raise the exception for MCP to handle properly
+            # This ensures MCP returns a proper error response to the client
+            raise
     
     return wrapper
