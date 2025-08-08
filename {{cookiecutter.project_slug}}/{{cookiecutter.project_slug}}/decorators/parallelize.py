@@ -7,7 +7,6 @@ for parallel execution following SAAGA standards:
 - Batch processing support
 - Integration with SAAGA logging and error handling
 - Fail-fast behavior: if any item fails, the entire batch fails
-- Automatic type conversion for MCP string parameters
 
 Features:
 - Automatic parallelization of compatible tools
@@ -15,25 +14,15 @@ Features:
 - Concurrent execution with asyncio.gather
 - Fail-fast error handling (SAAGA standard)
 - Type validation for input parameters
-- Automatic type conversion from strings (MCP protocol compatibility)
-
-Type Conversion:
-Since MCP protocol sends all parameters as strings, this decorator automatically
-converts string parameters to their annotated types:
-- str → int: Numeric strings are converted to integers
-- str → float: Numeric strings are converted to floats  
-- str → bool: "true", "1", "yes" (case-insensitive) → True, others → False
-- Other types: Passed through unchanged
 
 Usage:
     @parallelize
-    async def batch_process_tool(item: str, count: int) -> str:
+    async def batch_process_tool(item: str) -> str:
         # Tool implementation that can be parallelized
         return processed_item
     
     # After decoration, signature becomes:
     # async def batch_process_tool(kwargs_list: List[Dict]) -> List[str]
-    # And handles {"item": "text", "count": "5"} by converting count to int
 """
 
 import asyncio
@@ -49,25 +38,47 @@ def _set_parallelized_signature_and_annotations(
     wrapper_func: Callable, 
     param_name: str, 
     param_annotation: Any, 
-    return_annotation: Any
+    return_annotation: Any,
+    preserve_context: bool = True
 ):
     """Sets the __signature__ and __annotations__ for the wrapper function."""
-    new_param = inspect.Parameter(
+    params = []
+    
+    # Add the kwargs_list parameter
+    kwargs_param = inspect.Parameter(
         name=param_name,
         kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
         annotation=param_annotation
     )
+    params.append(kwargs_param)
+    
+    # Add Context parameter if requested (for MCP compatibility)
+    if preserve_context:
+        # Import here to avoid circular imports
+        from mcp.server.fastmcp import Context
+        
+        ctx_param = inspect.Parameter(
+            name='ctx',
+            kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=Context
+        )
+        params.append(ctx_param)
     
     new_sig = inspect.Signature(
-        parameters=[new_param],
+        parameters=params,
         return_annotation=return_annotation
     )
     
     wrapper_func.__signature__ = new_sig
-    wrapper_func.__annotations__ = {
+    annotations = {
         param_name: param_annotation,
         'return': return_annotation
     }
+    if preserve_context:
+        from mcp.server.fastmcp import Context
+        annotations['ctx'] = Context
+    
+    wrapper_func.__annotations__ = annotations
 
 def _build_parallelized_docstring(func: Callable) -> str:
     """Constructs the docstring for the parallelized wrapper function."""
@@ -78,9 +89,7 @@ def _build_parallelized_docstring(func: Callable) -> str:
     params = []
     for name, param in sig.parameters.items():
         if param.annotation != inspect.Parameter.empty:
-            # Get the type name instead of the full class representation
-            type_name = param.annotation.__name__ if hasattr(param.annotation, '__name__') else str(param.annotation)
-            params.append(f"{name}: {type_name}")
+            params.append(f"{name}: {param.annotation}")
         else:
             params.append(name)
     params_str = ", ".join(params)
@@ -96,6 +105,8 @@ Args:
     kwargs_list (List[Dict[str, Any]]): A list of dictionaries, where each
                                       dictionary provides the keyword arguments
                                       for a single call to `{func_name}`.
+    ctx: Optional MCP Context object (automatically injected by MCP runtime).
+         If provided, it will be passed to each parallel execution.
 
 Returns:
     List[Any]: A list containing the results of each call to `{func_name}`,
@@ -121,13 +132,6 @@ def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], A
     better introspection and documentation, while transforming the execution
     signature to accept batch parameters.
     
-    Automatic Type Conversion:
-    Since MCP protocol sends all parameters as strings, this decorator
-    automatically converts string values to match the function's type annotations:
-    - int: "123" → 123
-    - float: "12.34" → 12.34
-    - bool: "true"/"1"/"yes" → True (case-insensitive)
-    
     Args:
         func: The async function to decorate
         
@@ -143,8 +147,13 @@ def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], A
     original_signature = inspect.signature(func)
     
     @wraps(func)
-    async def wrapper(kwargs_list: List[Dict]) -> List[Any]:
-        """Execute function in parallel for each kwargs dict."""
+    async def wrapper(kwargs_list: List[Dict], ctx = None) -> List[Any]:
+        """Execute function in parallel for each kwargs dict.
+        
+        Args:
+            kwargs_list: List of dictionaries containing arguments for each parallel call
+            ctx: Optional MCP Context object (passed by MCP runtime)
+        """
         
         if not isinstance(kwargs_list, list):
             raise TypeError("Parallel tools require List[Dict] parameter")
@@ -160,36 +169,26 @@ def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], A
             if not isinstance(kwargs, dict):
                 raise TypeError(f"Item {i} in kwargs_list must be a dict, got {type(kwargs).__name__}")
         
+        # Check if original function expects a Context parameter
+        original_params = list(original_signature.parameters.keys())
+        expects_context = 'ctx' in original_params
+        
         # Execute all calls concurrently
         tasks = []
         for i, kwargs in enumerate(kwargs_list):
             try:
+                # Make a copy to avoid modifying the original
+                call_kwargs = kwargs.copy()
+                
+                # If the original function expects Context and we have one, add it
+                if expects_context and ctx is not None:
+                    call_kwargs['ctx'] = ctx
+                
                 # Validate parameters against original function signature
-                bound_args = original_signature.bind(**kwargs)
+                bound_args = original_signature.bind(**call_kwargs)
                 bound_args.apply_defaults()
                 
-                # Convert string parameters to appropriate types based on annotations
-                converted_kwargs = {}
-                for param_name, param_value in bound_args.arguments.items():
-                    param = original_signature.parameters.get(param_name)
-                    if param and param.annotation != inspect.Parameter.empty:
-                        # Try to convert the value to the expected type
-                        try:
-                            if param.annotation == int and isinstance(param_value, str):
-                                converted_kwargs[param_name] = int(param_value)
-                            elif param.annotation == float and isinstance(param_value, str):
-                                converted_kwargs[param_name] = float(param_value)
-                            elif param.annotation == bool and isinstance(param_value, str):
-                                converted_kwargs[param_name] = param_value.lower() in ('true', '1', 'yes')
-                            else:
-                                converted_kwargs[param_name] = param_value
-                        except (ValueError, TypeError):
-                            # If conversion fails, use original value and let the function handle it
-                            converted_kwargs[param_name] = param_value
-                    else:
-                        converted_kwargs[param_name] = param_value
-                
-                task = func(**converted_kwargs)
+                task = func(**call_kwargs)
                 tasks.append(task)
             except Exception as e:
                 # If function call fails immediately, create a failed task
