@@ -51,6 +51,69 @@ The script automatically:
 - Includes proper MCP configuration flags
 - Provides colored output for better readability
 
+## MCP Integration Testing
+
+This project includes comprehensive integration tests that validate tools work correctly with real MCP client interactions:
+
+### Running Integration Tests
+
+```bash
+# Run all integration tests
+test-mcp-integration
+
+# Run with verbose output
+test-mcp-integration --verbose
+
+# Test specific tool
+test-mcp-integration --tool echo_tool
+
+# List all available tools
+test-mcp-integration --list
+
+# Cross-platform scripts also available
+./test_mcp_integration.sh        # Unix/Mac
+.\test_mcp_integration.ps1        # Windows
+```
+
+### What's Tested
+
+The integration tests validate:
+- **Tool Discovery**: All tools are discoverable with correct schemas (no "kwargs" parameters)
+- **Parameter Conversion**: String parameters from MCP are converted to appropriate types
+- **Error Handling**: Invalid parameters and exceptions return proper error responses
+- **SAAGA Integration**: Decorators work correctly in the full MCP protocol flow
+- **Protocol Compliance**: Tools work with real MCP client connections
+
+### Generating Tests for New Tools
+
+When you add a new tool, generate integration tests for it:
+
+```bash
+# Generate test template
+generate-mcp-tests my_new_tool
+
+# This creates a test template you can customize
+# Add it to tests/integration/test_mcp_integration.py
+```
+
+### Integration vs Unit Tests
+
+- **Unit Tests** (`test_decorators.py`): Test SAAGA decorators in isolation
+- **Integration Tests** (`test_mcp_integration.py`): Test complete MCP protocol flow with real client
+
+Run both test suites to ensure full coverage:
+
+```bash
+# Run all tests
+pytest
+
+# Run only unit tests
+pytest tests/test_decorators.py
+
+# Run only integration tests
+test-mcp-integration
+```
+
 ## Overview
 
 This MCP server was generated using the SAAGA MCP Server Cookie Cutter template. It includes:

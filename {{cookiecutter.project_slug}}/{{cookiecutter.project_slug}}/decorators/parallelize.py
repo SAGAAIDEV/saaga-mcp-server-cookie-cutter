@@ -7,6 +7,7 @@ for parallel execution following SAAGA standards:
 - Batch processing support
 - Integration with SAAGA logging and error handling
 - Fail-fast behavior: if any item fails, the entire batch fails
+- Automatic type conversion for MCP string parameters
 
 Features:
 - Automatic parallelization of compatible tools
@@ -14,15 +15,25 @@ Features:
 - Concurrent execution with asyncio.gather
 - Fail-fast error handling (SAAGA standard)
 - Type validation for input parameters
+- Automatic type conversion from strings (MCP protocol compatibility)
+
+Type Conversion:
+Since MCP protocol sends all parameters as strings, this decorator automatically
+converts string parameters to their annotated types:
+- str → int: Numeric strings are converted to integers
+- str → float: Numeric strings are converted to floats  
+- str → bool: "true", "1", "yes" (case-insensitive) → True, others → False
+- Other types: Passed through unchanged
 
 Usage:
     @parallelize
-    async def batch_process_tool(item: str) -> str:
+    async def batch_process_tool(item: str, count: int) -> str:
         # Tool implementation that can be parallelized
         return processed_item
     
     # After decoration, signature becomes:
     # async def batch_process_tool(kwargs_list: List[Dict]) -> List[str]
+    # And handles {"item": "text", "count": "5"} by converting count to int
 """
 
 import asyncio
@@ -67,7 +78,9 @@ def _build_parallelized_docstring(func: Callable) -> str:
     params = []
     for name, param in sig.parameters.items():
         if param.annotation != inspect.Parameter.empty:
-            params.append(f"{name}: {param.annotation}")
+            # Get the type name instead of the full class representation
+            type_name = param.annotation.__name__ if hasattr(param.annotation, '__name__') else str(param.annotation)
+            params.append(f"{name}: {type_name}")
         else:
             params.append(name)
     params_str = ", ".join(params)
@@ -107,6 +120,13 @@ def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], A
     The decorator preserves the original function's parameter information for
     better introspection and documentation, while transforming the execution
     signature to accept batch parameters.
+    
+    Automatic Type Conversion:
+    Since MCP protocol sends all parameters as strings, this decorator
+    automatically converts string values to match the function's type annotations:
+    - int: "123" → 123
+    - float: "12.34" → 12.34
+    - bool: "true"/"1"/"yes" → True (case-insensitive)
     
     Args:
         func: The async function to decorate
@@ -148,7 +168,28 @@ def parallelize(func: Callable[..., Awaitable[Any]]) -> Callable[[List[Dict]], A
                 bound_args = original_signature.bind(**kwargs)
                 bound_args.apply_defaults()
                 
-                task = func(**kwargs)
+                # Convert string parameters to appropriate types based on annotations
+                converted_kwargs = {}
+                for param_name, param_value in bound_args.arguments.items():
+                    param = original_signature.parameters.get(param_name)
+                    if param and param.annotation != inspect.Parameter.empty:
+                        # Try to convert the value to the expected type
+                        try:
+                            if param.annotation == int and isinstance(param_value, str):
+                                converted_kwargs[param_name] = int(param_value)
+                            elif param.annotation == float and isinstance(param_value, str):
+                                converted_kwargs[param_name] = float(param_value)
+                            elif param.annotation == bool and isinstance(param_value, str):
+                                converted_kwargs[param_name] = param_value.lower() in ('true', '1', 'yes')
+                            else:
+                                converted_kwargs[param_name] = param_value
+                        except (ValueError, TypeError):
+                            # If conversion fails, use original value and let the function handle it
+                            converted_kwargs[param_name] = param_value
+                    else:
+                        converted_kwargs[param_name] = param_value
+                
+                task = func(**converted_kwargs)
                 tasks.append(task)
             except Exception as e:
                 # If function call fails immediately, create a failed task
