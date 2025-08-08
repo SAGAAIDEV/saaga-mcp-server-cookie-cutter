@@ -2,14 +2,15 @@
 
 This decorator provides comprehensive logging following SAAGA standards:
 - Async-only pattern
-- SQLite database integration
+- Unified logging with correlation IDs
 - Performance timing
 - Input/output logging
 
 Features:
 - Automatic logging of tool inputs and outputs
 - Execution time tracking with microsecond precision
-- SQLite database storage for log persistence
+- Unified logging system with pluggable destinations
+- Correlation ID tracking across related logs
 - Error logging with full stack traces
 - Query interface for log analysis
 - Async-only pattern for consistency
@@ -25,12 +26,10 @@ import asyncio
 from functools import wraps
 from typing import Callable, Any, Awaitable
 import time
-import logging
 import json
 
-from {{ cookiecutter.project_slug }}.decorators.sqlite_logger import log_tool_execution
-
-logger = logging.getLogger(__name__)
+from {{ cookiecutter.project_slug }}.logging.correlation import set_correlation_id, get_correlation_id, clear_correlation_id, generate_correlation_id
+from {{ cookiecutter.project_slug }}.logging.unified_logger import UnifiedLogger
 
 
 def tool_logger(func: Callable[..., Awaitable[Any]] = None, config: dict = None) -> Callable[..., Awaitable[Any]]:
@@ -57,55 +56,83 @@ def tool_logger(func: Callable[..., Awaitable[Any]] = None, config: dict = None)
     def decorator(f: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
         @wraps(f)
         async def wrapper(*args, **kwargs) -> Any:
+            # Check for client-provided correlation ID in MCP metadata
+            correlation_id = None
+            if kwargs.get('_meta') and isinstance(kwargs['_meta'], dict):
+                correlation_id = kwargs['_meta'].get('correlation_id')
+                # Remove _meta from kwargs so it doesn't get passed to the tool
+                kwargs.pop('_meta', None)
+            
+            # If no client-provided ID, generate one
+            if not correlation_id:
+                correlation_id = f"req_{generate_correlation_id().split('_')[1]}"
+            
+            # Set the correlation ID for this execution context
+            set_correlation_id(correlation_id)
+            
+            # Get correlation-aware logger
+            logger = UnifiedLogger.get_logger(f"tool.{f.__name__}")
+            
             start_time = time.time()
             tool_name = f.__name__
             
-            # Log input parameters (sanitized)
+            # Prepare input args for logging
+            # MCP passes parameters directly as keyword arguments
             try:
-                input_args = json.dumps({"args": args, "kwargs": kwargs}, default=str)
+                # For MCP tools, we only have kwargs (no positional args)
+                input_args_dict = kwargs if kwargs else {}
+                input_args_str = json.dumps(input_args_dict, default=str)
             except Exception:
-                input_args = f"args={len(args)}, kwargs={len(kwargs)}"
+                input_args_dict = {}
+                input_args_str = f"<{len(kwargs)} parameters>"
             
-            logger.info(f"Starting tool: {tool_name}")
+            logger.info(
+                f"Starting tool: {tool_name}",
+                log_type="tool_execution",
+                tool_name=tool_name,
+                status="running",
+                input_args=input_args_dict
+            )
             
             try:
                 result = await f(*args, **kwargs)
-                duration_ms = int((time.time() - start_time) * 1000)
+                duration_ms = (time.time() - start_time) * 1000
                 
-                # Log successful execution
+                # Prepare output summary
                 try:
                     output_summary = str(result)[:200] + "..." if len(str(result)) > 200 else str(result)
                 except Exception:
                     output_summary = f"<{type(result).__name__}>"
                 
-                # Log to SQLite database
-                log_tool_execution(
+                logger.info(
+                    f"Tool completed: {tool_name}",
+                    log_type="tool_execution",
                     tool_name=tool_name,
                     duration_ms=duration_ms,
                     status="success",
-                    input_args=input_args,
-                    output_summary=output_summary,
-                    error_message=None
+                    input_args=input_args_dict,
+                    output_summary=output_summary
                 )
                 
-                logger.info(f"Completed tool: {tool_name} in {duration_ms}ms")
                 return result
                 
             except Exception as e:
-                duration_ms = int((time.time() - start_time) * 1000)
+                duration_ms = (time.time() - start_time) * 1000
                 
-                # Log failed execution
-                log_tool_execution(
+                logger.error(
+                    f"Tool failed: {tool_name}",
+                    log_type="tool_execution",
                     tool_name=tool_name,
                     duration_ms=duration_ms,
                     status="error",
-                    input_args=input_args,
-                    output_summary=None,
+                    input_args=input_args_dict,
                     error_message=str(e)
                 )
                 
-                logger.error(f"Tool {tool_name} failed after {duration_ms}ms: {e}")
                 raise  # Re-raise for exception_handler
+            finally:
+                # Clear correlation ID after tool execution
+                clear_correlation_id()
         
         return wrapper
     
