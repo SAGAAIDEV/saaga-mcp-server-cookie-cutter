@@ -1,25 +1,19 @@
-"""{% if cookiecutter.include_example_tools == "yes" %}Example MCP tools for {{cookiecutter.project_name}}
+"""Example MCP tools for Sizzle MCP Server
 
 This module provides example tools that demonstrate how to create MCP tools
 with the SAAGA decorator pattern. These tools are automatically registered
 with the server and decorated with exception handling, logging, and optional
 parallelization.
-{% else %}Placeholder for MCP tools
-
-This module is a placeholder for your MCP tools. To add tools:
-1. Define your tool functions
-2. Add them to the appropriate lists (example_tools or parallel_example_tools)
-3. The server will automatically register and decorate them
-{% endif %}"""
+"""
 
 import time
 import random
 from typing import List, Dict, Any, Optional
 
-{% if cookiecutter.include_example_tools == "yes" -%}
+from mcp.server.fastmcp import Context
 
 
-async def echo_tool(message: str) -> str:
+async def echo_tool(message: str, ctx: Context = None) -> str:
     """Echo back the input message.
     
     This is a simple example tool that demonstrates basic MCP tool functionality.
@@ -35,7 +29,7 @@ async def echo_tool(message: str) -> str:
     return f"Echo: {message}"
 
 
-async def get_time() -> str:
+async def get_time(ctx: Context = None) -> str:
     """Get the current time.
     
     Returns the current time in a human-readable format.
@@ -46,7 +40,7 @@ async def get_time() -> str:
     return f"Current time: {time.strftime('%Y-%m-%d %H:%M:%S')}"
 
 
-async def random_number(min_value: int = 1, max_value: int = 100) -> Dict[str, Any]:
+async def random_number(min_value: int = 1, max_value: int = 100, ctx: Context = None) -> Dict[str, Any]:
     """Generate a random number within a specified range.
     
     Args:
@@ -67,7 +61,7 @@ async def random_number(min_value: int = 1, max_value: int = 100) -> Dict[str, A
     }
 
 
-async def calculate_fibonacci(n: int) -> Dict[str, Any]:
+async def calculate_fibonacci(n: int, ctx: Context = None) -> Dict[str, Any]:
     """Calculate the nth Fibonacci number.
     
     This is a more computationally intensive example that demonstrates
@@ -149,8 +143,7 @@ async def search_tool(
     }
 
 
-{% if cookiecutter.include_parallel_example == "yes" -%}
-async def process_batch_data(items: List[str], operation: str = "upper") -> Dict[str, Any]:
+async def process_batch_data(items: List[str], operation: str = "upper", ctx: Context = None) -> Dict[str, Any]:
     """Process a batch of data items.
     
     This is an example of a tool that benefits from parallelization.
@@ -188,7 +181,7 @@ async def process_batch_data(items: List[str], operation: str = "upper") -> Dict
     }
 
 
-async def simulate_heavy_computation(complexity: int = 5) -> Dict[str, Any]:
+async def simulate_heavy_computation(complexity: int = 5, ctx: Context = None) -> Dict[str, Any]:
     """Simulate a heavy computation task.
     
     This tool demonstrates parallelization benefits by performing
@@ -232,12 +225,6 @@ parallel_example_tools = [
     process_batch_data,
     simulate_heavy_computation
 ]
-{% else -%}
-# Parallel example tools not included
-parallel_example_tools = []
-{% endif -%}
-
-
 # List of regular example tools
 example_tools = [
     echo_tool,
@@ -246,21 +233,6 @@ example_tools = [
     calculate_fibonacci,
     search_tool
 ]
-
-{% else -%}
-# No example tools included - add your own tools here
-example_tools = []
-parallel_example_tools = []
-
-# Example of how to add your own tools:
-# 
-# def my_tool(param: str) -> str:
-#     """Your custom tool description."""
-#     return f"Processed: {param}"
-# 
-# example_tools = [my_tool]
-{% endif -%}
-
 
 async def get_tool_info() -> Dict[str, Any]:
     """Get information about available tools.
@@ -287,18 +259,13 @@ if __name__ == "__main__":
         print("Tool Information:")
         print(await get_tool_info())
         
-        {% if cookiecutter.include_example_tools == "yes" -%}
         print("\nTesting example tools:")
         print(await echo_tool("Hello, World!"))
         print(await get_time())
         print(await random_number(1, 10))
         print(await calculate_fibonacci(10))
         
-        {% if cookiecutter.include_parallel_example == "yes" -%}
         print("\nTesting parallel tools (individual calls):")
         print(await process_batch_data("hello", "upper"))
         print(await simulate_heavy_computation(2))
-        {% endif -%}
-        {% endif -%}
-    
-    asyncio.run(test_tools())
+        asyncio.run(test_tools())

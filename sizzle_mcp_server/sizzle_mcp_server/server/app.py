@@ -1,4 +1,4 @@
-"""{{ cookiecutter.project_name }} - MCP Server with SAAGA Decorators
+"""Sizzle MCP Server - MCP Server with SAAGA Decorators
 
 This module implements the core MCP server using FastMCP with dual transport support
 and automatic application of SAAGA decorators (exception handling, logging, parallelization).
@@ -12,18 +12,15 @@ import click
 from mcp import types
 from mcp.server.fastmcp import FastMCP
 
-from {{ cookiecutter.project_slug }}.config import ServerConfig, get_config
-from {{ cookiecutter.project_slug }}.logging_config import setup_logging, logger
-from {{ cookiecutter.project_slug }}.logging.correlation import (
+from sizzle_mcp_server.config import ServerConfig, get_config
+from sizzle_mcp_server.logging_config import setup_logging, logger
+from sizzle_mcp_server.logging.correlation import (
     generate_correlation_id,
     set_initialization_correlation_id,
     clear_initialization_correlation_id
 )
-from {{ cookiecutter.project_slug }}.logging.unified_logger import UnifiedLogger
-{% if cookiecutter.include_example_tools == "yes" -%}
-from {{ cookiecutter.project_slug }}.tools.example_tools import example_tools, parallel_example_tools
-{% endif -%}
-
+from sizzle_mcp_server.logging.unified_logger import UnifiedLogger
+from sizzle_mcp_server.tools.example_tools import example_tools, parallel_example_tools
 def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     """Create and configure the MCP server with SAAGA decorators.
     
@@ -42,7 +39,7 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     
     # Initialize unified logging using factory pattern
     # Convert logging_destinations dict to DestinationConfig objects
-    from {{ cookiecutter.project_slug }}.logging.destinations import DestinationConfig
+    from sizzle_mcp_server.logging.destinations import DestinationConfig
     
     destinations_list = []
     if config.logging_destinations and 'destinations' in config.logging_destinations:
@@ -66,20 +63,14 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     
     # Log startup info using unified logger
     import logging
-    unified_logger = logging.getLogger('{{ cookiecutter.project_slug }}')
+    unified_logger = logging.getLogger('sizzle_mcp_server')
     unified_logger.info(f"Unified logging initialized with {len(UnifiedLogger.get_available_destinations())} available destination types")
     unified_logger.info(f"Server config: {config.name} at log level {config.log_level}")
     
-    mcp_server = FastMCP(config.name or "{{ cookiecutter.project_name }}")
+    mcp_server = FastMCP(config.name or "Sizzle MCP Server")
     
-    {% if cookiecutter.include_example_tools == "yes" -%}
     # Register all tools with the server
     register_tools(mcp_server, config)
-    {% else -%}
-    # No example tools included
-    unified_logger.info("No example tools configured. Add your tools and register them here.")
-    {% endif -%}
-    
     # Clear initialization correlation ID after initialization
     unified_logger.info("Server initialization complete")
     clear_initialization_correlation_id()
@@ -87,7 +78,6 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     return mcp_server
 
 
-{% if cookiecutter.include_example_tools == "yes" -%}
 def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
     """Register all MCP tools with the server using SAAGA decorators.
     
@@ -97,13 +87,13 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
     
     # Get unified logger for registration logs
     import logging
-    unified_logger = logging.getLogger('{{ cookiecutter.project_slug }}')
+    unified_logger = logging.getLogger('sizzle_mcp_server')
     
     # Import SAAGA decorators
-    from {{ cookiecutter.project_slug }}.decorators.exception_handler import exception_handler
-    from {{ cookiecutter.project_slug }}.decorators.tool_logger import tool_logger
-    from {{ cookiecutter.project_slug }}.decorators.type_converter import type_converter
-    from {{ cookiecutter.project_slug }}.decorators.parallelize import parallelize
+    from sizzle_mcp_server.decorators.exception_handler import exception_handler
+    from sizzle_mcp_server.decorators.tool_logger import tool_logger
+    from sizzle_mcp_server.decorators.type_converter import type_converter
+    from sizzle_mcp_server.decorators.parallelize import parallelize
     
     # Register regular tools with SAAGA decorators
     for tool_func in example_tools:
@@ -121,7 +111,6 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
         
         unified_logger.info(f"Registered tool: {tool_name}")
     
-    {% if cookiecutter.include_parallel_example == "yes" -%}
     # Register parallel tools with SAAGA decorators  
     for tool_func in parallel_example_tools:
         # Apply SAAGA decorator chain: exception_handler → tool_logger → parallelize(type_converter)
@@ -137,18 +126,14 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
         )(decorated_func)
         
         unified_logger.info(f"Registered parallel tool: {tool_name}")
-    {% endif -%}
-    
     unified_logger.info(f"Server '{mcp_server.name}' initialized with SAAGA decorators")
-{% endif -%}
-
 # Create a server instance that can be imported by the MCP CLI
 server = create_mcp_server()
 
 @click.command()
 @click.option(
     "--port",
-    default={{ cookiecutter.server_port }},
+    default=3001,
     help="Port to listen on for SSE transport"
 )
 @click.option(
@@ -158,7 +143,7 @@ server = create_mcp_server()
     help="Transport type (stdio or sse)"
 )
 def main(port: int, transport: str) -> int:
-    """Run the {{ cookiecutter.project_name }} server with specified transport."""
+    """Run the Sizzle MCP Server server with specified transport."""
     async def run_server():
         """Inner async function to run the server and manage the event loop."""
         # Set the event loop in UnifiedLogger for async operations

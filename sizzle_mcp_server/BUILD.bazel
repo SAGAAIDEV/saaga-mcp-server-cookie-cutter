@@ -1,0 +1,27 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+
+py_binary(
+    name = "sizzle_mcp_server_bin",
+    srcs = ["sizzle_mcp_server/__main__.py"],
+    imports = ["sizzle_mcp_server"],
+    main = "sizzle_mcp_server/__main__.py",
+    visibility = ["//visibility:public"],
+    deps = [":sizzle_mcp_server_lib"],
+)
+
+py_library(
+    name = "sizzle_mcp_server_lib",
+    srcs = glob(["sizzle_mcp_server/**/*.py"]),
+    imports = ["."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@mcp_sizzle_mcp_server//mcp",
+        "@mcp_sizzle_mcp_server//pydantic",
+        "@mcp_sizzle_mcp_server//pyyaml",
+        "@mcp_sizzle_mcp_server//platformdirs",
+        "@mcp_sizzle_mcp_server//pydantic_settings",
+        "@mcp_sizzle_mcp_server//loguru",
+        
+        # Add additional dependencies based on your requirements
+    ],
+)
