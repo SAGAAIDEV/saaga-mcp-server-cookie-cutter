@@ -1,7 +1,7 @@
 ---
 description: Create a new Jira issue by gathering details from the user and using Conduit
-usage: /project:new-issue [PROJECT-KEY] [SITE-ALIAS]
-example: /project:new-issue CLD saaga
+argument-hint: "[PROJECT-KEY] [SITE-ALIAS]"
+allowed-tools: ["Bash", "Read", "Write", "mcp__Conduit__search_jira_issues", "mcp__Conduit__create_jira_issue"]
 ---
 
 I'll help you create a new Jira issue in project $ARGUMENTS.

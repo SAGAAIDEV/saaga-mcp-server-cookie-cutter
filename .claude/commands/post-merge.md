@@ -1,7 +1,7 @@
 ---
 description: Execute post-merge actions including syncing main, re-running tests, and cleanup
-usage: /project:post-merge
-example: /project:post-merge
+argument-hint: ""
+allowed-tools: ["Bash"]
 ---
 
 I'll help you complete the post-merge workflow to ensure your local environment is synchronized and the merged changes are validated.

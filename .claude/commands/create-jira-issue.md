@@ -1,8 +1,7 @@
 ---
 description: Create a detailed JIRA issue (Executable Spec or Bug) by analyzing the codebase and structuring the issue according to team standards
-usage: /project:create-jira-issue [TYPE] [SITE-ALIAS] "[TITLE]" "[BRIEF-DESCRIPTION]"
-example: /project:create-jira-issue feature saaga "Implement Redis Caching Layer" "Add Redis support for caching MCP tool responses"
-example: /project:create-jira-issue bug saaga "Fix Correlation ID Loss in Async Tasks" "Correlation IDs are not propagating through async task boundaries"
+argument-hint: "[TYPE] [SITE-ALIAS] '[TITLE]' '[BRIEF-DESCRIPTION]'"
+allowed-tools: ["Bash", "Read", "Grep", "Glob", "LS", "mcp__Conduit__create_jira_issue", "mcp__mcp_jira__create_jira_issue"]
 ---
 
 I'll help you create a detailed JIRA issue by analyzing the codebase and structuring it according to team standards. Let me parse your request and gather the necessary information.

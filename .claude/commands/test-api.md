@@ -1,7 +1,7 @@
 ---
 description: Test Python backend API endpoints using pytest
-usage: /project:test-api [ENDPOINT-PATTERN] [TEST-TYPE]
-example: /project:test-api /api/users all
+argument-hint: "[ENDPOINT-PATTERN] [TEST-TYPE]"
+allowed-tools: ["Bash", "Read", "WebFetch"]
 ---
 
 I'll test the backend API using pytest, focusing on $ARGUMENTS.

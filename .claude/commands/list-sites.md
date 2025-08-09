@@ -1,7 +1,7 @@
 ---
 description: List all configured Atlassian sites available in Conduit
-usage: /project:list-sites
-example: /project:list-sites
+argument-hint: ""
+allowed-tools: ["mcp__Conduit__list_atlassian_sites"]
 ---
 
 I'll list all configured Atlassian sites that Conduit can connect to.

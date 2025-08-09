@@ -1,7 +1,7 @@
 ---
 description: Execute comprehensive API testing using Claude subprocess for complex integrations
-usage: /project:test-api-subprocess [TEST-DESCRIPTION]
-example: /project:test-api-subprocess "Test the complete order processing API workflow with external payment gateway"
+argument-hint: "[TEST-DESCRIPTION]"
+allowed-tools: ["Bash", "Read", "Write", "WebFetch"]
 ---
 
 I'll execute comprehensive API testing using a Claude subprocess for autonomous test execution.

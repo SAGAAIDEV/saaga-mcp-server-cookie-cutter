@@ -1,7 +1,7 @@
 ---
 description: Execute comprehensive UI testing using Claude subprocess for complex flows
-usage: /project:test-ui-subprocess [TEST-DESCRIPTION]
-example: /project:test-ui-subprocess "Test the complete user registration and onboarding flow"
+argument-hint: "[TEST-DESCRIPTION]"
+allowed-tools: ["Bash", "Read", "Write", "mcp__puppeteer__*"]
 ---
 
 I'll execute comprehensive UI testing using a Claude subprocess for autonomous test execution.
