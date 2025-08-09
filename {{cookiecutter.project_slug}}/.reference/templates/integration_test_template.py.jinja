@@ -1,0 +1,120 @@
+# Template for generating MCP integration tests
+# Variables: tool_name, test_class_name, test_cases
+
+"""Integration tests for {{ tool_name }} tool."""
+
+import json
+import pytest
+from mcp import types
+from tests.integration.test_mcp_integration import create_test_session
+
+
+pytestmark = pytest.mark.anyio
+
+
+class {{ test_class_name }}:
+    """Integration tests for {{ tool_name }} using MCP client."""
+    
+    def _extract_text_content(self, result: types.CallToolResult) -> str:
+        """Extract text content from MCP tool result."""
+        for content in result.content:
+            if isinstance(content, types.TextContent):
+                return content.text
+        return ""
+    
+    def _extract_error_text(self, result: types.CallToolResult) -> str:
+        """Extract error message from MCP error result."""
+        if result.isError and result.content:
+            return self._extract_text_content(result)
+        return ""
+    
+    {% for test in test_cases %}
+    async def test_{{ test.name }}(self):
+        """{{ test.description }}"""
+        session, cleanup = await create_test_session()
+        try:
+            # Call the tool with test parameters
+            result = await session.call_tool(
+                "{{ tool_name }}",
+                arguments={{ test.arguments }}
+            )
+            
+            {% if test.should_error %}
+            # This test expects an error
+            assert result.isError is True, "Expected error but got success"
+            error_msg = self._extract_error_text(result)
+            assert "{{ test.expected_error }}" in error_msg, f"Expected error message not found: {error_msg}"
+            {% else %}
+            # This test expects success
+            assert result.isError is False, f"Tool execution failed: {result}"
+            
+            # Extract and verify result
+            text_content = self._extract_text_content(result)
+            assert text_content, "No content returned from tool"
+            
+            {% if test.parse_json %}
+            # Parse JSON response
+            try:
+                data = json.loads(text_content)
+                {% for assertion in test.assertions %}
+                {{ assertion }}
+                {% endfor %}
+            except json.JSONDecodeError as e:
+                pytest.fail(f"Failed to parse JSON response: {e}, content: {text_content}")
+            {% else %}
+            # Verify text content
+            {% for assertion in test.assertions %}
+            {{ assertion }}
+            {% endfor %}
+            {% endif %}
+            {% endif %}
+            
+        finally:
+            await cleanup()
+    
+    {% endfor %}
+    
+    async def test_{{ tool_name }}_missing_required_parameter(self):
+        """Test error handling when required parameter is missing."""
+        session, cleanup = await create_test_session()
+        try:
+            # Call without required parameters
+            result = await session.call_tool(
+                "{{ tool_name }}",
+                arguments={}
+            )
+            
+            # Should return error
+            assert result.isError is True, "Should error with missing parameters"
+            error_text = self._extract_error_text(result)
+            assert any(word in error_text.lower() for word in ["missing", "required", "parameter"])
+            
+        finally:
+            await cleanup()
+    
+    async def test_{{ tool_name }}_invalid_type(self):
+        """Test error handling with invalid parameter types."""
+        session, cleanup = await create_test_session()
+        try:
+            # Call with invalid types that can't be converted
+            result = await session.call_tool(
+                "{{ tool_name }}",
+                arguments={
+                    # Add invalid type test based on tool parameters
+                    {% if has_int_param %}
+                    "{{ int_param_name }}": "not_a_number",
+                    {% elif has_list_param %}
+                    "{{ list_param_name }}": "not_a_list",
+                    {% else %}
+                    # Adjust based on your tool's parameters
+                    "param": "invalid_value"
+                    {% endif %}
+                }
+            )
+            
+            assert result.isError is True, "Should error with invalid type"
+            error_text = self._extract_error_text(result)
+            assert any(word in error_text.lower() for word in ["error", "invalid", "type"])
+            
+        finally:
+            await cleanup()
