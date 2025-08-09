@@ -34,8 +34,11 @@ def check_server_status() -> str:
             try:
                 cmdline = proc.info.get('cmdline', [])
                 if cmdline and any('{{ cookiecutter.project_slug }}' in str(arg) for arg in cmdline):
-                    if any('server' in str(arg) for arg in cmdline):
-                        return "running"
+                    # Look specifically for server/app.py or -m project.server patterns
+                    if any('server/app.py' in str(arg) or '{{ cookiecutter.project_slug }}.server' in str(arg) for arg in cmdline):
+                        # Make sure it's not the Streamlit UI
+                        if not any('streamlit' in str(arg).lower() for arg in cmdline):
+                            return "running"
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
         
