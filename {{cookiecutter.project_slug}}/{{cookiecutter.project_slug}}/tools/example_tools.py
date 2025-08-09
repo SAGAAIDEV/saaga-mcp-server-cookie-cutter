@@ -14,7 +14,7 @@ This module is a placeholder for your MCP tools. To add tools:
 
 import time
 import random
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 {% if cookiecutter.include_example_tools == "yes" -%}
 
@@ -103,9 +103,9 @@ async def calculate_fibonacci(n: int) -> Dict[str, Any]:
 
 async def search_tool(
     query: str,
-    max_results: Optional[int] = None,
-    directories: Optional[List[str]] = None,
-    include_hidden: Optional[bool] = None,
+    max_results: int = 10,
+    directories: list[str] = [],
+    include_hidden: bool = False,
     ctx: Context = None
 ) -> Dict[str, Any]:
     """Search for content with optional filters.
@@ -123,26 +123,24 @@ async def search_tool(
     Returns:
         Search results with applied filters
     """
-    # Handle optional parameters with defaults
-    actual_max = max_results if max_results is not None else 10
-    actual_dirs = directories if directories is not None else ["default_dir"]
-    actual_hidden = include_hidden if include_hidden is not None else False
+    # Handle empty directories list -> use default directory
+    actual_dirs = directories if directories else ["default_dir"]
     
     # Simulate search results
     results = []
-    for i in range(min(actual_max, 5)):  # Cap at 5 for demo
+    for i in range(min(max_results, 5)):  # Cap at 5 for demo
         results.append({
             "id": i + 1,
             "title": f"Result {i + 1} for '{query}'",
-            "directory": actual_dirs[i % len(actual_dirs)] if actual_dirs else "unknown",
-            "hidden": actual_hidden
+            "directory": actual_dirs[i % len(actual_dirs)],
+            "hidden": include_hidden
         })
     
     return {
         "query": query,
-        "max_results": actual_max,
+        "max_results": max_results,
         "directories": actual_dirs,
-        "include_hidden": actual_hidden,
+        "include_hidden": include_hidden,
         "result_count": len(results),
         "results": results,
         "message": f"Found {len(results)} results for '{query}' in {len(actual_dirs)} directories"

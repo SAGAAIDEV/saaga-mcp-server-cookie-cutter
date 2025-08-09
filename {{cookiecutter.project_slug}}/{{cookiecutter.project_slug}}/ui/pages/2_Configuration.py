@@ -22,12 +22,12 @@ parent_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
 try:
-    from lib.components import (
+    from {{ cookiecutter.project_slug }}.ui.lib.components import (
         render_info_card,
         render_warning_banner,
         render_config_section
     )
-    from lib.utils import (
+    from {{ cookiecutter.project_slug }}.ui.lib.utils import (
         load_configuration,
         validate_configuration,
         save_configuration,
@@ -523,11 +523,11 @@ def main():
     
     with col1:
         if st.button("🏠 Back to Home", use_container_width=True):
-            st.switch_page("pages/1_🏠_Home.py")
+            st.switch_page("pages/1_Home.py")
     
     with col2:
         if st.button("📊 View Logs", use_container_width=True):
-            st.switch_page("pages/3_📊_Logs.py")
+            st.switch_page("pages/3_Logs.py")
     
     # Footer
     st.caption("Configuration management interface • Fully functional configuration editor")

@@ -1,1 +1,0 @@
-"""Test suite for example_mcp_server."""

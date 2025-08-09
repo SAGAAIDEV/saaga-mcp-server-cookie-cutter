@@ -1,0 +1,29 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+
+py_binary(
+    name = "example_server_bin",
+    srcs = ["example_server/__main__.py"],
+    imports = ["example_server"],
+    main = "example_server/__main__.py",
+    visibility = ["//visibility:public"],
+    deps = [":example_server_lib"],
+)
+
+py_library(
+    name = "example_server_lib",
+    srcs = glob(["example_server/**/*.py"]),
+    imports = ["."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@mcp_example_server//mcp",
+        "@mcp_example_server//pydantic",
+        "@mcp_example_server//pyyaml",
+        "@mcp_example_server//platformdirs",
+        "@mcp_example_server//pydantic_settings",
+        "@mcp_example_server//loguru",
+        "@mcp_example_server//streamlit",
+        "@mcp_example_server//pandas",
+        "@mcp_example_server//plotly",
+        # Add additional dependencies based on your requirements
+    ],
+)

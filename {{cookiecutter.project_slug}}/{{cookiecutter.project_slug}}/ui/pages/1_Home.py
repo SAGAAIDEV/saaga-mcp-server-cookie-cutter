@@ -19,13 +19,13 @@ parent_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
 try:
-    from lib.components import (
+    from {{ cookiecutter.project_slug }}.ui.lib.components import (
         render_status_card, 
         render_metric_card,
         render_info_section,
         render_quick_actions
     )
-    from lib.utils import (
+    from {{ cookiecutter.project_slug }}.ui.lib.utils import (
         check_server_status,
         get_project_info,
         get_system_info,
@@ -133,13 +133,13 @@ def render_quick_actions_section():
         if st.button("⚙️ Configuration", 
                     help="Edit server configuration",
                     use_container_width=True):
-            st.switch_page("pages/2_⚙️_Configuration.py")
+            st.switch_page("pages/2_Configuration.py")
     
     with col2:
         if st.button("📊 View Logs", 
                     help="Browse and analyze server logs",
                     use_container_width=True):
-            st.switch_page("pages/3_📊_Logs.py")
+            st.switch_page("pages/3_Logs.py")
     
     with col3:
         if st.button("🔄 Restart Server", 

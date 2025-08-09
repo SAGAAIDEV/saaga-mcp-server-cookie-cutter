@@ -23,13 +23,13 @@ parent_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
 try:
-    from lib.components import (
+    from {{ cookiecutter.project_slug }}.ui.lib.components import (
         render_log_filters,
         render_log_table,
         render_log_metrics,
         render_export_options
     )
-    from lib.utils import (
+    from {{ cookiecutter.project_slug }}.ui.lib.utils import (
         load_logs_from_database,
         filter_logs,
         export_logs,
@@ -381,11 +381,11 @@ def main():
     
     with col1:
         if st.button("🏠 Back to Home", use_container_width=True):
-            st.switch_page("pages/1_🏠_Home.py")
+            st.switch_page("pages/1_Home.py")
     
     with col2:
         if st.button("⚙️ Configuration", use_container_width=True):
-            st.switch_page("pages/2_⚙️_Configuration.py")
+            st.switch_page("pages/2_Configuration.py")
     
     # Footer
     st.caption("Unified logging system with correlation IDs and pluggable destinations")

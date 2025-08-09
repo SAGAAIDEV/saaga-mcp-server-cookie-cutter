@@ -1,1 +1,0 @@
-"""Test suite for sizzle_mcp_server."""

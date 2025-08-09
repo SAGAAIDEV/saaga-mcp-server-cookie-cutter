@@ -42,7 +42,8 @@ dependencies = [
     "pytest-cov>=4.0.0"{% if cookiecutter.include_admin_ui == "yes" %},
     "streamlit>=1.28.0",
     "plotly>=5.0.0",
-    "pandas>=2.0.0"{% endif %}
+    "pandas>=2.0.0",
+    "psutil>=5.9.0"{% endif %}
 ]
 
 [project.optional-dependencies]
