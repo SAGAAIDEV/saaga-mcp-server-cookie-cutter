@@ -1,5 +1,5 @@
 """
-Home/Dashboard page for Example Server Admin UI
+Home/Dashboard page for Example MCP Server Admin UI
 
 This page provides an overview of the MCP server status, project information,
 and quick access to common administrative tasks.
@@ -17,13 +17,13 @@ parent_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
 try:
-    from lib.components import (
+    from example_server.ui.lib.components import (
         render_status_card, 
         render_metric_card,
         render_info_section,
         render_quick_actions
     )
-    from lib.utils import (
+    from example_server.ui.lib.utils import (
         check_server_status,
         get_project_info,
         get_system_info,
@@ -77,8 +77,8 @@ def render_project_overview():
     with col1:
         st.markdown("""
         **Project Details:**
-        - **Name:** Example Server
-        - **Description:** MCP server with SAAGA decorators
+        - **Name:** Example MCP Server
+        - **Description:** Example server demonstrating SAAGA MCP patterns
         - **Author:** Your Name
         - **Email:** email@example.com
         """)
@@ -127,13 +127,13 @@ def render_quick_actions_section():
         if st.button("⚙️ Configuration", 
                     help="Edit server configuration",
                     use_container_width=True):
-            st.switch_page("pages/2_⚙️_Configuration.py")
+            st.switch_page("pages/2_Configuration.py")
     
     with col2:
         if st.button("📊 View Logs", 
                     help="Browse and analyze server logs",
                     use_container_width=True):
-            st.switch_page("pages/3_📊_Logs.py")
+            st.switch_page("pages/3_Logs.py")
     
     with col3:
         if st.button("🔄 Restart Server", 
@@ -178,7 +178,7 @@ Data Path: {system_info.get('data_path', 'Not configured')}
 def main():
     """Main page content"""
     # Page header
-    st.title("🏠 Example Server Admin Dashboard")
+    st.title("🏠 Example MCP Server Admin Dashboard")
     st.markdown("Welcome to the administrative interface for your MCP server.")
     st.markdown("---")
     
@@ -203,7 +203,7 @@ def main():
     
     # Footer
     st.markdown("---")
-    st.caption(f"Example Server Admin UI • Generated with SAAGA MCP Server Cookie Cutter")
+    st.caption(f"Example MCP Server Admin UI • Generated with SAAGA MCP Server Cookie Cutter")
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-# Testing Guide for Example Server
+# Testing Guide for Example MCP Server
 
 ## Overview
 

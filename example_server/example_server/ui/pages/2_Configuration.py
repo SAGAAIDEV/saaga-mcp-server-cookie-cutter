@@ -1,5 +1,5 @@
 """
-Configuration management page for Example Server Admin UI
+Configuration management page for Example MCP Server Admin UI
 
 This page provides interface for managing server configuration, environment variables,
 and tool settings. Changes require server restart to take effect.
@@ -20,12 +20,12 @@ parent_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
 try:
-    from lib.components import (
+    from example_server.ui.lib.components import (
         render_info_card,
         render_warning_banner,
         render_config_section
     )
-    from lib.utils import (
+    from example_server.ui.lib.utils import (
         load_configuration,
         validate_configuration,
         save_configuration,
@@ -87,7 +87,7 @@ def render_configuration_form(config):
         
         with col1:
             st.markdown("**Server Settings**")
-            server_name = st.text_input("Server Name", value=server_config.get("name", "Example Server"))
+            server_name = st.text_input("Server Name", value=server_config.get("name", "Example MCP Server"))
             server_port = st.number_input("Server Port", 
                                         value=server_config.get("port", 3001),
                                         min_value=1, max_value=65535)
@@ -460,7 +460,7 @@ def render_validation_section(config):
 def main():
     """Main configuration page content"""
     # Page header
-    st.title("⚙️ Example Server Configuration")
+    st.title("⚙️ Example MCP Server Configuration")
     st.markdown("Manage server settings, features, and environment configuration.")
     st.markdown("---")
     
@@ -521,11 +521,11 @@ def main():
     
     with col1:
         if st.button("🏠 Back to Home", use_container_width=True):
-            st.switch_page("pages/1_🏠_Home.py")
+            st.switch_page("pages/1_Home.py")
     
     with col2:
         if st.button("📊 View Logs", use_container_width=True):
-            st.switch_page("pages/3_📊_Logs.py")
+            st.switch_page("pages/3_Logs.py")
     
     # Footer
     st.caption("Configuration management interface • Fully functional configuration editor")

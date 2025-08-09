@@ -95,7 +95,7 @@ The `example_server/` directory contains a fully functional MCP server that demo
 ### Testing the Example Server
 
 ```bash
-cd example_server/test_asep40_server
+cd example_server
 uv venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 # Or simply use: uv shell
@@ -103,10 +103,13 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 uv sync
 
 # Test with MCP Inspector
-uv run mcp dev test_asep40_server/server/app.py
+uv run mcp dev example_server/server/app.py
 
 # Or run directly
-uv run python -m test_asep40_server.server.app
+uv run python -m example_server.server.app
+
+# Run the Streamlit Admin UI
+uv run streamlit run example_server/ui/app.py
 ```
 
 For detailed testing instructions and examples for each tool in the MCP Inspector, see [MCP_INSPECTOR_TEST_GUIDE.md](docs/MCP_INSPECTOR_TEST_GUIDE.md).
@@ -137,9 +140,9 @@ your-project/
 │   └── ui/                    # Streamlit admin UI (optional)
 │       ├── app.py            # Main UI entry point with navigation
 │       ├── pages/            # Multi-page structure
-│       │   ├── 1_🏠_Home.py # Dashboard with server status
-│       │   ├── 2_⚙️_Configuration.py # Config management
-│       │   └── 3_📊_Logs.py # Log viewer and analysis
+│       │   ├── 1_Home.py    # Dashboard with server status
+│       │   ├── 2_Configuration.py # Config management
+│       │   └── 3_Logs.py    # Log viewer and analysis
 │       └── lib/              # Shared UI components
 │           ├── components.py # Reusable UI elements
 │           ├── styles.py     # CSS and theming
@@ -148,7 +151,7 @@ your-project/
 ├── docs/                      # Documentation
 │   └── DECORATOR_PATTERNS.md # Detailed decorator guidance
 ├── BUILD.bazel               # Bazel build configuration
-├── .ai-prompts.md            # AI assistant context
+├── .claude/commands/         # Claude custom commands
 ├── pyproject.toml            # Project configuration
 ├── README.md                 # Project documentation
 ├── .gitignore               # Git ignore rules

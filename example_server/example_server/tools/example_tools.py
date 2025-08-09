@@ -1,4 +1,4 @@
-"""Example MCP tools for Example Server
+"""Example MCP tools for Example MCP Server
 
 This module provides example tools that demonstrate how to create MCP tools
 with the SAAGA decorator pattern. These tools are automatically registered

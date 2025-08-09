@@ -1,5 +1,5 @@
 """
-Log viewer page for Example Server Admin UI
+Log viewer page for Example MCP Server Admin UI
 
 This page provides interface for viewing, filtering, and analyzing server logs
 from the SQLite logging database. Includes export capabilities and real-time updates.
@@ -21,13 +21,13 @@ parent_dir = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
 try:
-    from lib.components import (
+    from example_server.ui.lib.components import (
         render_log_filters,
         render_log_table,
         render_log_metrics,
         render_export_options
     )
-    from lib.utils import (
+    from example_server.ui.lib.utils import (
         load_logs_from_database,
         filter_logs,
         export_logs,
@@ -321,7 +321,7 @@ def render_export_section(df: pd.DataFrame):
 def main():
     """Main logs page content"""
     # Page header
-    st.title("📊 Example Server Logs")
+    st.title("📊 Example MCP Server Logs")
     st.markdown("View and analyze server logs from the unified logging system.")
     st.markdown("---")
     
@@ -379,11 +379,11 @@ def main():
     
     with col1:
         if st.button("🏠 Back to Home", use_container_width=True):
-            st.switch_page("pages/1_🏠_Home.py")
+            st.switch_page("pages/1_Home.py")
     
     with col2:
         if st.button("⚙️ Configuration", use_container_width=True):
-            st.switch_page("pages/2_⚙️_Configuration.py")
+            st.switch_page("pages/2_Configuration.py")
     
     # Footer
     st.caption("Unified logging system with correlation IDs and pluggable destinations")

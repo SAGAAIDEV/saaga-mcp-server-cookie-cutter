@@ -1,4 +1,4 @@
-"""Example Server - MCP Server with SAAGA Decorators
+"""Example MCP Server - MCP Server with SAAGA Decorators
 
 This module implements the core MCP server using FastMCP with dual transport support
 and automatic application of SAAGA decorators (exception handling, logging, parallelization).
@@ -67,7 +67,7 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     unified_logger.info(f"Unified logging initialized with {len(UnifiedLogger.get_available_destinations())} available destination types")
     unified_logger.info(f"Server config: {config.name} at log level {config.log_level}")
     
-    mcp_server = FastMCP(config.name or "Example Server")
+    mcp_server = FastMCP(config.name or "Example MCP Server")
     
     # Register all tools with the server
     register_tools(mcp_server, config)
@@ -143,7 +143,7 @@ server = create_mcp_server()
     help="Transport type (stdio or sse)"
 )
 def main(port: int, transport: str) -> int:
-    """Run the Example Server server with specified transport."""
+    """Run the Example MCP Server server with specified transport."""
     async def run_server():
         """Inner async function to run the server and manage the event loop."""
         # Set the event loop in UnifiedLogger for async operations

@@ -1,5 +1,5 @@
 """
-Streamlit Admin UI for Example Server
+Streamlit Admin UI for Example MCP Server
 
 This admin interface provides web-based management for the MCP server configuration
 and log viewing. It runs independently of the MCP server and communicates through
@@ -24,9 +24,9 @@ components_available = True
 error_details = None
 
 try:
-    from lib.components import render_header, render_sidebar, render_error_message
-    from lib.styles import apply_custom_styles, hide_streamlit_style
-    from lib.utils import check_server_status, get_project_info
+    from example_server.ui.lib.components import render_header, render_sidebar, render_error_message
+    from example_server.ui.lib.styles import apply_custom_styles, hide_streamlit_style
+    from example_server.ui.lib.utils import check_server_status, get_project_info
 except ImportError as e:
     components_available = False
     error_details = str(e)
@@ -42,7 +42,7 @@ except ImportError as e:
         pass
     
     def render_header():
-        st.title("Example Server Admin")
+        st.title("Example MCP Server Admin")
         st.caption("MCP Server Administration Interface")
     
     def render_sidebar():
@@ -54,11 +54,11 @@ except ImportError as e:
         return "unknown"
     
     def get_project_info():
-        return {"name": "Example Server", "version": "0.1.0"}
+        return {"name": "Example MCP Server", "version": "0.1.0"}
 
 # Page configuration
 st.set_page_config(
-    page_title="Example Server Admin",
+    page_title="Example MCP Server Admin",
     page_icon="🛠️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -97,7 +97,7 @@ def main():
                 st.caption("Some UI features are unavailable due to import errors.")
         
         # Redirect to Home page (Streamlit will auto-discover pages in /pages/ directory)
-        st.switch_page("pages/1_🏠_Home.py")
+        st.switch_page("pages/1_Home.py")
         
     except Exception as e:
         st.error("❌ Critical Application Error")

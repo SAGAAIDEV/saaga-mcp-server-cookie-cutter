@@ -1,5 +1,5 @@
 """
-Utility functions for Example Server Admin UI
+Utility functions for Example MCP Server Admin UI
 
 This module provides helper functions for the Streamlit admin interface,
 including server status checking, configuration management, and data processing.
@@ -25,12 +25,37 @@ def check_server_status() -> str:
         str: Server status ("running", "stopped", "unknown")
     """
     try:
-        # Try to connect to the server port
+        import psutil
+        
+        # Check for running Python processes that might be our MCP server
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                cmdline = proc.info.get('cmdline', [])
+                if cmdline and any('example_server' in str(arg) for arg in cmdline):
+                    if any('server' in str(arg) for arg in cmdline):
+                        return "running"
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+        
+        # Also check if SSE transport is listening on the configured port
         port = 3001
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.settimeout(1)
+            sock.settimeout(0.5)
             result = sock.connect_ex(('localhost', port))
-            return "running" if result == 0 else "stopped"
+            if result == 0:
+                return "running"
+        
+        return "stopped"
+    except ImportError:
+        # psutil not available, fallback to socket check only
+        try:
+            port = 3001
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(1)
+                result = sock.connect_ex(('localhost', port))
+                return "running" if result == 0 else "stopped"
+        except Exception:
+            return "unknown"
     except Exception:
         return "unknown"
 
@@ -42,8 +67,8 @@ def get_project_info() -> Dict[str, Any]:
         Dict containing project details
     """
     return {
-        "name": "Example Server",
-        "description": "MCP server with SAAGA decorators",
+        "name": "Example MCP Server",
+        "description": "Example server demonstrating SAAGA MCP patterns",
         "author": "Your Name",
         "email": "email@example.com",
         "version": "0.1.0",
@@ -142,7 +167,7 @@ def get_default_configuration() -> Dict[str, Any]:
     """Get the default configuration"""
     return {
         "server": {
-            "name": "Example Server",
+            "name": "Example MCP Server",
             "port": 3001,
             "log_level": "INFO"
         },

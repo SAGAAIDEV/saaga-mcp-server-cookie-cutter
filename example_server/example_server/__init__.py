@@ -1,4 +1,4 @@
-"""MCP server with SAAGA decorators"""
+"""Example server demonstrating SAAGA MCP patterns"""
 
 from example_server.server import server
 

@@ -1,5 +1,5 @@
 """
-Shared UI library for Example Server Admin interface.
+Shared UI library for Example MCP Server Admin interface.
 
 This package provides reusable components, utilities, and styling
 for the Streamlit admin interface.

@@ -1,5 +1,5 @@
 """
-Shared UI components for Example Server Admin UI
+Shared UI components for Example MCP Server Admin UI
 
 This module provides reusable Streamlit components including headers, alerts,
 status indicators, and other common UI elements used across different pages.
@@ -16,7 +16,7 @@ def render_header():
     st.markdown("""
     <div style="text-align: center; padding: 1rem 0; margin-bottom: 2rem; 
                 border-bottom: 2px solid #f0f2f6;">
-        <h1 style="color: #1f77b4; margin: 0;">🛠️ Example Server Admin</h1>
+        <h1 style="color: #1f77b4; margin: 0;">🛠️ Example MCP Server Admin</h1>
         <p style="color: #666; margin: 0.5rem 0 0 0;">MCP Server Administration Interface</p>
     </div>
     """, unsafe_allow_html=True)
@@ -26,7 +26,7 @@ def render_sidebar():
     with st.sidebar:
         st.markdown("### 📋 Project Info")
         st.markdown("""
-        **Example Server**  
+        **Example MCP Server**  
         Version: 0.1.0  
         Author: Your Name  
         """)
@@ -278,7 +278,7 @@ def render_footer():
     st.markdown("---")
     st.markdown(
         f"<div style='text-align: center; color: #666; font-size: 0.8rem; padding: 1rem;'>"
-        f"Example Server Admin UI • "
+        f"Example MCP Server Admin UI • "
         f"Generated with SAAGA MCP Server Cookie Cutter • "
         f"Phase 4, Issue 1"
         f"</div>",

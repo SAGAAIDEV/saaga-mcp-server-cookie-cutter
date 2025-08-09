@@ -1,12 +1,12 @@
-# Example Server
+# Example MCP Server
 
-MCP server with SAAGA decorators
+Example server demonstrating SAAGA MCP patterns
 
 ## Quick Start with AI Assistant
 
 **Need help getting started?** Have your AI coding assistant guide you!
 
-Simply tell your AI assistant: *"I have a Example Server project. Please read and follow [WORKING_WITH_SAAGA_PROMPT.md](WORKING_WITH_SAAGA_PROMPT.md) to help me understand and work with this MCP server."*
+Simply tell your AI assistant: *"I have a Example MCP Server project. Please read and follow [WORKING_WITH_SAAGA_PROMPT.md](WORKING_WITH_SAAGA_PROMPT.md) to help me understand and work with this MCP server."*
 
 **For quick reference**, the [.ai-prompts.md](.ai-prompts.md) file contains a condensed version of key patterns.
 
@@ -305,7 +305,7 @@ The log viewer includes:
 
 ## AI Assistant Instructions
 
-When working with this Example Server MCP server in an AI coding assistant (like Claude, Cursor, or GitHub Copilot):
+When working with this Example MCP Server MCP server in an AI coding assistant (like Claude, Cursor, or GitHub Copilot):
 
 ### Understanding the Server Architecture
 

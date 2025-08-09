@@ -1,5 +1,5 @@
 """
-CSS styling and theming for Example Server Admin UI
+CSS styling and theming for Example MCP Server Admin UI
 
 This module provides custom CSS styles and theming for the Streamlit admin interface,
 ensuring consistent visual design and improved user experience.
@@ -545,14 +545,14 @@ def apply_page_config(page_title: str, page_icon: str = "🛠️", layout: str =
     """
     
     st.set_page_config(
-        page_title=f"Example Server - {page_title}",
+        page_title=f"Example MCP Server - {page_title}",
         page_icon=page_icon,
         layout=layout,
         initial_sidebar_state="expanded",
         menu_items={
             'Get Help': None,
             'Report a bug': None,
-            'About': f"Example Server Admin UI v0.1.0"
+            'About': f"Example MCP Server Admin UI v0.1.0"
         }
     )
 

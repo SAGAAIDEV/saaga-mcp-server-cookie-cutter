@@ -1,4 +1,4 @@
-"""Example Server MCP Server
+"""Example MCP Server MCP Server
 
 This module provides the MCP server instance for CLI discovery and client integration.
 """
