@@ -32,11 +32,10 @@ class TestToolEdgeCases:
                 arguments={"min_value": 100, "max_value": 10}
             )
             
-            # Exception handler returns error info but isError=False
-            assert result.isError is False  # SAAGA pattern returns structured errors
+            # Exception is re-raised for MCP to handle properly
+            assert result.isError is True  # Exception is re-raised for MCP to handle
             error_msg = self._extract_error_message(result)
             assert "min_value must be less than or equal to max_value" in error_msg
-            assert "Exception" in error_msg
         finally:
             await cleanup()
     
