@@ -17,6 +17,7 @@
   "jira_project_key": "",
   "_copy_without_render": [
     ".claude",
+    ".reference/templates/*",
     "*.png",
     "*.jpg",
     "*.jpeg",

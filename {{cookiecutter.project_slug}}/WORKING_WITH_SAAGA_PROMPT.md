@@ -106,7 +106,7 @@ parallel_example_tools.append(process_urls)
 - **decorators/**: The three SAAGA decorators. Don't modify these unless you understand the impact.
 - **tools/**: Where all your MCP tools live.
 - **docs/DECORATOR_PATTERNS.md**: Detailed technical documentation about the decorator system.
-- **.ai-prompts.md**: Quick reference for AI assistants (like me!).
+- **WORKING_WITH_SAAGA_PROMPT.md**: This file - a guide for AI assistants and developers.
 
 ## Best Practices
 

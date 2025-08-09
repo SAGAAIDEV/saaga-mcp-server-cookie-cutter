@@ -8,7 +8,7 @@
 
 Simply tell your AI assistant: *"I have a {{cookiecutter.project_name}} project. Please read and follow [WORKING_WITH_SAAGA_PROMPT.md](WORKING_WITH_SAAGA_PROMPT.md) to help me understand and work with this MCP server."*
 
-**For quick reference**, the [.ai-prompts.md](.ai-prompts.md) file contains a condensed version of key patterns.
+**For quick reference**, the [WORKING_WITH_SAAGA_PROMPT.md](WORKING_WITH_SAAGA_PROMPT.md) file contains a condensed version of key patterns.
 
 **For detailed technical documentation**, see [docs/DECORATOR_PATTERNS.md](docs/DECORATOR_PATTERNS.md).
 
