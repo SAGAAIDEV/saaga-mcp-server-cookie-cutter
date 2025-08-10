@@ -15,6 +15,7 @@ This module is a placeholder for your MCP tools. To add tools:
 import time
 import random
 from typing import List, Dict, Any
+from mcp.server.fastmcp import Context
 
 {% if cookiecutter.include_example_tools == "yes" -%}
 
