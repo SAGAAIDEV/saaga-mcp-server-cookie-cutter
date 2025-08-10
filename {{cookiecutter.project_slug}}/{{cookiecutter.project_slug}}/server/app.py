@@ -102,12 +102,13 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
     # Import SAAGA decorators
     from {{ cookiecutter.project_slug }}.decorators.exception_handler import exception_handler
     from {{ cookiecutter.project_slug }}.decorators.tool_logger import tool_logger
+    from {{ cookiecutter.project_slug }}.decorators.type_converter import type_converter
     from {{ cookiecutter.project_slug }}.decorators.parallelize import parallelize
     
     # Register regular tools with SAAGA decorators
     for tool_func in example_tools:
-        # Apply SAAGA decorator chain: exception_handler → tool_logger
-        decorated_func = exception_handler(tool_logger(tool_func, config.__dict__))
+        # Apply SAAGA decorator chain: exception_handler → tool_logger → type_converter
+        decorated_func = exception_handler(tool_logger(type_converter(tool_func), config.__dict__))
         
         # Extract metadata from the original function
         tool_name = tool_func.__name__
@@ -123,8 +124,9 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
     {% if cookiecutter.include_parallel_example == "yes" -%}
     # Register parallel tools with SAAGA decorators  
     for tool_func in parallel_example_tools:
-        # Apply SAAGA decorator chain: exception_handler → tool_logger → parallelize
-        decorated_func = exception_handler(tool_logger(parallelize(tool_func), config.__dict__))
+        # Apply SAAGA decorator chain: exception_handler → tool_logger → parallelize(type_converter)
+        # Note: type_converter is applied to the base function before parallelize
+        decorated_func = exception_handler(tool_logger(parallelize(type_converter(tool_func)), config.__dict__))
         
         # Extract metadata
         tool_name = tool_func.__name__

@@ -14,7 +14,7 @@ This module is a placeholder for your MCP tools. To add tools:
 
 import time
 import random
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 {% if cookiecutter.include_example_tools == "yes" -%}
 
@@ -98,6 +98,52 @@ async def calculate_fibonacci(n: int) -> Dict[str, Any]:
         "position": n,
         "value": b,
         "calculation_time": calculation_time
+    }
+
+
+async def search_tool(
+    query: str,
+    max_results: int = 10,
+    directories: list[str] = [],
+    include_hidden: bool = False,
+    ctx: Context = None
+) -> Dict[str, Any]:
+    """Search for content with optional filters.
+    
+    This tool demonstrates optional parameters that commonly cause issues
+    with certain MCP clients. It tests type conversion for optional types.
+    
+    Args:
+        query: Search query string (required)
+        max_results: Maximum number of results to return (optional)
+        directories: List of directories to search in (optional)
+        include_hidden: Whether to include hidden files (optional)
+        ctx: MCP Context object (optional, provided by MCP runtime)
+        
+    Returns:
+        Search results with applied filters
+    """
+    # Handle empty directories list -> use default directory
+    actual_dirs = directories if directories else ["default_dir"]
+    
+    # Simulate search results
+    results = []
+    for i in range(min(max_results, 5)):  # Cap at 5 for demo
+        results.append({
+            "id": i + 1,
+            "title": f"Result {i + 1} for '{query}'",
+            "directory": actual_dirs[i % len(actual_dirs)],
+            "hidden": include_hidden
+        })
+    
+    return {
+        "query": query,
+        "max_results": max_results,
+        "directories": actual_dirs,
+        "include_hidden": include_hidden,
+        "result_count": len(results),
+        "results": results,
+        "message": f"Found {len(results)} results for '{query}' in {len(actual_dirs)} directories"
     }
 
 
@@ -195,7 +241,8 @@ example_tools = [
     echo_tool,
     get_time,
     random_number,
-    calculate_fibonacci
+    calculate_fibonacci,
+    search_tool
 ]
 
 {% else -%}

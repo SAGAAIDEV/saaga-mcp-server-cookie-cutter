@@ -1,7 +1,7 @@
 ---
 description: Merge an issue from worktree to main and clean up the worktree without creating a PR
-usage: /project:merge-issue-wt [SITE-ALIAS]
-example: /project:merge-issue-wt saaga
+argument-hint: "[SITE-ALIAS]"
+allowed-tools: ["Bash", "mcp__Conduit__search_jira_issues", "mcp__Conduit__update_jira_status"]
 ---
 
 I'll help you merge the current issue from the worktree to main locally, update JIRA, and clean up the worktree without creating a PR.

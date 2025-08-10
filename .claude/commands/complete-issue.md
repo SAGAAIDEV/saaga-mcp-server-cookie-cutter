@@ -1,7 +1,7 @@
 ---
 description: Complete an issue (feature, bug, or task) by committing changes, creating a PR, and updating JIRA
-usage: /project:complete-issue [SITE-ALIAS]
-example: /project:complete-issue saaga
+argument-hint: "[SITE-ALIAS]"
+allowed-tools: ["Bash", "mcp__Conduit__search_jira_issues", "mcp__Conduit__update_jira_status", "mcp__mcp_jira__update_jira_issue"]
 ---
 
 I'll help you complete the current issue by committing changes, creating a pull request, and updating the JIRA issue.

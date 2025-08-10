@@ -1,7 +1,7 @@
 ---
 description: Test MCP endpoints using Claude subprocess with real data
-usage: /project:test-mcp [TOOL-NAME] [ADDITIONAL-PARAMS]
-example: /project:test-mcp retrieve_confluence_hierarchy "space_key: ASEP"
+argument-hint: "[TOOL-NAME] [ADDITIONAL-PARAMS]"
+allowed-tools: ["Bash", "Read"]
 ---
 
 I'll test the MCP tool "$ARGUMENTS" using Claude subprocess.

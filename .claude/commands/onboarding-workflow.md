@@ -1,7 +1,7 @@
 ---
 description: Guide new team members through the AI-driven development workflow from JIRA issue to merged PR
-usage: /project:onboarding-workflow
-example: /project:onboarding-workflow
+argument-hint: ""
+allowed-tools: ["Bash", "Read", "Write", "Edit", "Grep", "Glob"]
 ---
 
 # 🚀 Welcome to AI-Driven Development with Claude!

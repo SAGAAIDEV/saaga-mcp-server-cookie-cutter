@@ -27,12 +27,40 @@ def check_server_status() -> str:
         str: Server status ("running", "stopped", "unknown")
     """
     try:
-        # Try to connect to the server port
+        import psutil
+        
+        # Check for running Python processes that might be our MCP server
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                cmdline = proc.info.get('cmdline', [])
+                if cmdline and any('{{ cookiecutter.project_slug }}' in str(arg) for arg in cmdline):
+                    # Look specifically for server/app.py or -m project.server patterns
+                    if any('server/app.py' in str(arg) or '{{ cookiecutter.project_slug }}.server' in str(arg) for arg in cmdline):
+                        # Make sure it's not the Streamlit UI
+                        if not any('streamlit' in str(arg).lower() for arg in cmdline):
+                            return "running"
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+        
+        # Also check if SSE transport is listening on the configured port
         port = {{cookiecutter.server_port}}
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.settimeout(1)
+            sock.settimeout(0.5)
             result = sock.connect_ex(('localhost', port))
-            return "running" if result == 0 else "stopped"
+            if result == 0:
+                return "running"
+        
+        return "stopped"
+    except ImportError:
+        # psutil not available, fallback to socket check only
+        try:
+            port = {{cookiecutter.server_port}}
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(1)
+                result = sock.connect_ex(('localhost', port))
+                return "running" if result == 0 else "stopped"
+        except Exception:
+            return "unknown"
     except Exception:
         return "unknown"
 

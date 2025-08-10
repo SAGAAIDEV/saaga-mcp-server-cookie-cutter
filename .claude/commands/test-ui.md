@@ -1,7 +1,7 @@
 ---
 description: Test UI features using Puppeteer MCP server
-usage: /project:test-ui [URL] [TEST-SCENARIO]
-example: /project:test-ui http://localhost:3000 "login flow"
+argument-hint: "[URL] [TEST-SCENARIO]"
+allowed-tools: ["mcp__puppeteer__*"]
 ---
 
 I'll test the UI at $ARGUMENTS using the Puppeteer MCP server.

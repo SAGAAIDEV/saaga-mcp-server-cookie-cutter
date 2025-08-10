@@ -1,7 +1,7 @@
 ---
 description: Intelligently test an issue by automatically detecting whether to use MCP, API, or UI testing, and choosing between direct or subprocess execution
-usage: /project:test-issue [OPTIONAL-HINTS]
-example: /project:test-issue
+argument-hint: "[OPTIONAL-HINTS]"
+allowed-tools: ["Bash", "Read", "Grep", "Glob"]
 ---
 
 I'll analyze the current issue and automatically determine the best testing approach.

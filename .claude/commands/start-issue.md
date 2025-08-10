@@ -1,7 +1,7 @@
 ---
 description: Start work on a new JIRA issue (feature, bug, or task) by fetching the issue, creating a branch, and updating status
-usage: /project:start-issue [ISSUE-KEY] [SITE-ALIAS]
-example: /project:start-issue ASEP-40 saaga
+argument-hint: "[ISSUE-KEY] [SITE-ALIAS]"
+allowed-tools: ["Bash", "Read", "Write", "mcp__Conduit__search_jira_issues", "mcp__Conduit__update_jira_status"]
 ---
 
 I'll help you start working on JIRA issue $ARGUMENTS. Let me parse the issue key and site alias, then fetch the issue details and set up your development environment.

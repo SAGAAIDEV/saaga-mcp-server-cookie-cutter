@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "example_server": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter/example_server",
+        "example_server-server"
+      ]
+    }
+  }
+}

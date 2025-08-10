@@ -37,7 +37,7 @@ def run_integration_tests(tool: Optional[str] = None, verbose: bool = False) -> 
     # Build pytest arguments
     test_dir = Path(__file__).parent
     pytest_args = [
-        str(test_dir / "test_mcp_integration.py"),
+        str(test_dir / "test_example_tools_integration.py"),
         "-v" if verbose else "-q",
         "--tb=short",
         "--color=yes"
@@ -122,14 +122,14 @@ async def test_{}_error_handling(self, mcp_session: ClientSession):
     # Display generated template
     console.print(Panel.fit(
         f"[bold green]Generated MCP Integration Test for: {tool_name}[/bold green]",
-        subtitle="Add this to test_mcp_integration.py"
+        subtitle="Add this to YOUR test file (e.g., test_your_tool.py)"
     ))
     
     syntax = Syntax(test_template, "python", theme="monokai", line_numbers=True)
     console.print(syntax)
     
     console.print("\n[bold yellow]Next Steps:[/bold yellow]")
-    console.print("1. Copy the generated test to the appropriate test class in test_mcp_integration.py")
+    console.print("1. Copy the generated test to YOUR test file (e.g., test_your_tool.py)")
     console.print("2. Update the test parameters based on your tool's requirements")
     console.print("3. Add appropriate assertions for the expected output")
     console.print("4. Run the test with: [cyan]test-mcp-integration --tool " + tool_name + "[/cyan]")
@@ -199,14 +199,10 @@ def run_tests_entry():
     sys.exit(main())
 
 
-def generate_tests_entry():
-    """Entry point for generate-mcp-tests command."""
-    # Check if tool name provided
-    if len(sys.argv) < 2:
-        sys.exit(generate_tool_tests())
-    else:
-        tool_name = sys.argv[1]
-        sys.exit(generate_tool_tests(tool_name))
+# Note: The generate_tests_entry function below is deprecated
+# Test generation is now handled by Claude Code's /generate-tests command
+# which provides much more comprehensive and intelligent test generation
+# We keep this for backwards compatibility but it's not exposed as a script
 
 
 if __name__ == "__main__":

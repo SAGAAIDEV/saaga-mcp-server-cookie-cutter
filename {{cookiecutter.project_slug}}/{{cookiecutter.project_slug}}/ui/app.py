@@ -27,9 +27,9 @@ components_available = True
 error_details = None
 
 try:
-    from lib.components import render_header, render_sidebar, render_error_message
-    from lib.styles import apply_custom_styles, hide_streamlit_style
-    from lib.utils import check_server_status, get_project_info
+    from {{ cookiecutter.project_slug }}.ui.lib.components import render_header, render_sidebar, render_error_message
+    from {{ cookiecutter.project_slug }}.ui.lib.styles import apply_custom_styles, hide_streamlit_style
+    from {{ cookiecutter.project_slug }}.ui.lib.utils import check_server_status, get_project_info
 except ImportError as e:
     components_available = False
     error_details = str(e)
@@ -100,7 +100,7 @@ def main():
                 st.caption("Some UI features are unavailable due to import errors.")
         
         # Redirect to Home page (Streamlit will auto-discover pages in /pages/ directory)
-        st.switch_page("pages/1_🏠_Home.py")
+        st.switch_page("pages/1_Home.py")
         
     except Exception as e:
         st.error("❌ Critical Application Error")

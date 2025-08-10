@@ -1,7 +1,7 @@
 ---
 description: Merge an issue locally to main and continue development without creating a PR
-usage: /project:merge-issue [SITE-ALIAS]
-example: /project:merge-issue saaga
+argument-hint: "[SITE-ALIAS]"
+allowed-tools: ["Bash", "mcp__Conduit__search_jira_issues", "mcp__Conduit__update_jira_status"]
 ---
 
 I'll help you merge the current issue to main locally and update JIRA without creating a PR.

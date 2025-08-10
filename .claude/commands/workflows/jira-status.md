@@ -1,7 +1,7 @@
 ---
 description: Update JIRA issue status
-usage: /project:workflows/jira-status [ISSUE-KEY] [STATUS] [SITE-ALIAS]
-example: /project:workflows/jira-status ACT-123 "In Progress" saaga
+argument-hint: "[ISSUE-KEY] [STATUS] [SITE-ALIAS]"
+allowed-tools: ["mcp__Conduit__update_jira_status"]
 ---
 
 Updating JIRA issue with the provided arguments.

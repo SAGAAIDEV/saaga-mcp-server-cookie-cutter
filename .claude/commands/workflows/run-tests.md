@@ -1,7 +1,7 @@
 ---
 description: Run project-specific tests and quality checks
-usage: /project:workflows/run-tests [TEST-TYPE]
-example: /project:workflows/run-tests all
+argument-hint: "[TEST-TYPE]"
+allowed-tools: ["Bash", "Read"]
 ---
 
 Running tests for the Conduit project.
