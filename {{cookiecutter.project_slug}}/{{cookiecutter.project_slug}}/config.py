@@ -26,6 +26,9 @@ class ServerConfig:
     log_level: str = "{{cookiecutter.log_level}}"
     log_retention_days: int = {{cookiecutter.log_retention_days}}
     
+    # Logging destinations configuration
+    logging_destinations: Dict[str, Any] = None
+    
     # Server transport settings
     default_transport: str = "stdio"
     default_host: str = "127.0.0.1"
@@ -59,6 +62,18 @@ class ServerConfig:
         self.config_file_path = self.config_dir / "config.yaml"
         self.log_file_path = self.log_dir / "{{cookiecutter.project_slug}}.log"
         self.database_path = self.data_dir / "{{cookiecutter.project_slug}}.db"
+        
+        # Initialize default logging destinations if not set
+        if self.logging_destinations is None:
+            self.logging_destinations = {
+                "destinations": [
+                    {
+                        "type": "sqlite",
+                        "enabled": True,
+                        "settings": {}
+                    }
+                ]
+            }
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary for serialization."""
@@ -67,6 +82,7 @@ class ServerConfig:
             "description": self.description,
             "log_level": self.log_level,
             "log_retention_days": self.log_retention_days,
+            "logging_destinations": self.logging_destinations,
             "default_transport": self.default_transport,
             "default_host": self.default_host,
             "default_port": self.default_port,
@@ -80,6 +96,7 @@ class ServerConfig:
             description=data.get("description", "{{cookiecutter.description}}"),
             log_level=data.get("log_level", "{{cookiecutter.log_level}}"),
             log_retention_days=data.get("log_retention_days", {{cookiecutter.log_retention_days}}),
+            logging_destinations=data.get("logging_destinations"),
             default_transport=data.get("default_transport", "stdio"),
             default_host=data.get("default_host", "127.0.0.1"),
             default_port=data.get("default_port", {{cookiecutter.server_port}}),

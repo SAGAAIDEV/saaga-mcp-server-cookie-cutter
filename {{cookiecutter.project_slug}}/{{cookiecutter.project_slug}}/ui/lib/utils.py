@@ -249,7 +249,7 @@ def save_configuration(config: Dict[str, Any], config_path: Optional[str] = None
 
 def load_logs_from_database(db_path: Optional[str] = None, limit: int = 1000) -> List[Dict[str, Any]]:
     """
-    Load log entries from SQLite database
+    Load log entries from unified SQLite database
     
     Args:
         db_path: Optional path to database file
@@ -259,7 +259,7 @@ def load_logs_from_database(db_path: Optional[str] = None, limit: int = 1000) ->
         List of log entries
     """
     if db_path is None:
-        db_path = Path(get_data_path()) / "logs.db"
+        db_path = Path(get_data_path()) / "unified_logs.db"
     
     try:
         if not Path(db_path).exists():
@@ -270,7 +270,23 @@ def load_logs_from_database(db_path: Optional[str] = None, limit: int = 1000) ->
         
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT * FROM logs 
+            SELECT 
+                id,
+                correlation_id,
+                timestamp,
+                level,
+                log_type,
+                message,
+                tool_name,
+                duration_ms,
+                status,
+                input_args,
+                output_summary,
+                error_message,
+                module,
+                function,
+                thread_name
+            FROM unified_logs 
             ORDER BY timestamp DESC 
             LIMIT ?
         """, (limit,))
@@ -278,7 +294,19 @@ def load_logs_from_database(db_path: Optional[str] = None, limit: int = 1000) ->
         rows = cursor.fetchall()
         conn.close()
         
-        return [dict(row) for row in rows]
+        # Convert rows to dictionaries and parse JSON fields
+        logs = []
+        for row in rows:
+            log_entry = dict(row)
+            # Parse JSON fields if present
+            if log_entry.get('input_args'):
+                try:
+                    log_entry['input_args'] = json.loads(log_entry['input_args'])
+                except:
+                    pass
+            logs.append(log_entry)
+        
+        return logs
     
     except Exception:
         return []

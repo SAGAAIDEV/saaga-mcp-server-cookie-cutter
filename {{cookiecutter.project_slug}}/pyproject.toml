@@ -35,7 +35,11 @@ dependencies = [
     "pydantic>=2.0.0",
     "pyyaml>=6.0.0",
     "python-multipart>=0.0.6",
-    "loguru>=0.7.0"{% if cookiecutter.include_admin_ui == "yes" %},
+    "loguru>=0.7.0",
+    "rich>=13.0.0",
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0"{% if cookiecutter.include_admin_ui == "yes" %},
     "streamlit>=1.28.0",
     "plotly>=5.0.0",
     "pandas>=2.0.0"{% endif %}
@@ -55,6 +59,8 @@ dev = [
 
 [project.scripts]
 {{ cookiecutter.project_slug }}-server = "{{ cookiecutter.project_slug }}.server.app:main"
+test-mcp-integration = "{{ cookiecutter.project_slug }}.tests.integration.cli:run_tests_entry"
+generate-mcp-tests = "{{ cookiecutter.project_slug }}.tests.integration.cli:generate_tests_entry"
 
 [project.urls]
 Homepage = "https://github.com/{{cookiecutter.author_name}}/{{cookiecutter.project_slug}}"
@@ -63,7 +69,7 @@ Repository = "https://github.com/{{cookiecutter.author_name}}/{{cookiecutter.pro
 Issues = "https://github.com/{{cookiecutter.author_name}}/{{cookiecutter.project_slug}}/issues"
 
 [tool.setuptools]
-packages = ["{{cookiecutter.project_slug}}"]
+packages = ["{{cookiecutter.project_slug}}", "tests"]
 
 [tool.black]
 line-length = 88
@@ -113,4 +119,3 @@ python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --cov={{cookiecutter.project_slug}} --cov-report=html --cov-report=term-missing"
-asyncio_mode = "auto"
