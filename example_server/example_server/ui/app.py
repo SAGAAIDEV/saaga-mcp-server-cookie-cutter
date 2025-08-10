@@ -1,5 +1,5 @@
 """
-Streamlit Admin UI for Example MCP Server
+Streamlit Admin UI for Example Server
 
 This admin interface provides web-based management for the MCP server configuration
 and log viewing. It runs independently of the MCP server and communicates through
@@ -42,7 +42,7 @@ except ImportError as e:
         pass
     
     def render_header():
-        st.title("Example MCP Server Admin")
+        st.title("Example Server Admin")
         st.caption("MCP Server Administration Interface")
     
     def render_sidebar():
@@ -54,11 +54,11 @@ except ImportError as e:
         return "unknown"
     
     def get_project_info():
-        return {"name": "Example MCP Server", "version": "0.1.0"}
+        return {"name": "Example Server", "version": "0.1.0"}
 
 # Page configuration
 st.set_page_config(
-    page_title="Example MCP Server Admin",
+    page_title="Example Server Admin",
     page_icon="🛠️",
     layout="wide",
     initial_sidebar_state="expanded"

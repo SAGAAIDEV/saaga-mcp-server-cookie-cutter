@@ -54,7 +54,8 @@ async def create_test_session():
         env=env
     )
     
-    # Start stdio client
+    # Start stdio client (CORRECT PATTERN - must use async with)
+    # Note: This helper does manual context management for compatibility
     stdio_context = stdio_client(server_params)
     read, write = await stdio_context.__aenter__()
     
@@ -440,6 +441,23 @@ class TestYourToolIntegration:
 # ============================================================================
 
 """
+ALTERNATE PATTERN (If create_test_session doesn't work):
+
+If you encounter issues with the create_test_session() helper, you can use
+the direct async context manager pattern:
+
+async def test_with_direct_pattern():
+    from mcp.client.stdio import stdio_client
+    
+    async with stdio_client.stdio_server(
+        command="python",
+        args=["-m", "server.app"],
+        env={"PYTHONPATH": "."}
+    ) as (read_stream, write_stream):
+        async with stdio_client.StdioServerSession(read_stream, write_stream) as session:
+            result = await session.call_tool("tool_name", arguments={})
+            assert result.isError is False
+
 UNDERSTANDING result.isError:
 
 1. When result.isError is False:

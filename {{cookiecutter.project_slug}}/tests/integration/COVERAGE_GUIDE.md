@@ -94,7 +94,7 @@ if os.environ.get('COVERAGE_PROCESS_START'):
 The integration tests pass coverage environment variables to the subprocess:
 
 ```python
-# From test_mcp_integration.py
+# From test_example_tools_integration.py
 async def create_test_session():
     # Build environment with coverage tracking support
     env = get_default_environment()  # Get MCP SDK's safe defaults
@@ -211,7 +211,7 @@ coverage html
 **Solutions**:
 
 1. Run tests individually to identify failures
-2. Add edge case tests (see `test_mcp_edge_cases.py`)
+2. Add edge case tests (see `test_example_tools_edge_cases.py`)
 3. Review HTML coverage report to identify missing lines
 4. Consider if low-coverage code is actually needed
 

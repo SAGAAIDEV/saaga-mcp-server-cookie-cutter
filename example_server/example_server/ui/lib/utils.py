@@ -1,5 +1,5 @@
 """
-Utility functions for Example MCP Server Admin UI
+Utility functions for Example Server Admin UI
 
 This module provides helper functions for the Streamlit admin interface,
 including server status checking, configuration management, and data processing.
@@ -32,7 +32,7 @@ def check_server_status() -> str:
             try:
                 cmdline = proc.info.get('cmdline', [])
                 if cmdline and any('example_server' in str(arg) for arg in cmdline):
-                    # Look specifically for server/app.py or -m example_server.server patterns
+                    # Look specifically for server/app.py or -m project.server patterns
                     if any('server/app.py' in str(arg) or 'example_server.server' in str(arg) for arg in cmdline):
                         # Make sure it's not the Streamlit UI
                         if not any('streamlit' in str(arg).lower() for arg in cmdline):
@@ -70,8 +70,8 @@ def get_project_info() -> Dict[str, Any]:
         Dict containing project details
     """
     return {
-        "name": "Example MCP Server",
-        "description": "Example server demonstrating SAAGA MCP patterns",
+        "name": "Example Server",
+        "description": "MCP server with SAAGA decorators",
         "author": "Your Name",
         "email": "email@example.com",
         "version": "0.1.0",
@@ -170,7 +170,7 @@ def get_default_configuration() -> Dict[str, Any]:
     """Get the default configuration"""
     return {
         "server": {
-            "name": "Example MCP Server",
+            "name": "Example Server",
             "port": 3001,
             "log_level": "INFO"
         },

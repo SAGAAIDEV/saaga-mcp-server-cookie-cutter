@@ -1,0 +1,44 @@
+# Template for generating new MCP tools
+# Variables: tool_name, description, parameters, return_type
+
+"""{{ description }}"""
+
+from typing import Dict, Any, List, Optional
+from mcp.server.fastmcp import Context
+
+
+async def {{ tool_name }}(
+{%- for param in parameters %}
+    {{ param.name }}: {{ param.type }}{% if param.default %} = {{ param.default }}{% endif %},
+{%- endfor %}
+    ctx: Context = None
+) -> {{ return_type }}:
+    """
+    {{ description }}
+    
+    Args:
+    {%- for param in parameters %}
+        {{ param.name }}: {{ param.description }}
+    {%- endfor %}
+        ctx: MCP context (automatically provided by runtime)
+    
+    Returns:
+        {{ return_description }}
+    """
+    # TODO: Implement tool logic here
+    {% if return_type == 'Dict[str, Any]' %}
+    result = {
+        "status": "success",
+        {%- for param in parameters %}
+        "{{ param.name }}": {{ param.name }},
+        {%- endfor %}
+        "message": "Tool executed successfully"
+    }
+    return result
+    {% elif return_type == 'str' %}
+    return f"Processed: {str(locals())}"
+    {% elif return_type == 'List[Any]' %}
+    return []
+    {% else %}
+    raise NotImplementedError("Tool implementation needed")
+    {% endif %}

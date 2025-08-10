@@ -2,18 +2,36 @@
 
 A [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template for creating MCP (Model Context Protocol) servers with SAAGA decorators, platform-aware configuration, and optional Streamlit administrative UI.
 
-## Quick Start with AI Assistant
+## 🚀 Fastest Way to Get Started: Claude Code Commands
 
-**Want to create a new MCP server?** Have your AI coding assistant guide you through the entire process!
+**The absolute fastest way to learn MCP and build your server is with Claude Code's interactive commands.**
 
-Simply tell your AI assistant: *"I want to create a new MCP server using the SAAGA template. Please read and execute the setup instructions in [SETUP_ASSISTANT_PROMPT.md](SETUP_ASSISTANT_PROMPT.md)"*
+### Quick Start with Claude Code
 
-This will guide you through:
-- Installing cookiecutter
-- Generating your new MCP server project
-- Understanding the SAAGA decorator patterns
-- Setting up your development environment
-- Testing with MCP Inspector
+1. **Generate your project:**
+   ```bash
+   cookiecutter https://github.com/SAGAAIDEV/saaga-mcp-server-cookie-cutter.git
+   cd your-project-name
+   ```
+
+2. **Start Claude Code in your project:**
+   ```bash
+   claude
+   ```
+
+3. **Use these commands to go from zero to working MCP server:**
+   - `/getting-started` - Interactive tutorial that adapts to your experience level
+   - `/add-tool` - Create your first MCP tool with guided assistance  
+   - `/generate-tests` - Automatically generate comprehensive tests
+   - `/remove-examples` - Clean up example code when ready for production
+
+**That's it!** These commands will teach you MCP, help you build tools, and have you running in minutes.
+
+### Alternative: AI Assistant Setup
+
+If you're using a different AI assistant (not Claude Code), you can use our setup prompt:
+
+*"I want to create a new MCP server using the SAAGA template. Please read and execute the setup instructions in [SETUP_ASSISTANT_PROMPT.md](SETUP_ASSISTANT_PROMPT.md)"*
 
 ## Features
 
@@ -151,7 +169,15 @@ your-project/
 ├── docs/                      # Documentation
 │   └── DECORATOR_PATTERNS.md # Detailed decorator guidance
 ├── BUILD.bazel               # Bazel build configuration
-├── .claude/commands/         # Claude custom commands
+├── .claude/                  # AI Assistant Integration
+│   └── commands/             # Custom commands for development workflow
+│       ├── getting-started.md # Interactive onboarding
+│       ├── add-tool.md       # Tool creation wizard
+│       ├── generate-tests.md # Test generation
+│       └── remove-examples.md # Cleanup example code
+├── .reference/               # Reference patterns and documentation
+│   ├── patterns/            # Code patterns
+│   └── mcp-*.md            # MCP documentation
 ├── pyproject.toml            # Project configuration
 ├── README.md                 # Project documentation
 ├── .gitignore               # Git ignore rules
@@ -259,6 +285,17 @@ The admin UI works independently of the MCP server:
 - ✅ **Standalone Mode**: All UI features work without server dependencies
 
 ## Development
+
+### AI-Assisted Development Workflow
+
+Generated projects include custom commands for AI assistants (Claude, Cursor, etc.) in `.claude/commands/`:
+
+1. **Getting Started** (`/getting-started`): Interactive onboarding that adapts to your experience level
+2. **Add Tool** (`/add-tool`): Guided tool creation with research, planning, and implementation
+3. **Generate Tests** (`/generate-tests`): Automatic test generation following MCP patterns
+4. **Remove Examples** (`/remove-examples`): Clean up example code after creating your own tools
+
+These commands provide a structured, repeatable workflow for MCP tool development.
 
 ### Setting Up for Development
 

@@ -1,5 +1,5 @@
 """
-Unified logging system for Example MCP Server.
+Unified logging system for Example Server.
 
 This module provides a pluggable logging architecture with correlation IDs
 for tracking related events across tool executions and internal logs.

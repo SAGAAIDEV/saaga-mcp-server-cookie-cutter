@@ -1,4 +1,4 @@
-# MCP Inspector Testing Guide for Example MCP Server
+# MCP Inspector Testing Guide for Example Server
 
 This guide helps you test your MCP server tools using the MCP Inspector, including troubleshooting common setup issues.
 

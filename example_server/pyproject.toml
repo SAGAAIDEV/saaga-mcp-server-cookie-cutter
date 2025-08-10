@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "example_server"
 version = "0.1.0"
-description = "Example server demonstrating SAAGA MCP patterns"
+description = "MCP server with SAAGA decorators"
 authors = [
     {name = "Your Name", email = "email@example.com"}
 ]
@@ -61,7 +61,6 @@ dev = [
 [project.scripts]
 example_server-server = "example_server.server.app:main"
 test-mcp-integration = "example_server.tests.integration.cli:run_tests_entry"
-generate-mcp-tests = "example_server.tests.integration.cli:generate_tests_entry"
 
 [project.urls]
 Homepage = "https://github.com/Your Name/example_server"

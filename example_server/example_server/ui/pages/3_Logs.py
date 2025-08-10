@@ -1,5 +1,5 @@
 """
-Log viewer page for Example MCP Server Admin UI
+Log viewer page for Example Server Admin UI
 
 This page provides interface for viewing, filtering, and analyzing server logs
 from the SQLite logging database. Includes export capabilities and real-time updates.
@@ -321,7 +321,7 @@ def render_export_section(df: pd.DataFrame):
 def main():
     """Main logs page content"""
     # Page header
-    st.title("📊 Example MCP Server Logs")
+    st.title("📊 Example Server Logs")
     st.markdown("View and analyze server logs from the unified logging system.")
     st.markdown("---")
     

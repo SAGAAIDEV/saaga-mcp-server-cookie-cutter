@@ -1,5 +1,5 @@
 """
-Configuration management page for Example MCP Server Admin UI
+Configuration management page for Example Server Admin UI
 
 This page provides interface for managing server configuration, environment variables,
 and tool settings. Changes require server restart to take effect.
@@ -87,7 +87,7 @@ def render_configuration_form(config):
         
         with col1:
             st.markdown("**Server Settings**")
-            server_name = st.text_input("Server Name", value=server_config.get("name", "Example MCP Server"))
+            server_name = st.text_input("Server Name", value=server_config.get("name", "Example Server"))
             server_port = st.number_input("Server Port", 
                                         value=server_config.get("port", 3001),
                                         min_value=1, max_value=65535)
@@ -460,7 +460,7 @@ def render_validation_section(config):
 def main():
     """Main configuration page content"""
     # Page header
-    st.title("⚙️ Example MCP Server Configuration")
+    st.title("⚙️ Example Server Configuration")
     st.markdown("Manage server settings, features, and environment configuration.")
     st.markdown("---")
     

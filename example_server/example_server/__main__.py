@@ -1,4 +1,4 @@
-"""Main module for Example MCP Server MCP server.
+"""Main module for Example Server MCP server.
 
 This module allows the server to be run as a Python module using:
 python -m example_server

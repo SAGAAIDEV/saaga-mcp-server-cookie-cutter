@@ -1,4 +1,4 @@
-"""Configuration management for Example MCP Server
+"""Configuration management for Example Server
 
 This module provides platform-aware configuration management using platformdirs
 to ensure configuration files are stored in appropriate locations across different
@@ -19,8 +19,8 @@ class ServerConfig:
     """Configuration class for the MCP server."""
     
     # Server settings
-    name: str = "Example MCP Server"
-    description: str = "Example server demonstrating SAAGA MCP patterns"
+    name: str = "Example Server"
+    description: str = "MCP server with SAAGA decorators"
     
     # Logging configuration
     log_level: str = "INFO"
@@ -92,8 +92,8 @@ class ServerConfig:
     def from_dict(cls, data: Dict[str, Any]) -> "ServerConfig":
         """Create configuration from dictionary."""
         return cls(
-            name=data.get("name", "Example MCP Server"),
-            description=data.get("description", "Example server demonstrating SAAGA MCP patterns"),
+            name=data.get("name", "Example Server"),
+            description=data.get("description", "MCP server with SAAGA decorators"),
             log_level=data.get("log_level", "INFO"),
             log_retention_days=data.get("log_retention_days", 30),
             logging_destinations=data.get("logging_destinations"),
@@ -147,7 +147,7 @@ class UIConfig:
     """Configuration class for the Streamlit admin UI."""
     
     # UI settings
-    page_title: str = "Example MCP Server Admin"
+    page_title: str = "Example Server Admin"
     page_icon: str = "🔧"
     layout: str = "wide"
     
@@ -180,7 +180,7 @@ class UIConfig:
     def from_dict(cls, data: Dict[str, Any]) -> "UIConfig":
         """Create UI configuration from dictionary."""
         return cls(
-            page_title=data.get("page_title", "Example MCP Server Admin"),
+            page_title=data.get("page_title", "Example Server Admin"),
             page_icon=data.get("page_icon", "🔧"),
             layout=data.get("layout", "wide"),
             server_host=data.get("server_host", "127.0.0.1"),

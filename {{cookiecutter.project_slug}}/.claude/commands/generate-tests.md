@@ -1,30 +1,70 @@
 ---
 description: Generate comprehensive unit and integration tests for MCP tools by studying test patterns
 argument-hint: "[tool-name-or-module]"
-allowed-tools: ["Read", "Write", "Grep", "Glob"]
+allowed-tools: ["Read", "Write", "Grep", "Glob", "Bash", "KillBash"]
 ---
 
-I'll generate comprehensive tests for your MCP tool by following the established test patterns.
+# Generate Tests for Your MCP Tool
 
-## Step 1: Study Test Patterns
+## 🚨 IMPORTANT: Environment Ready
 
-First, let me review the canonical test patterns:
+**Virtual environment and dependencies already installed!**
+- ✅ Test framework (pytest) ready to use
+- ✅ Use `uv run pytest` for all test commands
+- ⚠️ NEVER use global pip or pytest
+
+## CRITICAL: Process Check First
+
+**Before generating tests, we need a clean slate.**
+
+Let me check if any MCP processes are running:
+
+```bash
+ps aux | grep -E "mcp|uv run" | grep -v grep
+```
+
+If processes found: "I need to kill these processes before generating tests. The server must restart to test your new code."
+
+```bash
+# Kill any running processes
+kill <PIDs>
+```
+
+**Why?** Tests need to import your latest tool code. Running processes lock the modules.
+
+## Step 1: Study Test Patterns and Compatibility Rules
+
+First, let me review the canonical test patterns AND compatibility requirements:
 
 Reading .reference/patterns/integration_test_patterns.py for MCP client test patterns...
 Reading .reference/patterns/unit_test_patterns.py for unit test patterns...
+Reading .reference/mcp-compatibility-critical.md for MANDATORY compatibility rules...
+
+**🚨 CRITICAL COMPATIBILITY RULE**:
+- NEVER generate tests with Optional[...] parameters
+- Use empty defaults instead (empty string, 0, empty list)
+- This prevents MCP client failures
 
 Key patterns I'll follow:
 - Integration tests use `create_test_session()` for MCP client
 - Always use try/finally with cleanup()
 - Check `result.isError` based on expected behavior
 - Test both success and error cases
+- NO Optional types in test parameters
 
 ## Step 2: Analyze the Tool to Test
 
 Looking for the tool: "$ARGUMENTS"
 
+**MANDATORY CHECK - Verify NO Optional Parameters:**
+```
+Checking tool parameters...
+❌ FAIL if ANY Optional[...] found
+✅ PASS if all optional params use concrete defaults
+```
+
 Reading the tool implementation to understand:
-- Parameters (required vs optional)
+- Parameters (NO Optional types allowed!)
 - Return type
 - Error conditions
 - Validation logic
@@ -46,8 +86,13 @@ Creating comprehensive integration tests following the pattern from .reference/p
 async def test_[tool_name]_[scenario]():
     session, cleanup = await create_test_session()
     try:
-        result = await session.call_tool("[tool_name]", arguments={...})
-        # Assertions based on expected behavior
+        # NEVER use Optional in test parameters!
+        result = await session.call_tool("[tool_name]", arguments={
+            "directories": [],  # NOT Optional[List[str]]
+            "max_count": 10,    # NOT Optional[int]
+            "filter": "",       # NOT Optional[str]
+            "enabled": True     # NOT Optional[bool]
+        })
         assert result.isError is False  # or True for errors
     finally:
         await cleanup()
@@ -64,9 +109,18 @@ Following patterns from .reference/patterns/unit_test_patterns.py:
 
 ## Step 5: Create Test Files
 
-Creating test file(s):
-- Integration: tests/integration/test_[module_name].py
-- Unit (if needed): tests/unit/test_[module_name].py
+**🚨 CRITICAL: Always create NEW test files - NEVER modify existing test files!**
+
+Creating YOUR test file(s):
+- Integration: tests/integration/test_[your_tool_name].py  (NEW FILE)
+- Unit (if needed): tests/unit/test_[your_tool_name].py  (NEW FILE)
+
+**DO NOT modify these existing files:**
+- test_example_tools_integration.py (example tests only)
+- test_example_tools_edge_cases.py (example tests only)
+- test_decorators.py (decorator infrastructure tests)
+
+Your new test file should be completely independent.
 
 Each test includes:
 - Clear docstrings explaining what's being tested
@@ -75,18 +129,51 @@ Each test includes:
 
 ## Step 6: Test Execution Instructions
 
-To run your new tests:
+### Pre-Test Process Check
+
+**IMPORTANT**: Before running tests, ensure no MCP processes are running:
+
+```bash
+# Check again for any lingering processes
+ps aux | grep -E "mcp|uv run" | grep -v grep
+```
+
+If any found, kill them before proceeding.
+
+### Running Your Tests
+
+**First, ensure your virtual environment is activated:**
+```bash
+# If not already activated:
+source .venv/bin/activate  # Linux/Mac
+# OR
+.venv\Scripts\activate     # Windows
+```
+
+Now run your new tests:
 
 ```bash
 # Run specific test file
-pytest tests/integration/test_[your_module].py -v
+uv run pytest tests/integration/test_[your_module].py -v
 
 # Run with coverage
-pytest tests/integration/test_[your_module].py --cov=[module_name]
+uv run pytest tests/integration/test_[your_module].py --cov=[module_name]
 
 # Run specific test
-pytest tests/integration/test_[your_module].py::TestClassName::test_method_name
+uv run pytest tests/integration/test_[your_module].py::TestClassName::test_method_name
 ```
+
+### Debug Support
+
+**Tell me what happened:**
+- ✅ "All tests passed!" → Excellent! Ready to integrate with AI
+- ⚠️ "Some tests failed" → Share the failures, let's fix them
+- ❌ "Import errors" → Likely process issue, let's restart
+
+**Common Issues:**
+1. **Import Error**: Old processes running → Kill and retry
+2. **Test Failure**: Share the error → I'll help debug
+3. **Connection Error**: MCP client issue → Check test setup
 
 ## Important Testing Notes
 
@@ -96,4 +183,24 @@ Based on the patterns in .reference/:
 - Parallel tools expect `kwargs_list` parameter
 - Always extract content with helper methods, don't assume structure
 
-Tests have been generated following the exact patterns from your .reference/ directory!
+## 🎉 SUCCESS: Tests Generated and Passing!
+
+Your tool is now fully tested and production-ready! 
+
+### Clean Up Example Code (Optional)
+
+Now that you have YOUR working tools and tests, you can remove the example code:
+
+```
+/remove-examples
+```
+
+This will remove all 6 example tools and their tests, keeping YOUR code intact.
+
+### Other Next Steps:
+
+1. **Run full test suite**: `uv run pytest`
+2. **Integration with AI**: Update Claude Desktop config  
+3. **Create more tools**: Use `/add-tool` for next feature
+
+Your tool is ready for production use in Claude Desktop or other MCP clients!

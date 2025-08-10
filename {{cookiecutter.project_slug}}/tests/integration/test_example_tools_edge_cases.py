@@ -6,7 +6,7 @@ that are not covered by the main integration tests.
 
 import pytest
 from mcp import types
-from tests.integration.test_mcp_integration import create_test_session
+from tests.integration.test_example_tools_integration import create_test_session
 
 
 pytestmark = pytest.mark.anyio

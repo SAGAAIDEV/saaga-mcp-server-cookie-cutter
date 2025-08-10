@@ -20,7 +20,7 @@ While unit tests verify that individual decorators and functions work correctly 
 
 ```
 tests/integration/
-├── test_mcp_integration.py    # Main integration test suite
+├── test_example_tools_integration.py    # Example tools integration tests
 ├── MCP_INTEGRATION_TESTING_GUIDE.md  # This document
 └── (generated during testing)
     ├── .coverage.*             # Coverage data from subprocesses
@@ -110,13 +110,13 @@ cd /path/to/your/generated/project
 source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 
 # Run all integration tests
-python -m pytest tests/integration/test_mcp_integration.py -v
+python -m pytest tests/integration/test_example_tools_integration.py -v
 
 # Run specific test class
-python -m pytest tests/integration/test_mcp_integration.py::TestMCPToolDiscovery -v
+python -m pytest tests/integration/test_example_tools_integration.py::TestMCPToolDiscovery -v
 
 # Run specific test
-python -m pytest tests/integration/test_mcp_integration.py::TestMCPToolExecution::test_echo_tool_execution -v
+python -m pytest tests/integration/test_example_tools_integration.py::TestMCPToolExecution::test_echo_tool_execution -v
 ```
 
 ### Coverage Measurement
@@ -137,7 +137,7 @@ coverage.process_startup()
 # Run with coverage tracking
 export COVERAGE_PROCESS_START=/path/to/.coveragerc
 coverage erase
-coverage run -m pytest tests/integration/test_mcp_integration.py -v
+coverage run -m pytest tests/integration/test_example_tools_integration.py -v
 coverage combine
 coverage report
 coverage html
@@ -345,7 +345,7 @@ async def test_my_parallel_tool(self):
 3. **Test in Isolation**
    ```bash
    # Test single tool to isolate issues
-   python -m pytest tests/integration/test_mcp_integration.py::TestMCPToolExecution::test_specific_tool -v -s
+   python -m pytest tests/integration/test_example_tools_integration.py::TestMCPToolExecution::test_specific_tool -v -s
    ```
 
 ## Best Practices

@@ -1,4 +1,4 @@
-# SAAGA Decorator Patterns in Example MCP Server
+# SAAGA Decorator Patterns in Example Server
 
 This document explains the SAAGA decorator patterns used in your MCP server and provides guidance on the async-only patterns and parallel tool calling conventions.
 

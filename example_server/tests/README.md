@@ -1,4 +1,4 @@
-# Testing Guide for Example MCP Server
+# Testing Guide for Example Server
 
 ## Overview
 
@@ -15,8 +15,8 @@ tests/
 │   └── test_decorators.py        # Tests for SAAGA decorators
 └── integration/                  # Integration tests (full MCP protocol testing)
     ├── __init__.py
-    ├── test_mcp_integration.py   # Main MCP protocol tests
-    ├── test_mcp_edge_cases.py    # Edge case and error condition tests
+    ├── test_example_tools_integration.py   # Main MCP protocol tests
+    ├── test_example_tools_edge_cases.py    # Edge case and error condition tests
     ├── cli.py                     # Test runner utilities
     ├── COVERAGE_GUIDE.md          # Coverage configuration guide
     └── MCP_INTEGRATION_TESTING_GUIDE.md  # Integration testing details
@@ -40,10 +40,10 @@ uv run pytest tests/integration/ -v
 uv run pytest tests/ -v
 
 # Run a specific test file
-uv run pytest tests/integration/test_mcp_integration.py -v
+uv run pytest tests/integration/test_example_tools_integration.py -v
 
 # Run a specific test
-uv run pytest tests/integration/test_mcp_integration.py::TestMCPToolDiscovery::test_all_tools_discoverable -v
+uv run pytest tests/integration/test_example_tools_integration.py::TestMCPToolDiscovery::test_all_tools_discoverable -v
 ```
 
 ### Coverage Reports
@@ -165,7 +165,7 @@ Add integration tests to verify MCP protocol compatibility:
 ```python
 # tests/integration/test_my_tools.py
 import pytest
-from tests.integration.test_mcp_integration import create_test_session
+from tests.integration.test_example_tools_integration import create_test_session
 
 class TestMyTools:
     async def test_my_new_tool_via_mcp(self):

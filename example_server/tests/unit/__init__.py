@@ -1,4 +1,4 @@
-"""Unit tests for Example MCP Server.
+"""Unit tests for Example Server.
 
 This package contains unit tests that test individual components in isolation:
 - Decorator functionality

@@ -1,4 +1,4 @@
-"""Example MCP Server - MCP Server with SAAGA Decorators
+"""Example Server - MCP Server with SAAGA Decorators
 
 This module implements the core MCP server using FastMCP with dual transport support
 and automatic application of SAAGA decorators (exception handling, logging, parallelization).
@@ -20,7 +20,11 @@ from example_server.logging.correlation import (
     clear_initialization_correlation_id
 )
 from example_server.logging.unified_logger import UnifiedLogger
-from example_server.tools.example_tools import example_tools, parallel_example_tools
+from example_server.tools.system_info_analyzer import system_analyzer_tools
+
+# Initialize empty lists for example tools (removed but loops remain)
+example_tools = []
+parallel_example_tools = []
 def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     """Create and configure the MCP server with SAAGA decorators.
     
@@ -67,7 +71,7 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     unified_logger.info(f"Unified logging initialized with {len(UnifiedLogger.get_available_destinations())} available destination types")
     unified_logger.info(f"Server config: {config.name} at log level {config.log_level}")
     
-    mcp_server = FastMCP(config.name or "Example MCP Server")
+    mcp_server = FastMCP(config.name or "Example Server")
     
     # Register all tools with the server
     register_tools(mcp_server, config)
@@ -126,6 +130,22 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
         )(decorated_func)
         
         unified_logger.info(f"Registered parallel tool: {tool_name}")
+    
+    # Register system analyzer tools with SAAGA decorators
+    for tool_func in system_analyzer_tools:
+        # Apply SAAGA decorator chain: exception_handler → tool_logger → type_converter
+        decorated_func = exception_handler(tool_logger(type_converter(tool_func), config.__dict__))
+        
+        # Extract metadata from the original function
+        tool_name = tool_func.__name__
+        
+        # Register the decorated function directly with MCP
+        mcp_server.tool(
+            name=tool_name
+        )(decorated_func)
+        
+        unified_logger.info(f"Registered system tool: {tool_name}")
+    
     unified_logger.info(f"Server '{mcp_server.name}' initialized with SAAGA decorators")
 # Create a server instance that can be imported by the MCP CLI
 server = create_mcp_server()
@@ -143,7 +163,7 @@ server = create_mcp_server()
     help="Transport type (stdio or sse)"
 )
 def main(port: int, transport: str) -> int:
-    """Run the Example MCP Server server with specified transport."""
+    """Run the Example Server server with specified transport."""
     async def run_server():
         """Inner async function to run the server and manage the event loop."""
         # Set the event loop in UnifiedLogger for async operations

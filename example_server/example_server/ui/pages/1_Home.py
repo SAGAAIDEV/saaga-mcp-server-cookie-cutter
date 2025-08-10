@@ -1,5 +1,5 @@
 """
-Home/Dashboard page for Example MCP Server Admin UI
+Home/Dashboard page for Example Server Admin UI
 
 This page provides an overview of the MCP server status, project information,
 and quick access to common administrative tasks.
@@ -77,8 +77,8 @@ def render_project_overview():
     with col1:
         st.markdown("""
         **Project Details:**
-        - **Name:** Example MCP Server
-        - **Description:** Example server demonstrating SAAGA MCP patterns
+        - **Name:** Example Server
+        - **Description:** MCP server with SAAGA decorators
         - **Author:** Your Name
         - **Email:** email@example.com
         """)
@@ -178,7 +178,7 @@ Data Path: {system_info.get('data_path', 'Not configured')}
 def main():
     """Main page content"""
     # Page header
-    st.title("🏠 Example MCP Server Admin Dashboard")
+    st.title("🏠 Example Server Admin Dashboard")
     st.markdown("Welcome to the administrative interface for your MCP server.")
     st.markdown("---")
     
@@ -203,7 +203,7 @@ def main():
     
     # Footer
     st.markdown("---")
-    st.caption(f"Example MCP Server Admin UI • Generated with SAAGA MCP Server Cookie Cutter")
+    st.caption(f"Example Server Admin UI • Generated with SAAGA MCP Server Cookie Cutter")
 
 if __name__ == "__main__":
     main()
