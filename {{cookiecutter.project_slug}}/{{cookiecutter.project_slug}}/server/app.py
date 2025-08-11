@@ -1,7 +1,8 @@
 """{{ cookiecutter.project_name }} - MCP Server with SAAGA Decorators
 
-This module implements the core MCP server using FastMCP with dual transport support
-and automatic application of SAAGA decorators (exception handling, logging, parallelization).
+This module implements the core MCP server using FastMCP with multi-transport support
+(STDIO, SSE, and Streamable HTTP) and automatic application of SAAGA decorators 
+(exception handling, logging, parallelization).
 """
 
 import asyncio
@@ -149,13 +150,13 @@ server = create_mcp_server()
 @click.option(
     "--port",
     default={{ cookiecutter.server_port }},
-    help="Port to listen on for SSE transport"
+    help="Port to listen on for SSE or Streamable HTTP transport"
 )
 @click.option(
     "--transport",
-    type=click.Choice(["stdio", "sse"]),
-    default="stdio",
-    help="Transport type (stdio or sse)"
+    type=click.Choice(["stdio", "sse", "streamable-http"]),
+    default="{{ cookiecutter.default_transport }}",
+    help="Transport type (stdio, sse, or streamable-http)"
 )
 def main(port: int, transport: str) -> int:
     """Run the {{ cookiecutter.project_name }} server with specified transport."""
@@ -168,10 +169,17 @@ def main(port: int, transport: str) -> int:
             if transport == "stdio":
                 logger.info("Starting server with STDIO transport")
                 await server.run_stdio_async()
-            else:
+            elif transport == "sse":
                 logger.info(f"Starting server with SSE transport on port {port}")
                 server.settings.port = port
                 await server.run_sse_async()
+            elif transport == "streamable-http":
+                logger.info(f"Starting server with Streamable HTTP transport on port {port}")
+                server.settings.port = port
+                server.settings.streamable_http_path = "/mcp"
+                await server.run_streamable_http_async()
+            else:
+                raise ValueError(f"Unknown transport: {transport}")
         finally:
             # Clean up unified logger
             await UnifiedLogger.close()

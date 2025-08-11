@@ -63,6 +63,37 @@ This MCP server provides tools for:
 }
 ```
 
+### Transport Options
+
+The server supports multiple transport protocols:
+
+#### STDIO (Default)
+Standard input/output communication. Used by Claude Desktop and most MCP clients.
+
+```bash
+python -m {{cookiecutter.project_slug}}.server.app --transport stdio
+```
+
+#### SSE (Server-Sent Events)
+HTTP-based transport for web clients. Supports separate endpoints for different operations.
+
+```bash
+python -m {{cookiecutter.project_slug}}.server.app --transport sse --port {{cookiecutter.server_port}}
+```
+
+#### Streamable HTTP (Recommended for Web)
+Modern HTTP transport with unified `/mcp` endpoint. Supports both POST and GET requests with SSE streaming.
+
+```bash
+python -m {{cookiecutter.project_slug}}.server.app --transport streamable-http --port {{cookiecutter.server_port}}
+```
+
+The Streamable HTTP transport offers:
+- Single `/mcp` endpoint for all operations
+- Support for JSON responses or SSE streams
+- Session management and resumability
+- Better performance with concurrent connections
+
 ## Available Tools
 
 <!-- DEVELOPER NOTE: Replace this section with documentation for YOUR tools after removing examples -->
@@ -123,6 +154,10 @@ The server uses a configuration file located at:
 log_level: {{cookiecutter.log_level}}  # Logging verbosity
 log_retention_days: {{cookiecutter.log_retention_days}}  # How long to keep logs
 server_port: {{cookiecutter.server_port}}  # Port for HTTP transport (if used)
+default_transport: {{cookiecutter.default_transport}}  # Default transport protocol
+streamable_http_enabled: {% if cookiecutter.streamable_http_enabled == "yes" %}true{% else %}false{% endif %}  # Enable Streamable HTTP transport
+streamable_http_endpoint: "{{cookiecutter.streamable_http_endpoint}}"  # Endpoint for Streamable HTTP
+streamable_http_json_response: {% if cookiecutter.streamable_http_json_response == "yes" %}true{% else %}false{% endif %}  # Use JSON responses instead of SSE
 ```
 
 {% if cookiecutter.include_admin_ui == "yes" -%}

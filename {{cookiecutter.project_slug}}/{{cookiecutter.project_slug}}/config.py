@@ -30,9 +30,14 @@ class ServerConfig:
     logging_destinations: Dict[str, Any] = None
     
     # Server transport settings
-    default_transport: str = "stdio"
+    default_transport: str = "{{ cookiecutter.default_transport }}"
     default_host: str = "127.0.0.1"
     default_port: int = {{cookiecutter.server_port}}
+    
+    # Streamable HTTP transport settings
+    streamable_http_enabled: bool = {% if cookiecutter.streamable_http_enabled == "yes" %}True{% else %}False{% endif %}
+    streamable_http_endpoint: str = "{{ cookiecutter.streamable_http_endpoint }}"
+    streamable_http_json_response: bool = {% if cookiecutter.streamable_http_json_response == "yes" %}True{% else %}False{% endif %}  # If True, return JSON responses instead of SSE streams
     
     # Platform-aware paths
     config_dir: Path = None
@@ -86,6 +91,9 @@ class ServerConfig:
             "default_transport": self.default_transport,
             "default_host": self.default_host,
             "default_port": self.default_port,
+            "streamable_http_enabled": self.streamable_http_enabled,
+            "streamable_http_endpoint": self.streamable_http_endpoint,
+            "streamable_http_json_response": self.streamable_http_json_response,
         }
     
     @classmethod
@@ -97,9 +105,12 @@ class ServerConfig:
             log_level=data.get("log_level", "{{cookiecutter.log_level}}"),
             log_retention_days=data.get("log_retention_days", {{cookiecutter.log_retention_days}}),
             logging_destinations=data.get("logging_destinations"),
-            default_transport=data.get("default_transport", "stdio"),
+            default_transport=data.get("default_transport", "{{ cookiecutter.default_transport }}"),
             default_host=data.get("default_host", "127.0.0.1"),
             default_port=data.get("default_port", {{cookiecutter.server_port}}),
+            streamable_http_enabled=data.get("streamable_http_enabled", {% if cookiecutter.streamable_http_enabled == "yes" %}True{% else %}False{% endif %}),
+            streamable_http_endpoint=data.get("streamable_http_endpoint", "{{ cookiecutter.streamable_http_endpoint }}"),
+            streamable_http_json_response=data.get("streamable_http_json_response", {% if cookiecutter.streamable_http_json_response == "yes" %}True{% else %}False{% endif %}),
         )
     
     def save(self) -> None:

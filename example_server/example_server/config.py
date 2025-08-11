@@ -34,6 +34,11 @@ class ServerConfig:
     default_host: str = "127.0.0.1"
     default_port: int = 3001
     
+    # Streamable HTTP transport settings
+    streamable_http_enabled: bool = True
+    streamable_http_endpoint: str = "/mcp"
+    streamable_http_json_response: bool = False  # If True, return JSON responses instead of SSE streams
+    
     # Platform-aware paths
     config_dir: Path = None
     data_dir: Path = None
@@ -86,6 +91,9 @@ class ServerConfig:
             "default_transport": self.default_transport,
             "default_host": self.default_host,
             "default_port": self.default_port,
+            "streamable_http_enabled": self.streamable_http_enabled,
+            "streamable_http_endpoint": self.streamable_http_endpoint,
+            "streamable_http_json_response": self.streamable_http_json_response,
         }
     
     @classmethod
@@ -100,6 +108,9 @@ class ServerConfig:
             default_transport=data.get("default_transport", "stdio"),
             default_host=data.get("default_host", "127.0.0.1"),
             default_port=data.get("default_port", 3001),
+            streamable_http_enabled=data.get("streamable_http_enabled", True),
+            streamable_http_endpoint=data.get("streamable_http_endpoint", "/mcp"),
+            streamable_http_json_response=data.get("streamable_http_json_response", False),
         )
     
     def save(self) -> None:
