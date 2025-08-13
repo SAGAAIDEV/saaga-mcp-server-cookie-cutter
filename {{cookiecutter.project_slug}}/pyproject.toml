@@ -60,6 +60,9 @@ dev = [
 
 [project.scripts]
 {{ cookiecutter.project_slug }}-server = "{{ cookiecutter.project_slug }}.server.app:main"
+{{ cookiecutter.project_slug }}-server-stdio = "{{ cookiecutter.project_slug }}.server.app:main_stdio"
+{{ cookiecutter.project_slug }}-server-http = "{{ cookiecutter.project_slug }}.server.app:main_http"
+{{ cookiecutter.project_slug }}-server-sse = "{{ cookiecutter.project_slug }}.server.app:main_sse"
 test-mcp-integration = "{{ cookiecutter.project_slug }}.tests.integration.cli:run_tests_entry"
 
 [project.urls]

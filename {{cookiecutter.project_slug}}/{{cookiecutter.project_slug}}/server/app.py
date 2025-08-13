@@ -194,5 +194,17 @@ def main(port: int, transport: str) -> int:
         logger.error(f"Failed to start server: {e}", exc_info=True)
         return 1
 
+def main_stdio() -> int:
+    """Entry point for STDIO transport (convenience wrapper)."""
+    return main.callback(port={{ cookiecutter.server_port }}, transport="stdio")
+
+def main_http() -> int:
+    """Entry point for Streamable HTTP transport (convenience wrapper)."""
+    return main.callback(port={{ cookiecutter.server_port }}, transport="streamable-http")
+
+def main_sse() -> int:
+    """Entry point for SSE transport (convenience wrapper)."""
+    return main.callback(port={{ cookiecutter.server_port }}, transport="sse")
+
 if __name__ == "__main__":
     sys.exit(main())
