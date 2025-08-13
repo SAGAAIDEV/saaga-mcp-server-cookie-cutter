@@ -164,9 +164,11 @@ coverage html
 ### Why Some Lines Aren't Covered
 
 1. **UI Components** (`ui/` directory): Not tested (0% coverage) as they require Streamlit
-2. **SSE Transport**: Lines 105-107 in app.py - integration tests use STDIO transport
+2. **SSE Transport**: Some transport-specific lines may not be tested
 3. **Error Recovery**: Some error paths may not be reachable in tests
 4. **Main Block**: `if __name__ == "__main__"` blocks aren't executed during imports
+
+Note: Integration tests now support both STDIO and Streamable HTTP transports via parameterized fixtures, providing better coverage across transport types.
 
 ## Troubleshooting
 

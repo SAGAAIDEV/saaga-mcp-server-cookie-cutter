@@ -18,7 +18,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from example_server.config import get_config
-from example_server.logging import (
+from example_server.log_system import (
     get_tool_logger,
     get_correlation_id,
     set_correlation_id,

@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 
 from ..destinations.base import LogDestination, LogEntry
-from {{ cookiecutter.project_slug }}.config import ServerConfig
+from example_server.config import ServerConfig
 
 
 class SQLiteDestination(LogDestination):
@@ -90,8 +90,8 @@ class SQLiteDestination(LogDestination):
         """)
         conn.commit()
     
-    async def write(self, entry: LogEntry) -> None:
-        """Write a log entry to SQLite.
+    def write_sync(self, entry: LogEntry) -> None:
+        """Write a log entry to SQLite synchronously.
         
         Args:
             entry: The log entry to write
@@ -132,6 +132,15 @@ class SQLiteDestination(LogDestination):
             extra_data_json
         ))
         conn.commit()
+    
+    async def write(self, entry: LogEntry) -> None:
+        """Write a log entry to SQLite (async wrapper for compatibility).
+        
+        Args:
+            entry: The log entry to write
+        """
+        # SQLite operations are synchronous anyway, so just call the sync version
+        self.write_sync(entry)
     
     async def query(self, **filters) -> List[LogEntry]:
         """Query logs with filters.

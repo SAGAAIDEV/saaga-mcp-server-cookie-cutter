@@ -36,10 +36,38 @@ The Example Server implements a unified logging system that captures both tool e
 
 Every tool request gets a unique correlation ID in the format `req_xxxxxxxxxxxx`. This ID is automatically propagated to all related logs.
 
-```python
-from example_server.logging import set_correlation_id, get_correlation_id
+**Client-Provided vs Auto-Generated Correlation IDs**
 
-# Set a new correlation ID
+The system supports two modes of correlation ID management:
+
+1. **Client-Provided IDs**: When an MCP client includes a correlation ID in the request metadata, the system will use it for all related logs. This allows tracking requests across client and server boundaries.
+
+2. **Auto-Generated IDs**: When no correlation ID is provided by the client, the system automatically generates one in the format `req_xxxxxxxxxxxx`.
+
+**Important: Context Parameter Requirement**
+
+For client-provided correlation IDs to work, your tools MUST include a `ctx: Context = None` parameter:
+
+```python
+from mcp.server.fastmcp import Context
+
+# ✅ CORRECT - Can receive client correlation IDs
+async def my_tool(param: str, ctx: Context = None) -> dict:
+    # Tool implementation
+    return {"result": "success"}
+
+# ❌ INCORRECT - Will only use auto-generated IDs
+async def my_tool(param: str) -> dict:
+    # Tool implementation
+    return {"result": "success"}
+```
+
+The `tool_logger` decorator automatically extracts the correlation ID from the Context metadata when available.
+
+```python
+from example_server.log_system import set_correlation_id, get_correlation_id
+
+# Set a new correlation ID (usually done automatically)
 correlation_id = set_correlation_id()
 
 # Get the current correlation ID
@@ -78,9 +106,10 @@ class LogEntry:
 ### Basic Logging
 
 ```python
-from example_server.logging import get_tool_logger
+from example_server.log_system import get_tool_logger
+from mcp.server.fastmcp import Context
 
-async def my_custom_tool(param: str) -> str:
+async def my_custom_tool(param: str, ctx: Context = None) -> str:
     logger = get_tool_logger("my_custom_tool")
     
     logger.debug(f"Received parameter: {param}")
@@ -95,32 +124,38 @@ async def my_custom_tool(param: str) -> str:
         raise
 ```
 
+**Remember**: Always include the `ctx: Context = None` parameter to support client-provided correlation IDs.
+
 ### With the Tool Logger Decorator
 
 The `@tool_logger` decorator automatically handles correlation IDs and tool execution logging:
 
 ```python
 from example_server.decorators import tool_logger
+from mcp.server.fastmcp import Context
 
 @tool_logger
-async def my_tool(data: str) -> dict:
+async def my_tool(data: str, ctx: Context = None) -> dict:
     # Your tool logic here
     return {"result": "success"}
 ```
 
 This automatically logs:
+- Correlation ID (extracted from Context or auto-generated)
 - Tool start with status "running"
 - Input parameters
 - Execution duration
 - Success/error status
 - Output summary
 
+**Note**: The Context parameter is essential for receiving client-provided correlation IDs. Without it, the system will always generate new IDs.
+
 ### Manual Correlation Context
 
 For complex workflows, you can manually manage correlation context:
 
 ```python
-from example_server.logging import CorrelationContext, get_tool_logger
+from example_server.log_system import CorrelationContext, get_tool_logger
 
 async def complex_workflow():
     async with CorrelationContext() as correlation_id:
@@ -168,7 +203,7 @@ CREATE TABLE unified_logs (
 ### From Python Code
 
 ```python
-from example_server.logging.destinations import SQLiteDestination
+from example_server.log_system.destinations import SQLiteDestination
 from example_server.config import get_config
 
 # Get the destination
@@ -252,9 +287,11 @@ UnifiedLogger.initialize(destination)
 
 ### Correlation IDs Not Working
 
-1. Ensure tool logger decorator is applied
-2. Check that correlation context is set at entry points
-3. Verify async context propagation
+1. **Most Common Issue**: Ensure all tools have `ctx: Context = None` parameter
+2. Verify the Context is imported from `mcp.server.fastmcp`
+3. Check that the tool logger decorator is applied
+4. Verify the MCP client is sending correlation IDs in metadata
+5. Note: MCP Inspector does not provide UI for setting correlation IDs
 
 ### Performance Issues
 

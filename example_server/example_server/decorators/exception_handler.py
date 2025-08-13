@@ -25,8 +25,8 @@ from functools import wraps
 from typing import Callable, Any, Awaitable
 import logging
 import traceback
-from example_server.logging.unified_logger import UnifiedLogger
-from example_server.logging.correlation import get_correlation_id
+from example_server.log_system.unified_logger import UnifiedLogger
+from example_server.log_system.correlation import get_correlation_id
 
 
 def exception_handler(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:

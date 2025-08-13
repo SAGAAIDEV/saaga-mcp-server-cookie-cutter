@@ -130,7 +130,9 @@ Creating JIRA issue with:
 - Summary: [confirmed title]
 - Description: [confirmed description]
 
-[Use mcp__Conduit__create_jira_issue or mcp__mcp_jira__create_jira_issue]
+[Use mcp__mcp_jira__create_jira_issue if available, otherwise fall back to mcp__Conduit__create_jira_issue]
+
+[Prefer mcp__mcp_jira__create_jira_issue as it's the dedicated JIRA server with better formatting support]
 
 ✅ **Issue Created Successfully!**
 - Issue Key: [PROJ-123]

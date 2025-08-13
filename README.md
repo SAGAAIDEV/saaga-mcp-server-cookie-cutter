@@ -35,7 +35,7 @@ If you're using a different AI assistant (not Claude Code), you can use our setu
 
 ## Features
 
-- **FastMCP Integration**: Built on the modern FastMCP framework with dual transport support (stdio/SSE)
+- **FastMCP Integration**: Built on the modern FastMCP framework with triple transport support (STDIO/SSE/Streamable HTTP)
 - **SAAGA Decorators**: Automatic application of exception handling, logging, and parallelization decorators
 - **Platform-Aware Configuration**: Cross-platform configuration management using `platformdirs`
 - **Optional Streamlit UI**: Administrative interface for configuration and log viewing
@@ -97,6 +97,10 @@ You'll be prompted for the following configuration options:
 - `include_example_tools`: Include example MCP tools (yes/no)
 - `include_parallel_example`: Include parallel processing example (yes/no)
 - `server_port`: Default server port for HTTP transport
+- `default_transport`: Default transport protocol (stdio, sse, streamable-http)
+- `streamable_http_enabled`: Enable Streamable HTTP transport (yes/no)
+- `streamable_http_endpoint`: Endpoint for Streamable HTTP (default: /mcp)
+- `streamable_http_json_response`: Use JSON responses instead of SSE (no/yes)
 - `log_level`: Default logging level (INFO, DEBUG, WARNING, ERROR)
 - `log_retention_days`: Number of days to retain logs
 
@@ -105,7 +109,7 @@ You'll be prompted for the following configuration options:
 The `example_server/` directory contains a fully functional MCP server that demonstrates all the features of this template:
 
 - ✅ Working SAAGA decorators with proper parameter introspection
-- ✅ Dual transport support (STDIO and SSE)
+- ✅ Triple transport support (STDIO, SSE, and Streamable HTTP)
 - ✅ Example tools showing both sync and async patterns
 - ✅ Complete configuration management
 - ✅ Proper logging setup

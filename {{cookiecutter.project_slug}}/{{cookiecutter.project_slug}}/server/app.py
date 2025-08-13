@@ -1,7 +1,8 @@
 """{{ cookiecutter.project_name }} - MCP Server with SAAGA Decorators
 
-This module implements the core MCP server using FastMCP with dual transport support
-and automatic application of SAAGA decorators (exception handling, logging, parallelization).
+This module implements the core MCP server using FastMCP with multi-transport support
+(STDIO, SSE, and Streamable HTTP) and automatic application of SAAGA decorators 
+(exception handling, logging, parallelization).
 """
 
 import asyncio
@@ -14,12 +15,12 @@ from mcp.server.fastmcp import FastMCP
 
 from {{ cookiecutter.project_slug }}.config import ServerConfig, get_config
 from {{ cookiecutter.project_slug }}.logging_config import setup_logging, logger
-from {{ cookiecutter.project_slug }}.logging.correlation import (
+from {{ cookiecutter.project_slug }}.log_system.correlation import (
     generate_correlation_id,
     set_initialization_correlation_id,
     clear_initialization_correlation_id
 )
-from {{ cookiecutter.project_slug }}.logging.unified_logger import UnifiedLogger
+from {{ cookiecutter.project_slug }}.log_system.unified_logger import UnifiedLogger
 {% if cookiecutter.include_example_tools == "yes" -%}
 from {{ cookiecutter.project_slug }}.tools.example_tools import example_tools, parallel_example_tools
 {% endif -%}
@@ -42,7 +43,7 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     
     # Initialize unified logging using factory pattern
     # Convert logging_destinations dict to DestinationConfig objects
-    from {{ cookiecutter.project_slug }}.logging.destinations import DestinationConfig
+    from {{ cookiecutter.project_slug }}.log_system.destinations import DestinationConfig
     
     destinations_list = []
     if config.logging_destinations and 'destinations' in config.logging_destinations:
@@ -149,13 +150,13 @@ server = create_mcp_server()
 @click.option(
     "--port",
     default={{ cookiecutter.server_port }},
-    help="Port to listen on for SSE transport"
+    help="Port to listen on for SSE or Streamable HTTP transport"
 )
 @click.option(
     "--transport",
-    type=click.Choice(["stdio", "sse"]),
-    default="stdio",
-    help="Transport type (stdio or sse)"
+    type=click.Choice(["stdio", "sse", "streamable-http"]),
+    default="{{ cookiecutter.default_transport }}",
+    help="Transport type (stdio, sse, or streamable-http)"
 )
 def main(port: int, transport: str) -> int:
     """Run the {{ cookiecutter.project_name }} server with specified transport."""
@@ -168,10 +169,17 @@ def main(port: int, transport: str) -> int:
             if transport == "stdio":
                 logger.info("Starting server with STDIO transport")
                 await server.run_stdio_async()
-            else:
+            elif transport == "sse":
                 logger.info(f"Starting server with SSE transport on port {port}")
                 server.settings.port = port
                 await server.run_sse_async()
+            elif transport == "streamable-http":
+                logger.info(f"Starting server with Streamable HTTP transport on port {port}")
+                server.settings.port = port
+                server.settings.streamable_http_path = "/mcp"
+                await server.run_streamable_http_async()
+            else:
+                raise ValueError(f"Unknown transport: {transport}")
         finally:
             # Clean up unified logger
             await UnifiedLogger.close()
@@ -185,6 +193,18 @@ def main(port: int, transport: str) -> int:
     except Exception as e:
         logger.error(f"Failed to start server: {e}", exc_info=True)
         return 1
+
+def main_stdio() -> int:
+    """Entry point for STDIO transport (convenience wrapper)."""
+    return main.callback(port={{ cookiecutter.server_port }}, transport="stdio")
+
+def main_http() -> int:
+    """Entry point for Streamable HTTP transport (convenience wrapper)."""
+    return main.callback(port={{ cookiecutter.server_port }}, transport="streamable-http")
+
+def main_sse() -> int:
+    """Entry point for SSE transport (convenience wrapper)."""
+    return main.callback(port={{ cookiecutter.server_port }}, transport="sse")
 
 if __name__ == "__main__":
     sys.exit(main())

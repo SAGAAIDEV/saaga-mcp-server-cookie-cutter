@@ -44,7 +44,7 @@ Examining:
 - **Server Configuration**: How `server/app.py` orchestrates everything
 - **Decorator Chain**: How SAAGA decorators are applied
 - **Logging System**: SQLite logging and correlation IDs
-- **Transport Layers**: STDIO and SSE support
+- **Transport Layers**: STDIO, SSE, and Streamable HTTP support
 - **UI Integration**: Streamlit admin interface (if present)
 
 ## Step 4: Generate Architecture Diagrams
@@ -63,6 +63,7 @@ graph TB
         subgraph "Transport Layer"
             STDIO[STDIO Transport]
             SSE[SSE Transport :3001]
+            SHTTP[Streamable HTTP :3001/mcp]
         end
         
         subgraph "Core Server"
@@ -93,8 +94,8 @@ graph TB
         UI[Streamlit Dashboard :8501]
     end
     
-    C1 & C2 & C3 --> STDIO & SSE
-    STDIO & SSE --> APP
+    C1 & C2 & C3 --> STDIO & SSE & SHTTP
+    STDIO & SSE & SHTTP --> APP
     APP --> REG
     REG --> EH --> TL --> TC --> T1 & T2
     REG --> EH --> TL --> TC --> PZ --> T3

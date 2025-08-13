@@ -185,26 +185,22 @@ Based on the patterns in .reference/:
 
 ## 🎉 SUCCESS: Tests Generated and Passing!
 
-Your tool is now fully tested and production-ready! You can confidently use it in Claude Desktop or other MCP clients.
+Your tool is now fully tested and production-ready! 
 
-### Next Steps:
+### Clean Up Example Code (Optional)
 
-1. **Run full test suite**: `uv run pytest`
-2. **Integration with AI**: Update Claude Desktop config  
-3. **Create more tools**: Use `/add-tool` for next feature
-
-### Optional: Remove Example Code
-
-Once you're satisfied with YOUR tools and tests, you can clean up the example code:
+Now that you have YOUR working tools and tests, you can remove the example code:
 
 ```
 /remove-examples
 ```
 
-This will:
-- Remove all 6 example tools
-- Remove all example-specific tests  
-- Keep YOUR tools and tests intact
-- Keep the test infrastructure
+This will remove all 6 example tools and their tests, keeping YOUR code intact.
 
-**Only run this when you're ready to go fully production with your own tools!**
+### Other Next Steps:
+
+1. **Run full test suite**: `uv run pytest`
+2. **Integration with AI**: Update Claude Desktop config  
+3. **Create more tools**: Use `/add-tool` for next feature
+
+Your tool is ready for production use in Claude Desktop or other MCP clients!

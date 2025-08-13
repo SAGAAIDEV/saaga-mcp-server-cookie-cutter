@@ -1,7 +1,8 @@
 """Example Server - MCP Server with SAAGA Decorators
 
-This module implements the core MCP server using FastMCP with dual transport support
-and automatic application of SAAGA decorators (exception handling, logging, parallelization).
+This module implements the core MCP server using FastMCP with multi-transport support
+(STDIO, SSE, and Streamable HTTP) and automatic application of SAAGA decorators 
+(exception handling, logging, parallelization).
 """
 
 import asyncio
@@ -14,17 +15,13 @@ from mcp.server.fastmcp import FastMCP
 
 from example_server.config import ServerConfig, get_config
 from example_server.logging_config import setup_logging, logger
-from example_server.logging.correlation import (
+from example_server.log_system.correlation import (
     generate_correlation_id,
     set_initialization_correlation_id,
     clear_initialization_correlation_id
 )
-from example_server.logging.unified_logger import UnifiedLogger
-from example_server.tools.system_info_analyzer import system_analyzer_tools
-
-# Initialize empty lists for example tools (removed but loops remain)
-example_tools = []
-parallel_example_tools = []
+from example_server.log_system.unified_logger import UnifiedLogger
+from example_server.tools.example_tools import example_tools, parallel_example_tools
 def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     """Create and configure the MCP server with SAAGA decorators.
     
@@ -43,7 +40,7 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     
     # Initialize unified logging using factory pattern
     # Convert logging_destinations dict to DestinationConfig objects
-    from example_server.logging.destinations import DestinationConfig
+    from example_server.log_system.destinations import DestinationConfig
     
     destinations_list = []
     if config.logging_destinations and 'destinations' in config.logging_destinations:
@@ -130,22 +127,6 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
         )(decorated_func)
         
         unified_logger.info(f"Registered parallel tool: {tool_name}")
-    
-    # Register system analyzer tools with SAAGA decorators
-    for tool_func in system_analyzer_tools:
-        # Apply SAAGA decorator chain: exception_handler → tool_logger → type_converter
-        decorated_func = exception_handler(tool_logger(type_converter(tool_func), config.__dict__))
-        
-        # Extract metadata from the original function
-        tool_name = tool_func.__name__
-        
-        # Register the decorated function directly with MCP
-        mcp_server.tool(
-            name=tool_name
-        )(decorated_func)
-        
-        unified_logger.info(f"Registered system tool: {tool_name}")
-    
     unified_logger.info(f"Server '{mcp_server.name}' initialized with SAAGA decorators")
 # Create a server instance that can be imported by the MCP CLI
 server = create_mcp_server()
@@ -153,14 +134,14 @@ server = create_mcp_server()
 @click.command()
 @click.option(
     "--port",
-    default=3001,
-    help="Port to listen on for SSE transport"
+    default=6272,
+    help="Port to listen on for SSE or Streamable HTTP transport"
 )
 @click.option(
     "--transport",
-    type=click.Choice(["stdio", "sse"]),
+    type=click.Choice(["stdio", "sse", "streamable-http"]),
     default="stdio",
-    help="Transport type (stdio or sse)"
+    help="Transport type (stdio, sse, or streamable-http)"
 )
 def main(port: int, transport: str) -> int:
     """Run the Example Server server with specified transport."""
@@ -173,10 +154,17 @@ def main(port: int, transport: str) -> int:
             if transport == "stdio":
                 logger.info("Starting server with STDIO transport")
                 await server.run_stdio_async()
-            else:
+            elif transport == "sse":
                 logger.info(f"Starting server with SSE transport on port {port}")
                 server.settings.port = port
                 await server.run_sse_async()
+            elif transport == "streamable-http":
+                logger.info(f"Starting server with Streamable HTTP transport on port {port}")
+                server.settings.port = port
+                server.settings.streamable_http_path = "/mcp"
+                await server.run_streamable_http_async()
+            else:
+                raise ValueError(f"Unknown transport: {transport}")
         finally:
             # Clean up unified logger
             await UnifiedLogger.close()

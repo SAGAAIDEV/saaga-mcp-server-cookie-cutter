@@ -58,10 +58,10 @@ Based on user's choice (1, 2, or 3), follow the appropriate path:
    
    **Concept**: How MCP connects
    - "Three transport methods:"
-   - "• stdio (local) - what Claude Desktop uses"
-   - "• SSE (network) - being deprecated"
-   - "• HTTP streaming (future) - coming soon"
-   - "This server supports stdio and SSE. FastMCP handles the complexity."
+   - "• STDIO (local) - what Claude Desktop uses"
+   - "• SSE (network) - traditional HTTP transport"
+   - "• Streamable HTTP - modern unified transport with session management"
+   - "This server supports all three transports. FastMCP handles the complexity."
    - "Making sense?"
    [WAIT FOR USER RESPONSE BEFORE CONTINUING]
    

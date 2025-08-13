@@ -41,7 +41,7 @@ def check_server_status() -> str:
                 continue
         
         # Also check if SSE transport is listening on the configured port
-        port = 3001
+        port = 6272
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.settimeout(0.5)
             result = sock.connect_ex(('localhost', port))
@@ -52,7 +52,7 @@ def check_server_status() -> str:
     except ImportError:
         # psutil not available, fallback to socket check only
         try:
-            port = 3001
+            port = 6272
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 sock.settimeout(1)
                 result = sock.connect_ex(('localhost', port))
@@ -71,12 +71,12 @@ def get_project_info() -> Dict[str, Any]:
     """
     return {
         "name": "Example Server",
-        "description": "MCP server with SAAGA decorators",
-        "author": "Your Name",
-        "email": "email@example.com",
+        "description": "Example MCP server showcasing SAAGA decorator patterns",
+        "author": "SAAGA Team",
+        "email": "team@saaga.ai",
         "version": "0.1.0",
         "python_version": "3.11",
-        "server_port": 3001,
+        "server_port": 6272,
         "log_level": "INFO",
         "log_retention_days": 30,
         "features": {
@@ -171,7 +171,7 @@ def get_default_configuration() -> Dict[str, Any]:
     return {
         "server": {
             "name": "Example Server",
-            "port": 3001,
+            "port": 6272,
             "log_level": "INFO"
         },
         "logging": {

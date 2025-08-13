@@ -13,9 +13,9 @@ This document provides a comprehensive reference for the MCP (Model Context Prot
 
 1. **FastMCP Server** (`from mcp.server.fastmcp import FastMCP`)
    - High-level server interface
-   - Dual transport support (STDIO and SSE)
+   - Triple transport support (STDIO, SSE, and Streamable HTTP)
    - Tool registration and management
-   - Not using: Resources, Prompts, Completions, StreamableHTTP
+   - Not using: Resources, Prompts, Completions
 
 2. **Context Object** (`from mcp.server.fastmcp import Context`)
    - Provides access to MCP capabilities in tools
@@ -31,7 +31,8 @@ This document provides a comprehensive reference for the MCP (Model Context Prot
 4. **Transport Protocols**
    - **STDIO**: Standard input/output for CLI integration
    - **SSE**: Server-Sent Events for HTTP-based communication
-   - Not using: WebSocket, StreamableHTTP
+   - **Streamable HTTP**: Modern unified HTTP transport with session management
+   - Not using: WebSocket
 
 ### Features NOT Implemented in This Template
 
@@ -40,8 +41,8 @@ The following MCP features exist in the SDK but are NOT used in this cookie cutt
 1. **Resources**: File/data serving capabilities
 2. **Prompts**: Prompt templates and management
 3. **Completions**: Auto-completion support
-4. **StreamableHTTP**: Stateful/stateless HTTP transport
-5. **OAuth/Auth**: Authentication mechanisms
+4. **OAuth/Auth**: Authentication mechanisms
+5. **WebSocket**: WebSocket transport (not implemented)
 6. **Elicitation**: Interactive user input during tool execution
 7. **Sampling**: LLM integration for message generation
 8. **Roots**: File system access management
@@ -109,12 +110,18 @@ The template uses a re-raise pattern:
 - Communication: Server-Sent Events + POST endpoints
 - Configuration: Requires port specification
 
+### Streamable HTTP Transport
+- Used by: Modern web applications, HTTP clients with session management
+- Communication: Unified `/mcp` endpoint with POST/GET + SSE streaming
+- Configuration: Requires port and endpoint specification
+- Features: Session management, resumability, better performance
+
 ## Key Architectural Decisions
 
 ### Why These Features?
 
 1. **Tools Only**: Most MCP servers primarily need tool functionality
-2. **Dual Transport**: Covers both CLI and web use cases
+2. **Triple Transport**: Covers CLI, traditional web, and modern web use cases
 3. **Context for Logging**: Essential for debugging and user feedback
 4. **No Resources/Prompts**: Complexity not needed for most use cases
 
@@ -149,13 +156,13 @@ This preserves function signatures for MCP introspection while adding functional
 ## Version Considerations
 
 ### What Changes Frequently
-- New transport protocols (StreamableHTTP is recent)
 - Authentication mechanisms (OAuth support is new)
 - Additional capabilities (Elicitation, Sampling are newer)
+- Transport protocol improvements
 
 ### What Remains Stable
 - Core tool registration and execution
-- Basic transport protocols (STDIO, SSE)
+- Transport protocols (STDIO, SSE, Streamable HTTP)
 - Context object for logging
 - JSON-RPC message format
 
