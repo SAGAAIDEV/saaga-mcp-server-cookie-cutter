@@ -27,9 +27,11 @@ from functools import wraps
 from typing import Callable, Any, Awaitable
 import time
 import json
+import inspect
 
-from {{ cookiecutter.project_slug }}.logging.correlation import set_correlation_id, get_correlation_id, clear_correlation_id, generate_correlation_id
-from {{ cookiecutter.project_slug }}.logging.unified_logger import UnifiedLogger
+from {{ cookiecutter.project_slug }}.log_system.correlation import set_correlation_id, get_correlation_id, clear_correlation_id, generate_correlation_id
+from {{ cookiecutter.project_slug }}.log_system.unified_logger import UnifiedLogger
+from mcp.server.fastmcp import Context
 
 
 def tool_logger(func: Callable[..., Awaitable[Any]] = None, config: dict = None) -> Callable[..., Awaitable[Any]]:
@@ -56,14 +58,36 @@ def tool_logger(func: Callable[..., Awaitable[Any]] = None, config: dict = None)
     def decorator(f: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
         @wraps(f)
         async def wrapper(*args, **kwargs) -> Any:
-            # Check for client-provided correlation ID in MCP metadata
+            # Check if MCP client provided a correlation ID via context metadata
             correlation_id = None
-            if kwargs.get('_meta') and isinstance(kwargs['_meta'], dict):
-                correlation_id = kwargs['_meta'].get('correlation_id')
-                # Remove _meta from kwargs so it doesn't get passed to the tool
-                kwargs.pop('_meta', None)
             
-            # If no client-provided ID, generate one
+            # Get function signature to find Context parameter
+            sig = inspect.signature(f)
+            params = sig.parameters
+            
+            # Check if function expects a Context parameter
+            context_param_name = None
+            for param_name, param in params.items():
+                if param.annotation == Context or param_name == 'ctx':
+                    context_param_name = param_name
+                    break
+            
+            # Extract Context from kwargs if present
+            ctx = None
+            if context_param_name and context_param_name in kwargs:
+                ctx = kwargs[context_param_name]
+                
+                # Extract correlation ID from context metadata
+                if ctx and hasattr(ctx, 'request_context') and hasattr(ctx.request_context, 'meta'):
+                    meta = ctx.request_context.meta
+                    if meta:
+                        # Meta can be a dict or object with attributes
+                        if hasattr(meta, 'get'):
+                            correlation_id = meta.get('correlationId')
+                        elif hasattr(meta, 'correlationId'):
+                            correlation_id = getattr(meta, 'correlationId', None)
+            
+            # If no correlation ID from client, generate one
             if not correlation_id:
                 correlation_id = f"req_{generate_correlation_id().split('_')[1]}"
             
@@ -80,7 +104,9 @@ def tool_logger(func: Callable[..., Awaitable[Any]] = None, config: dict = None)
             # MCP passes parameters directly as keyword arguments
             try:
                 # For MCP tools, we only have kwargs (no positional args)
-                input_args_dict = kwargs if kwargs else {}
+                # Filter out ctx and Context objects - they contain unpicklable asyncio objects
+                input_args_dict = {k: v for k, v in kwargs.items() 
+                                   if k != 'ctx' and not isinstance(v, Context)} if kwargs else {}
                 input_args_str = json.dumps(input_args_dict, default=str)
             except Exception:
                 input_args_dict = {}

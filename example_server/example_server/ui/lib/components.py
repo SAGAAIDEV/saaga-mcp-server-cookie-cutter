@@ -28,13 +28,13 @@ def render_sidebar():
         st.markdown("""
         **Example Server**  
         Version: 0.1.0  
-        Author: Your Name  
+        Author: SAAGA Team  
         """)
         
         st.markdown("---")
         st.markdown("### 🔧 Server Info")
         st.markdown("""
-        **Port:** 3001  
+        **Port:** 6272  
         **Log Level:** INFO  
         **Python:** 3.11+  
         """)

@@ -49,12 +49,12 @@ class TestMCPToolDiscovery:
         ]
         
         # Add conditional tools based on template configuration
-        {% if cookiecutter.include_parallel_example == "yes" %}
+        
         expected_tools.extend([
             "process_batch_data", 
             "simulate_heavy_computation"
         ])
-        {% endif %}
+        
         
         for expected in expected_tools:
             assert expected in tool_names, f"Tool {expected} not found in {tool_names} (transport: {transport})"
@@ -194,7 +194,7 @@ class TestMCPToolExecution:
         except (json.JSONDecodeError, KeyError) as e:
             pytest.fail(f"Failed to parse response: {e}, content: {text_content} (transport: {transport})")
     
-    {% if cookiecutter.include_parallel_example == "yes" %}
+    
     async def test_process_batch_data_parallel_execution(self, mcp_session):
         """Test process_batch_data parallel tool execution.
         
@@ -265,7 +265,7 @@ class TestMCPToolExecution:
             assert "iterations" in res, f"Result {i} missing iterations (transport: {transport})"
             assert "result" in res, f"Result {i} missing result (transport: {transport})"
             assert "computation_time" in res, f"Result {i} missing computation_time (transport: {transport})"
-    {% endif %}
+    
 
 
 class TestMCPErrorHandling:
@@ -352,7 +352,7 @@ class TestMCPErrorHandling:
             f"Error doesn't indicate unknown tool: {error_text} (transport: {transport})"
         )
     
-    {% if cookiecutter.include_parallel_example == "yes" %}
+    
     async def test_parallel_tool_invalid_format(self, mcp_session):
         """Test error handling for parallel tools with invalid input format.
         
@@ -371,7 +371,7 @@ class TestMCPErrorHandling:
         assert any(keyword in error_text.lower() for keyword in ["list", "type", "error"]), (
             f"Error doesn't indicate type issue: {error_text} (transport: {transport})"
         )
-    {% endif %}
+    
 
 
 class TestMCPProtocolCompliance:

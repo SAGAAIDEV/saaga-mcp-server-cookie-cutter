@@ -1,11 +1,11 @@
 """
-Unified logging system for Example Server.
+Unified logging system for {{ cookiecutter.project_name }}.
 
 This module provides a pluggable logging architecture with correlation IDs
 for tracking related events across tool executions and internal logs.
 
 Example usage for tool developers:
-    from example_server.logging import get_tool_logger
+    from {{ cookiecutter.project_slug }}.log_system import get_tool_logger
     
     async def my_custom_tool(param: str) -> str:
         logger = get_tool_logger("my_custom_tool")

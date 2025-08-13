@@ -182,9 +182,9 @@ Features:
 ## Logs
 
 Server logs are stored in an SQLite database at:
-- **macOS**: `~/Library/Application Support/{{cookiecutter.project_slug}}/logs.db`
-- **Linux**: `~/.local/share/{{cookiecutter.project_slug}}/logs.db`
-- **Windows**: `%APPDATA%/{{cookiecutter.project_slug}}/logs.db`
+- **macOS**: `~/Library/Application Support/{{cookiecutter.project_slug}}/unified_logs.db`
+- **Linux**: `~/.local/share/{{cookiecutter.project_slug}}/unified_logs.db`
+- **Windows**: `%APPDATA%/{{cookiecutter.project_slug}}/unified_logs.db`
 
 ## Troubleshooting
 

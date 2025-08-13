@@ -55,21 +55,42 @@ async def my_tool(param: str) -> dict:
 
 ### 2. Tool Logger (Applied to ALL tools)
 
-Tracks execution metrics and logs all tool invocations to SQLite database:
+Tracks execution metrics and logs all tool invocations to SQLite database.
+
+**IMPORTANT: Context Parameter Requirement**
+
+For correlation IDs to work properly with MCP clients that provide them, all tools MUST include a `ctx: Context = None` parameter:
 
 ```python
-# Automatically applied - you don't need to do anything
-async def my_tool(param: str) -> dict:
+from mcp.server.fastmcp import Context
+
+# ✅ CORRECT - Includes Context parameter
+async def my_tool(param: str, ctx: Context = None) -> dict:
     # Logger tracks:
+    # - Correlation ID (from Context or auto-generated)
     # - Start time
     # - Input parameters (JSON serialized)
     # - Execution duration (milliseconds)
     # - Output (summarized)
     # - Any errors
     return {"result": "processed"}
+
+# ❌ INCORRECT - Missing Context parameter (correlation IDs won't work)
+async def my_tool(param: str) -> dict:
+    return {"result": "processed"}
 ```
 
+The Context parameter:
+- Must be imported from `mcp.server.fastmcp`
+- Should be the last parameter in the function signature
+- Should have a default value of `None`
+- Will be automatically provided by the MCP runtime when available
+- Contains metadata including client-provided correlation IDs
+
+When a client provides a correlation ID in the request metadata, the tool_logger decorator will extract it from the Context and use it for all related logs. If no correlation ID is provided, the system will auto-generate one.
+
 **What it logs:**
+- Correlation ID (client-provided or auto-generated)
 - Tool name and parameters
 - Execution time in milliseconds
 - Success/failure status
@@ -207,7 +228,9 @@ Add to the `example_tools` list in `tools/__init__.py`:
 
 ```python
 # tools/my_tools.py
-def my_regular_tool(param: str) -> dict:
+from mcp.server.fastmcp import Context
+
+async def my_regular_tool(param: str, ctx: Context = None) -> dict:
     """A regular tool with automatic exception handling and logging."""
     return {"processed": param}
 
@@ -222,7 +245,9 @@ Add to the `parallel_example_tools` list ONLY if suitable:
 
 ```python
 # tools/batch_tools.py
-def batch_processor(items: List[str]) -> List[dict]:
+from mcp.server.fastmcp import Context
+
+async def batch_processor(items: List[str], ctx: Context = None) -> List[dict]:
     """Process multiple items in parallel."""
     # Each item processed independently
     return [{"processed": item} for item in items]
@@ -248,12 +273,14 @@ decorated = exception_handler(tool_logger(parallelize(your_tool)))
 
 ## Common Patterns and Examples
 
-### Pattern 1: Type Conversion
+### Pattern 1: Type Conversion with Context
 
-MCP passes parameters as strings. Handle conversion in your tools:
+MCP passes parameters as strings. Handle conversion in your tools and always include the Context parameter:
 
 ```python
-def calculate(a: str, b: str) -> dict:
+from mcp.server.fastmcp import Context
+
+async def calculate(a: str, b: str, ctx: Context = None) -> dict:
     """Handle string inputs from MCP."""
     try:
         num_a = float(a)
@@ -264,33 +291,37 @@ def calculate(a: str, b: str) -> dict:
         raise ValueError(f"Invalid number format: {e}")
 ```
 
-### Pattern 2: Async Tools
+### Pattern 2: Async Tools with Context
 
-Both sync and async tools are supported:
+All tools must be async and include the Context parameter:
 
 ```python
-async def fetch_data(url: str) -> dict:
+from mcp.server.fastmcp import Context
+
+async def fetch_data(url: str, ctx: Context = None) -> dict:
     """Async tools work automatically."""
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             return {"data": await response.json()}
 ```
 
-### Pattern 3: Progress Reporting
+### Pattern 3: Progress Reporting with Context
 
-For long-running operations, log progress:
+For long-running operations, log progress and include the Context parameter:
 
 ```python
 import logging
+from mcp.server.fastmcp import Context
+
 logger = logging.getLogger(__name__)
 
-def long_operation(data: str) -> dict:
+async def long_operation(data: str, ctx: Context = None) -> dict:
     """Log progress for long operations."""
     logger.info("Starting phase 1...")
-    result1 = phase1(data)
+    result1 = await phase1(data)
     
     logger.info("Starting phase 2...")
-    result2 = phase2(result1)
+    result2 = await phase2(result1)
     
     logger.info("Operation complete")
     return {"result": result2}
@@ -320,12 +351,13 @@ def long_operation(data: str) -> dict:
 
 ## Best Practices
 
-1. **Let exceptions bubble up** - The exception handler will catch them
-2. **Return JSON-serializable data** - dict, list, str, int, float, bool
-3. **Use type hints** - Helps with documentation and IDE support
-4. **Log important operations** - Use the standard logging module
-5. **Test with MCP Inspector** - Verify parameters and outputs
-6. **Be careful with parallelization** - Only use when truly beneficial
+1. **Always include Context parameter** - Required for correlation ID support
+2. **Let exceptions bubble up** - The exception handler will catch them
+3. **Return JSON-serializable data** - dict, list, str, int, float, bool
+4. **Use type hints** - Helps with documentation and IDE support
+5. **Log important operations** - Use the standard logging module
+6. **Test with MCP Inspector** - Verify parameters and outputs
+7. **Be careful with parallelization** - Only use when truly beneficial
 
 ## Summary
 

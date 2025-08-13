@@ -104,25 +104,35 @@ class UnifiedLogger:
                                    "input_args", "output_summary", "error_message"]}
         )
         
-        # Write to destination asynchronously
-        try:
-            # Try to get the event loop
-            loop = cls._event_loop or asyncio.get_event_loop()
-            
-            # Schedule the write operation
-            if loop.is_running():
-                # If loop is running, create a task
-                asyncio.create_task(cls._destination.write(entry))
-            else:
-                # If loop is not running, run until complete
-                loop.run_until_complete(cls._destination.write(entry))
-        except RuntimeError:
-            # No event loop available, try to create one
+        # Write to destination
+        # SQLiteDestination has both sync and async write methods
+        # Always use the sync method since SQLite operations are synchronous anyway
+        if hasattr(cls._destination, 'write_sync'):
+            # SQLite destination - use sync write directly
             try:
-                asyncio.run(cls._destination.write(entry))
+                cls._destination.write_sync(entry)
             except Exception as e:
-                # Fall back to stderr if we can't write to destination
-                print(f"Failed to write log entry: {e}", file=sys.stderr)
+                import sys
+                print(f"Warning: Could not write log entry: {e}", file=sys.stderr)
+        else:
+            # Other destinations that might be truly async
+            try:
+                loop = cls._event_loop
+                if not loop:
+                    try:
+                        loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        loop = None
+                
+                if loop and loop.is_running():
+                    # We're in an async context with a running loop
+                    asyncio.create_task(cls._destination.write(entry))
+                else:
+                    # We're in a sync context or no loop is running
+                    asyncio.run(cls._destination.write(entry))
+            except Exception as e:
+                import sys
+                print(f"Warning: Could not write log entry: {e}", file=sys.stderr)
     
     @classmethod
     def get_logger(cls, name: Optional[str] = None):

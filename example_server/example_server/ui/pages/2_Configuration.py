@@ -89,7 +89,7 @@ def render_configuration_form(config):
             st.markdown("**Server Settings**")
             server_name = st.text_input("Server Name", value=server_config.get("name", "Example Server"))
             server_port = st.number_input("Server Port", 
-                                        value=server_config.get("port", 3001),
+                                        value=server_config.get("port", 6272),
                                         min_value=1, max_value=65535)
             log_level = st.selectbox("Log Level", 
                                    options=["DEBUG", "INFO", "WARNING", "ERROR"],
@@ -356,7 +356,7 @@ def render_environment_variables():
     # Dynamic environment variables based on current config
     env_vars = {
         "EXAMPLE_SERVER_LOG_LEVEL": "INFO",
-        "EXAMPLE_SERVER_PORT": "3001",
+        "EXAMPLE_SERVER_PORT": "6272",
         "EXAMPLE_SERVER_CONFIG_PATH": system_info.get("config_path", "~/.config/example_server"),
         "EXAMPLE_SERVER_LOG_PATH": system_info.get("log_path", "~/.local/share/example_server"),
         "PYTHONPATH": system_info.get("current_directory", "Current directory included")
@@ -380,7 +380,7 @@ def render_validation_section(config):
     validation_results = []
     
     # Server port validation
-    port = server_config.get("port", 3001)
+    port = server_config.get("port", 6272)
     if is_port_available(port):
         validation_results.append({
             "check": "Server port availability", 

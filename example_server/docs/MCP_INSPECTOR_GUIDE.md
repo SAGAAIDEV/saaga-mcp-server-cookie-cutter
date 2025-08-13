@@ -50,17 +50,39 @@ uv sync
 
 ## Launching MCP Inspector
 
+The MCP Inspector supports multiple transport protocols. Choose the one that best fits your needs:
+
+### STDIO Transport (Default)
 From your project root (with venv activated):
 ```bash
 mcp dev example_server/server/app.py
 ```
 
+### SSE Transport
+```bash
+mcp dev example_server/server/app.py --transport sse
+```
+
+### Streamable HTTP Transport (Recommended for Testing)
+The Streamable HTTP transport provides the best testing experience with its unified endpoint:
+```bash
+mcp dev example_server/server/app.py --transport streamable-http
+```
+
 You should see:
 - Server logs showing tool registration
-- SQLite database initialization
+- SQLite database initialization  
 - Inspector URL: http://127.0.0.1:6274
 
 Open the Inspector URL in your browser.
+
+### Transport Comparison
+
+| Transport | Use Case | Endpoint | Features |
+|-----------|----------|----------|----------|
+| STDIO | Desktop clients (Claude Desktop) | N/A | Simple, reliable |
+| SSE | Web clients (legacy) | Multiple endpoints | Separate streams per operation |
+| Streamable HTTP | Modern web clients | Single `/mcp` endpoint | Unified API, resumability, better performance |
 
 ## Testing Example Tools
 

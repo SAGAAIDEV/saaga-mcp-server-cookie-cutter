@@ -15,12 +15,12 @@ from mcp.server.fastmcp import FastMCP
 
 from {{ cookiecutter.project_slug }}.config import ServerConfig, get_config
 from {{ cookiecutter.project_slug }}.logging_config import setup_logging, logger
-from {{ cookiecutter.project_slug }}.logging.correlation import (
+from {{ cookiecutter.project_slug }}.log_system.correlation import (
     generate_correlation_id,
     set_initialization_correlation_id,
     clear_initialization_correlation_id
 )
-from {{ cookiecutter.project_slug }}.logging.unified_logger import UnifiedLogger
+from {{ cookiecutter.project_slug }}.log_system.unified_logger import UnifiedLogger
 {% if cookiecutter.include_example_tools == "yes" -%}
 from {{ cookiecutter.project_slug }}.tools.example_tools import example_tools, parallel_example_tools
 {% endif -%}
@@ -43,7 +43,7 @@ def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     
     # Initialize unified logging using factory pattern
     # Convert logging_destinations dict to DestinationConfig objects
-    from {{ cookiecutter.project_slug }}.logging.destinations import DestinationConfig
+    from {{ cookiecutter.project_slug }}.log_system.destinations import DestinationConfig
     
     destinations_list = []
     if config.logging_destinations and 'destinations' in config.logging_destinations:

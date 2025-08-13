@@ -27,15 +27,15 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 # Import decorators from template
-from {{ cookiecutter.project_slug }}.decorators.exception_handler import exception_handler
-from {{ cookiecutter.project_slug }}.decorators.tool_logger import tool_logger
-from {{ cookiecutter.project_slug }}.decorators.parallelize import parallelize
-from {{ cookiecutter.project_slug }}.decorators.sqlite_logger import (
+from {{cookiecutter.project_slug}}.decorators.exception_handler import exception_handler
+from {{cookiecutter.project_slug}}.decorators.tool_logger import tool_logger
+from {{cookiecutter.project_slug}}.decorators.parallelize import parallelize
+from {{cookiecutter.project_slug}}.decorators.sqlite_logger import (
     SQLiteLoggerSink, 
     initialize_sqlite_logging,
     log_tool_execution
 )
-from {{ cookiecutter.project_slug }}.config import ServerConfig
+from {{cookiecutter.project_slug}}.config import ServerConfig
 
 
 class TestExceptionHandler:

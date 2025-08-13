@@ -1,6 +1,6 @@
 # Example Server
 
-MCP server with SAAGA decorators
+Example MCP server showcasing SAAGA decorator patterns
 
 ## Features
 
@@ -56,6 +56,37 @@ This MCP server provides tools for:
 }
 ```
 
+### Transport Options
+
+The server supports multiple transport protocols:
+
+#### STDIO (Default)
+Standard input/output communication. Used by Claude Desktop and most MCP clients.
+
+```bash
+python -m example_server.server.app --transport stdio
+```
+
+#### SSE (Server-Sent Events)
+HTTP-based transport for web clients. Supports separate endpoints for different operations.
+
+```bash
+python -m example_server.server.app --transport sse --port 6272
+```
+
+#### Streamable HTTP (Recommended for Web)
+Modern HTTP transport with unified `/mcp` endpoint. Supports both POST and GET requests with SSE streaming.
+
+```bash
+python -m example_server.server.app --transport streamable-http --port 6272
+```
+
+The Streamable HTTP transport offers:
+- Single `/mcp` endpoint for all operations
+- Support for JSON responses or SSE streams
+- Session management and resumability
+- Better performance with concurrent connections
+
 ## Available Tools
 
 <!-- DEVELOPER NOTE: Replace this section with documentation for YOUR tools after removing examples -->
@@ -108,7 +139,11 @@ The server uses a configuration file located at:
 ```yaml
 log_level: INFO  # Logging verbosity
 log_retention_days: 30  # How long to keep logs
-server_port: 3001  # Port for HTTP transport (if used)
+server_port: 6272  # Port for HTTP transport (if used)
+default_transport: stdio  # Default transport protocol
+streamable_http_enabled: true  # Enable Streamable HTTP transport
+streamable_http_endpoint: "/mcp"  # Endpoint for Streamable HTTP
+streamable_http_json_response: false  # Use JSON responses instead of SSE
 ```
 
 ## Admin Interface
@@ -131,9 +166,9 @@ Features:
 ## Logs
 
 Server logs are stored in an SQLite database at:
-- **macOS**: `~/Library/Application Support/example_server/logs.db`
-- **Linux**: `~/.local/share/example_server/logs.db`
-- **Windows**: `%APPDATA%/example_server/logs.db`
+- **macOS**: `~/Library/Application Support/example_server/unified_logs.db`
+- **Linux**: `~/.local/share/example_server/unified_logs.db`
+- **Windows**: `%APPDATA%/example_server/unified_logs.db`
 
 ## Troubleshooting
 

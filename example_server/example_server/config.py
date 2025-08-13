@@ -20,7 +20,7 @@ class ServerConfig:
     
     # Server settings
     name: str = "Example Server"
-    description: str = "MCP server with SAAGA decorators"
+    description: str = "Example MCP server showcasing SAAGA decorator patterns"
     
     # Logging configuration
     log_level: str = "INFO"
@@ -32,7 +32,7 @@ class ServerConfig:
     # Server transport settings
     default_transport: str = "stdio"
     default_host: str = "127.0.0.1"
-    default_port: int = 3001
+    default_port: int = 6272
     
     # Streamable HTTP transport settings
     streamable_http_enabled: bool = True
@@ -101,13 +101,13 @@ class ServerConfig:
         """Create configuration from dictionary."""
         return cls(
             name=data.get("name", "Example Server"),
-            description=data.get("description", "MCP server with SAAGA decorators"),
+            description=data.get("description", "Example MCP server showcasing SAAGA decorator patterns"),
             log_level=data.get("log_level", "INFO"),
             log_retention_days=data.get("log_retention_days", 30),
             logging_destinations=data.get("logging_destinations"),
             default_transport=data.get("default_transport", "stdio"),
             default_host=data.get("default_host", "127.0.0.1"),
-            default_port=data.get("default_port", 3001),
+            default_port=data.get("default_port", 6272),
             streamable_http_enabled=data.get("streamable_http_enabled", True),
             streamable_http_endpoint=data.get("streamable_http_endpoint", "/mcp"),
             streamable_http_json_response=data.get("streamable_http_json_response", False),
@@ -164,7 +164,7 @@ class UIConfig:
     
     # Server connection settings
     server_host: str = "127.0.0.1"
-    server_port: int = 3001
+    server_port: int = 6272
     
     # UI features
     show_logs: bool = True
@@ -195,7 +195,7 @@ class UIConfig:
             page_icon=data.get("page_icon", "🔧"),
             layout=data.get("layout", "wide"),
             server_host=data.get("server_host", "127.0.0.1"),
-            server_port=data.get("server_port", 3001),
+            server_port=data.get("server_port", 6272),
             show_logs=data.get("show_logs", True),
             show_config=data.get("show_config", True),
             show_tools=data.get("show_tools", True),

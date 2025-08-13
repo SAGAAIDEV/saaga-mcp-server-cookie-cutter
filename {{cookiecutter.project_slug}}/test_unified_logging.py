@@ -18,7 +18,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from {{ cookiecutter.project_slug }}.config import get_config
-from {{ cookiecutter.project_slug }}.logging import (
+from {{ cookiecutter.project_slug }}.log_system import (
     get_tool_logger,
     get_correlation_id,
     set_correlation_id,

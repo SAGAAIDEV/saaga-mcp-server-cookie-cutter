@@ -73,7 +73,7 @@ class TestToolEdgeCases:
                 assert data["position"] == 1
                 assert data["value"] == 1
 
-{% if cookiecutter.include_parallel_example == "yes" %}    
+    
     async def test_batch_data_unknown_operation(self, mcp_session):
         """Test process_batch_data with unknown operation (line 122 coverage)."""
         session, transport = mcp_session
@@ -140,4 +140,3 @@ class TestToolEdgeCases:
             # SAAGA decorator caught it
             assert "complexity must be between 1 and 10" in error_msg
             assert "Exception" in error_msg
-{% endif %}

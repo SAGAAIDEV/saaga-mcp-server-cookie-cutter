@@ -5,7 +5,7 @@
 You know MCP. Here's what's unique about this SAAGA implementation:
 
 ### What We Use
-- **FastMCP** server with STDIO/SSE transports only
+- **FastMCP** server with STDIO/SSE/Streamable HTTP transports
 - **Tools** only (no resources, prompts, completions)
 - **Context** for logging and progress
 - **Type conversion** decorator handles string parameters
