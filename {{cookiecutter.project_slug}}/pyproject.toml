@@ -43,7 +43,8 @@ dependencies = [
     "pytest-cov>=4.0.0"{% if cookiecutter.include_admin_ui == "yes" %},
     "streamlit>=1.28.0",
     "plotly>=5.0.0",
-    "pandas>=2.0.0"{% endif %}
+    "pandas>=2.0.0"{% endif %}{% if cookiecutter.include_oauth_passthrough == "yes" %},
+    "httpx>=0.25.0"  # For calling external APIs with OAuth tokens{% endif %}
 ]
 
 [project.optional-dependencies]

@@ -24,6 +24,9 @@ from {{ cookiecutter.project_slug }}.log_system.unified_logger import UnifiedLog
 {% if cookiecutter.include_example_tools == "yes" -%}
 from {{ cookiecutter.project_slug }}.tools.example_tools import example_tools, parallel_example_tools
 {% endif -%}
+{% if cookiecutter.include_oauth_passthrough == "yes" -%}
+from {{ cookiecutter.project_slug }}.tools.github_passthrough_tools import oauth_passthrough_tools
+{% endif -%}
 
 def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     """Create and configure the MCP server with SAAGA decorators.
@@ -105,6 +108,9 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
     from {{ cookiecutter.project_slug }}.decorators.tool_logger import tool_logger
     from {{ cookiecutter.project_slug }}.decorators.type_converter import type_converter
     from {{ cookiecutter.project_slug }}.decorators.parallelize import parallelize
+    {% if cookiecutter.include_oauth_passthrough == "yes" -%}
+    from {{ cookiecutter.project_slug }}.decorators.oauth_passthrough import oauth_passthrough
+    {% endif -%}
     
     # Register regular tools with SAAGA decorators
     for tool_func in example_tools:
@@ -138,6 +144,29 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
         )(decorated_func)
         
         unified_logger.info(f"Registered parallel tool: {tool_name}")
+    {% endif -%}
+    
+    {% if cookiecutter.include_oauth_passthrough == "yes" -%}
+    # Register OAuth passthrough tools with SAAGA decorators
+    # Tools provide (provider, function) tuples so app.py remains tool-agnostic
+    for provider, tool_func in oauth_passthrough_tools:
+        # Apply SAAGA decorator chain: exception_handler → tool_logger → oauth_passthrough(provider) → type_converter
+        decorated_func = exception_handler(
+            tool_logger(
+                oauth_passthrough(provider)(
+                    type_converter(tool_func),
+                    config.__dict__
+                ),
+                config.__dict__
+            )
+        )
+        
+        # Register directly with MCP
+        mcp_server.tool(
+            name=tool_func.__name__
+        )(decorated_func)
+        
+        unified_logger.info(f"Registered OAuth passthrough tool: {tool_func.__name__} (provider: {provider})")
     {% endif -%}
     
     unified_logger.info(f"Server '{mcp_server.name}' initialized with SAAGA decorators")

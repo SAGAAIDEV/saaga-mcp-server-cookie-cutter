@@ -22,6 +22,7 @@ from example_server.log_system.correlation import (
 )
 from example_server.log_system.unified_logger import UnifiedLogger
 from example_server.tools.example_tools import example_tools, parallel_example_tools
+from example_server.tools.github_passthrough_tools import oauth_passthrough_tools
 def create_mcp_server(config: Optional[ServerConfig] = None) -> FastMCP:
     """Create and configure the MCP server with SAAGA decorators.
     
@@ -95,7 +96,7 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
     from example_server.decorators.tool_logger import tool_logger
     from example_server.decorators.type_converter import type_converter
     from example_server.decorators.parallelize import parallelize
-    
+    from example_server.decorators.oauth_passthrough import oauth_passthrough
     # Register regular tools with SAAGA decorators
     for tool_func in example_tools:
         # Apply SAAGA decorator chain: exception_handler → tool_logger → type_converter
@@ -127,6 +128,26 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
         )(decorated_func)
         
         unified_logger.info(f"Registered parallel tool: {tool_name}")
+    # Register OAuth passthrough tools with SAAGA decorators
+    # Tools provide (provider, function) tuples so app.py remains tool-agnostic
+    for provider, tool_func in oauth_passthrough_tools:
+        # Apply SAAGA decorator chain: exception_handler → tool_logger → oauth_passthrough(provider) → type_converter
+        decorated_func = exception_handler(
+            tool_logger(
+                oauth_passthrough(provider)(
+                    type_converter(tool_func),
+                    config.__dict__
+                ),
+                config.__dict__
+            )
+        )
+        
+        # Register directly with MCP
+        mcp_server.tool(
+            name=tool_func.__name__
+        )(decorated_func)
+        
+        unified_logger.info(f"Registered OAuth passthrough tool: {tool_func.__name__} (provider: {provider})")
     unified_logger.info(f"Server '{mcp_server.name}' initialized with SAAGA decorators")
 # Create a server instance that can be imported by the MCP CLI
 server = create_mcp_server()
@@ -134,7 +155,7 @@ server = create_mcp_server()
 @click.command()
 @click.option(
     "--port",
-    default=6272,
+    default=3001,
     help="Port to listen on for SSE or Streamable HTTP transport"
 )
 @click.option(
@@ -178,6 +199,18 @@ def main(port: int, transport: str) -> int:
     except Exception as e:
         logger.error(f"Failed to start server: {e}", exc_info=True)
         return 1
+
+def main_stdio() -> int:
+    """Entry point for STDIO transport (convenience wrapper)."""
+    return main.callback(port=3001, transport="stdio")
+
+def main_http() -> int:
+    """Entry point for Streamable HTTP transport (convenience wrapper)."""
+    return main.callback(port=3001, transport="streamable-http")
+
+def main_sse() -> int:
+    """Entry point for SSE transport (convenience wrapper)."""
+    return main.callback(port=3001, transport="sse")
 
 if __name__ == "__main__":
     sys.exit(main())

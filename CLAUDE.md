@@ -23,6 +23,7 @@ A production-ready cookiecutter template for creating MCP (Model Context Protoco
 1. **exception_handler**: Catches all exceptions, returns SAAGA-standard error format
 2. **tool_logger**: Tracks execution metrics, logs to SQLite with correlation IDs
 3. **parallelize**: (Optional) Transforms function signatures for batch processing
+4. **oauth_passthrough**: (Optional) Checks Context for OAuth tokens passed by client
 
 **CRITICAL**: All tools MUST be async functions with `ctx: Context = None` parameter:
 ```python
@@ -82,15 +83,90 @@ async def my_tool(param: str, ctx: Context = None) -> dict:
 
 ```
 
+## OAuth Token Passthrough (Optional Feature) - COMPLETED August 2025
+
+### Implementation Journey (JIRA: ASEP-77)
+**Initial Requirement**: Implement OAuth support for MCP servers with ZERO pre-configuration
+**Challenge**: Traditional OAuth requires app registration, which violates zero-config requirement
+**Solution**: Token Passthrough Pattern (Option 1) - Client handles OAuth, server uses tokens
+
+### Final Implementation
+- **Client-Side OAuth**: The MCP client (Solve/React/etc) handles ALL OAuth logic
+- **Token Passthrough**: Client passes tokens via Context `_meta` parameter in `oauth_tokens` dictionary
+- **No OAuth Flow**: MCP server NEVER handles OAuth flow, callbacks, or token storage
+- **Zero Configuration**: No OAuth app registration, client_id, or client_secret needed
+
+### What We Built
+When `include_oauth_passthrough=yes`:
+1. **oauth_passthrough decorator**: 
+   - Checks Context for tokens in `oauth_tokens` dictionary
+   - Validates token format (non-empty strings)
+   - Returns graceful errors for all failure cases
+   - Adds provider context to authentication errors
+   - NEVER crashes the server
+
+2. **GitHub example tools** (3 tools):
+   - `get_github_user`: Gets authenticated user info
+   - `list_user_repos`: Lists user's repositories
+   - `create_github_issue`: Creates issues in repos
+   - All handle 401/403/404 errors gracefully
+
+3. **Test Scripts**:
+   - `test_oauth_private_repo.py`: Tests with real GitHub tokens
+   - `test_oauth_error_handling.py`: Validates error handling
+   - Integration tests that use real MCP client
+
+4. **Error Handling Improvements**:
+   - Token validation (empty, whitespace, invalid format)
+   - Enhanced error messages with provider context
+   - Try-catch blocks prevent all crashes
+   - Graceful degradation for missing streamable_http
+
+### Key Architecture Decisions
+1. **No OAuth in MCP Server**: Server is a "dumb consumer" of tokens
+2. **Decorator Pattern**: `oauth_passthrough` applied programmatically (NOT @syntax)
+3. **Tool Organization**: Tools export `oauth_passthrough_tools` list with (provider, function) tuples
+4. **App.py Remains Generic**: No provider-specific logic in app.py
+
+### Testing OAuth
+```bash
+# Test with private GitHub repo (requires real token)
+python test_oauth_private_repo.py gho_YOUR_TOKEN owner/repo
+
+# Test error handling with invalid tokens
+python test_oauth_error_handling.py
+
+# Run integration tests
+pytest tests/integration/test_oauth_passthrough_integration.py -v
+```
+
+### Important Limitations
+- **MCP Inspector**: Cannot test OAuth (doesn't support `_meta` parameter)
+- **Clients Must**: Handle OAuth flow and pass tokens via `_meta`
+- **Test Scripts Required**: Use provided scripts for OAuth testing
+
+### Lessons Learned
+1. **Naming Consistency**: Scripts named `test_oauth_*` not just `test_*`
+2. **Conditional Imports**: Handle missing `streamable_http` gracefully
+3. **Documentation Critical**: Clear examples of token format and testing
+4. **Error Messages Matter**: Users frustrated by crashes, need graceful errors
+
+### If Resuming OAuth Work
+- All OAuth code is in cookiecutter template
+- Test with `include_oauth_passthrough=yes`
+- GitHub tools are examples - pattern works for any OAuth provider
+- Remember: MCP server NEVER handles OAuth flow, only uses tokens
+
 ## Testing Configuration
 - **Automated Tests**: STDIO and Streamable HTTP transports
 - **Not Automated**: SSE transport (can be tested manually)
 - **Fixture**: `mcp_session` in conftest.py with transport parameterization
 
 ## Known Limitations
-- **MCP Inspector**: No UI for setting correlation IDs (auto-generates only)
+- **MCP Inspector**: No UI for setting correlation IDs or OAuth tokens (auto-generates IDs only)
 - **SSE Transport**: Not included in automated test suite
 - **Correlation IDs**: Require custom MCP clients to provide them in metadata
+- **OAuth Tokens**: Require custom MCP clients to pass them via Context
 
 ## Quick Validation
 After generating a new server:

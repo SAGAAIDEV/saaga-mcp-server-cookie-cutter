@@ -78,16 +78,16 @@ def render_project_overview():
         st.markdown("""
         **Project Details:**
         - **Name:** Example Server
-        - **Description:** Example MCP server showcasing SAAGA decorator patterns
-        - **Author:** SAAGA Team
-        - **Email:** team@saaga.ai
+        - **Description:** A fully-featured example MCP server demonstrating all SAAGA patterns and features
+        - **Author:** Your Name
+        - **Email:** email@example.com
         """)
         
     with col2:
         st.markdown("""
         **Configuration:**
         - **Python Version:** 3.11+
-        - **Server Port:** 6272
+        - **Server Port:** 3001
         - **Log Level:** INFO
         - **Log Retention:** 30 days
         """)

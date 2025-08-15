@@ -37,6 +37,7 @@ If you're using a different AI assistant (not Claude Code), you can use our setu
 
 - **FastMCP Integration**: Built on the modern FastMCP framework with triple transport support (STDIO/SSE/Streamable HTTP)
 - **SAAGA Decorators**: Automatic application of exception handling, logging, and parallelization decorators
+- **OAuth Token Passthrough**: Optional OAuth support where clients pass tokens via Context (no OAuth flow in server)
 - **Platform-Aware Configuration**: Cross-platform configuration management using `platformdirs`
 - **Optional Streamlit UI**: Administrative interface for configuration and log viewing
 - **SQLite Logging**: Comprehensive logging system with database persistence
@@ -96,6 +97,7 @@ You'll be prompted for the following configuration options:
 - `include_admin_ui`: Include Streamlit administrative UI (yes/no)
 - `include_example_tools`: Include example MCP tools (yes/no)
 - `include_parallel_example`: Include parallel processing example (yes/no)
+- `include_oauth_passthrough`: Include OAuth token passthrough support (yes/no)
 - `server_port`: Default server port for HTTP transport
 - `default_transport`: Default transport protocol (stdio, sse, streamable-http)
 - `streamable_http_enabled`: Enable Streamable HTTP transport (yes/no)
@@ -158,7 +160,8 @@ your-project/
 │   ├── decorators/            # SAAGA decorators
 │   │   ├── exceptions.py      # Exception handling
 │   │   ├── logging.py         # SQLite logging
-│   │   └── parallelize.py     # Parallelization support
+│   │   ├── parallelize.py     # Parallelization support
+│   │   └── oauth_passthrough.py # OAuth token passthrough (optional)
 │   └── ui/                    # Streamlit admin UI (optional)
 │       ├── app.py            # Main UI entry point with navigation
 │       ├── pages/            # Multi-page structure
@@ -311,6 +314,33 @@ These commands provide a structured, repeatable workflow for MCP tool developmen
    ```
 3. Install pre-commit hooks: `uv run pre-commit install`
 
+### OAuth Token Passthrough Feature
+
+When you generate a project with `include_oauth_passthrough=yes`, you get:
+
+1. **OAuth Passthrough Decorator**: Checks Context for OAuth tokens passed by the client
+2. **GitHub Example Tools**: Three working tools that demonstrate OAuth usage
+3. **Test Scripts**: Ready-to-use scripts for testing with real GitHub tokens
+4. **Zero Server Configuration**: The MCP server requires NO OAuth setup
+
+#### How to Test the OAuth Tools
+
+1. **Get a GitHub Token**:
+   - Go to https://github.com/settings/tokens
+   - Generate a token with `repo` and `user` scopes
+   
+2. **Test with the provided script**:
+   ```bash
+   cd your-generated-project
+   python test_oauth_private_repo.py gho_YOUR_TOKEN owner/repo
+   ```
+
+3. **Important**: The MCP server does NOT handle OAuth flows. The client must:
+   - Get the OAuth token (through their own OAuth flow)
+   - Pass it via the `_meta` parameter in MCP requests
+
+See the generated `docs/OAUTH_PASSTHROUGH.md` for complete documentation.
+
 ### Testing
 
 Run the test suite:
@@ -323,6 +353,11 @@ Test template generation:
 
 ```bash
 cookiecutter . --no-input
+```
+
+Test with OAuth enabled:
+```bash
+cookiecutter . --no-input include_oauth_passthrough=yes
 ```
 
 ### Contributing
