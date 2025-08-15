@@ -45,7 +45,11 @@ class TestMCPToolDiscovery:
             "echo_tool", 
             "get_time", 
             "random_number", 
-            "calculate_fibonacci"
+            "calculate_fibonacci",
+            "search_tool",
+            "elicit_example",
+            "notification_example",
+            "progress_example"
         ]
         
         # Add conditional tools based on template configuration
@@ -193,6 +197,132 @@ class TestMCPToolExecution:
             assert data["value"] == 55, f"Wrong Fibonacci value for n=10: {data} (transport: {transport})"
         except (json.JSONDecodeError, KeyError) as e:
             pytest.fail(f"Failed to parse response: {e}, content: {text_content} (transport: {transport})")
+    
+    async def test_search_tool_execution(self, mcp_session):
+        """Test search_tool with various parameter combinations.
+        
+        This test runs with both STDIO and Streamable HTTP transports.
+        """
+        session, transport = mcp_session
+        
+        # Test with required parameter only
+        result = await session.call_tool("search_tool", {"query": "test search"})
+        assert not result.isError, f"Tool execution failed: {result}"
+        
+        text_content = extract_text_content(result)
+        try:
+            data = json.loads(text_content)
+            assert data["query"] == "test search", f"Query not preserved: {data} (transport: {transport})"
+            assert "results" in data, f"No results field in response: {data} (transport: {transport})"
+            assert isinstance(data["results"], list), f"Results should be a list: {data} (transport: {transport})"
+        except (json.JSONDecodeError, KeyError) as e:
+            pytest.fail(f"Failed to parse response: {e}, content: {text_content} (transport: {transport})")
+    
+    async def test_search_tool_with_optional_params(self, mcp_session):
+        """Test search_tool with optional parameters.
+        
+        This test runs with both STDIO and Streamable HTTP transports.
+        """
+        session, transport = mcp_session
+        
+        # Test with all optional parameters
+        result = await session.call_tool("search_tool", {
+            "query": "advanced search",
+            "max_results": "3",
+            "directories": ["dir1", "dir2"],
+            "include_hidden": "true"
+        })
+        
+        assert not result.isError, f"Tool execution failed: {result}"
+        
+        text_content = extract_text_content(result)
+        try:
+            data = json.loads(text_content)
+            assert data["query"] == "advanced search", f"Query not preserved: {data} (transport: {transport})"
+            assert data["max_results"] == 3, f"Max results not converted: {data} (transport: {transport})"
+            assert data["directories"] == ["dir1", "dir2"], f"Directories not preserved: {data} (transport: {transport})"
+            assert data["include_hidden"] == True, f"Include hidden not converted: {data} (transport: {transport})"
+            assert len(data["results"]) <= 3, f"Too many results returned: {data} (transport: {transport})"
+        except (json.JSONDecodeError, KeyError) as e:
+            pytest.fail(f"Failed to parse response: {e}, content: {text_content} (transport: {transport})")
+    
+    async def test_elicit_example_with_available_date(self, mcp_session):
+        """Test elicit_example tool with an available date.
+        
+        This test runs with both STDIO and Streamable HTTP transports.
+        """
+        session, transport = mcp_session
+        
+        # Test with available date (not 2024-12-25)
+        result = await session.call_tool("elicit_example", {
+            "date": "2024-12-26",
+            "time": "19:00",
+            "party_size": "4"
+        })
+        
+        assert not result.isError, f"Tool execution failed: {result}"
+        
+        text_content = extract_text_content(result)
+        assert "[SUCCESS] Booked for 2024-12-26 at 19:00" in text_content, (
+            f"Expected success message not found: {text_content} (transport: {transport})"
+        )
+    
+    async def test_notification_example_execution(self, mcp_session):
+        """Test notification_example tool with logging capabilities.
+        
+        This test runs with both STDIO and Streamable HTTP transports.
+        """
+        session, transport = mcp_session
+        
+        result = await session.call_tool("notification_example", {
+            "data": "test data for processing"
+        })
+        
+        assert not result.isError, f"Tool execution failed: {result}"
+        
+        text_content = extract_text_content(result)
+        assert "Processed: test data for processing" in text_content, (
+            f"Expected processed message not found: {text_content} (transport: {transport})"
+        )
+    
+    async def test_progress_example_execution(self, mcp_session):
+        """Test progress_example tool with progress updates.
+        
+        This test runs with both STDIO and Streamable HTTP transports.
+        """
+        session, transport = mcp_session
+        
+        # Test with default steps
+        result = await session.call_tool("progress_example", {
+            "task_name": "Test Task"
+        })
+        
+        assert not result.isError, f"Tool execution failed: {result}"
+        
+        text_content = extract_text_content(result)
+        assert "Task 'Test Task' completed" in text_content, (
+            f"Expected completion message not found: {text_content} (transport: {transport})"
+        )
+    
+    async def test_progress_example_with_custom_steps(self, mcp_session):
+        """Test progress_example tool with custom step count.
+        
+        This test runs with both STDIO and Streamable HTTP transports.
+        """
+        session, transport = mcp_session
+        
+        # Test with custom steps
+        result = await session.call_tool("progress_example", {
+            "task_name": "Custom Task",
+            "steps": "3"
+        })
+        
+        assert not result.isError, f"Tool execution failed: {result}"
+        
+        text_content = extract_text_content(result)
+        assert "Task 'Custom Task' completed" in text_content, (
+            f"Expected completion message not found: {text_content} (transport: {transport})"
+        )
     
     {% if cookiecutter.include_parallel_example == "yes" %}
     async def test_process_batch_data_parallel_execution(self, mcp_session):
@@ -388,6 +518,9 @@ class TestMCPProtocolCompliance:
             ("get_time", {}),
             ("echo_tool", {"message": "test"}),
             ("random_number", {"min_value": "1", "max_value": "10"}),
+            ("search_tool", {"query": "sequential test"}),
+            ("notification_example", {"data": "sequential data"}),
+            ("progress_example", {"task_name": "Sequential Task"}),
         ]
         
         for tool_name, params in tools_to_test:
@@ -406,6 +539,8 @@ class TestMCPProtocolCompliance:
             session.call_tool("random_number", {"min_value": "1", "max_value": "100"}),
             session.call_tool("echo_tool", {"message": "concurrent test"}),
             session.call_tool("get_time", {}),
+            session.call_tool("search_tool", {"query": "concurrent search"}),
+            session.call_tool("notification_example", {"data": "concurrent data"}),
         ]
         
         # Execute concurrently
