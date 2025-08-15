@@ -9,9 +9,9 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "example_server"
 version = "0.1.0"
-description = "Example MCP server showcasing SAAGA decorator patterns"
+description = "A fully-featured example MCP server demonstrating all SAAGA patterns and features"
 authors = [
-    {name = "SAAGA Team", email = "team@saaga.ai"}
+    {name = "Your Name", email = "email@example.com"}
 ]
 readme = "README.md"
 license = {text = "MIT"}
@@ -43,7 +43,8 @@ dependencies = [
     "pytest-cov>=4.0.0",
     "streamlit>=1.28.0",
     "plotly>=5.0.0",
-    "pandas>=2.0.0"
+    "pandas>=2.0.0",
+    "httpx>=0.25.0"  # For calling external APIs with OAuth tokens
 ]
 
 [project.optional-dependencies]
@@ -60,13 +61,16 @@ dev = [
 
 [project.scripts]
 example_server-server = "example_server.server.app:main"
+example_server-server-stdio = "example_server.server.app:main_stdio"
+example_server-server-http = "example_server.server.app:main_http"
+example_server-server-sse = "example_server.server.app:main_sse"
 test-mcp-integration = "example_server.tests.integration.cli:run_tests_entry"
 
 [project.urls]
-Homepage = "https://github.com/SAAGA Team/example_server"
-Documentation = "https://github.com/SAAGA Team/example_server/blob/main/README.md"
-Repository = "https://github.com/SAAGA Team/example_server"
-Issues = "https://github.com/SAAGA Team/example_server/issues"
+Homepage = "https://github.com/Your Name/example_server"
+Documentation = "https://github.com/Your Name/example_server/blob/main/README.md"
+Repository = "https://github.com/Your Name/example_server"
+Issues = "https://github.com/Your Name/example_server/issues"
 
 [tool.setuptools]
 packages = ["example_server", "tests"]

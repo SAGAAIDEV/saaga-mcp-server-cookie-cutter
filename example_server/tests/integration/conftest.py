@@ -17,7 +17,14 @@ from typing import AsyncGenerator, Tuple, Optional, List
 import pytest
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client, get_default_environment
-from mcp.client.streamable_http import streamablehttp_client
+
+# Conditional import for streamable_http
+try:
+    from mcp.client.streamable_http import streamablehttp_client
+    HAS_STREAMABLE_HTTP = True
+except ImportError:
+    HAS_STREAMABLE_HTTP = False
+    streamablehttp_client = None
 
 
 # Mark all tests in this module as async
@@ -30,7 +37,7 @@ class StreamableHTTPServer:
     # Class-level tracking of all server instances for cleanup
     _active_servers: List['StreamableHTTPServer'] = []
     
-    def __init__(self, port: int = 6272):
+    def __init__(self, port: int = 3001):
         self.port = port
         self.process: Optional[subprocess.Popen] = None
         self.project_root = Path(__file__).parent.parent.parent
@@ -143,7 +150,12 @@ class StreamableHTTPServer:
 atexit.register(StreamableHTTPServer.cleanup_all)
 
 
-@pytest.fixture(params=["stdio", "streamable-http"])
+# Skip streamable-http if not available
+TRANSPORTS = ["stdio"]
+if HAS_STREAMABLE_HTTP:
+    TRANSPORTS.append("streamable-http")
+
+@pytest.fixture(params=TRANSPORTS)
 async def mcp_session(request) -> AsyncGenerator[Tuple[ClientSession, str], None]:
     """Provide an MCP client session for testing with multiple transports.
     
@@ -240,8 +252,11 @@ async def mcp_session(request) -> AsyncGenerator[Tuple[ClientSession, str], None
             cleanup_funcs.append(cleanup_stdio)
             
         elif transport == "streamable-http":
+            if not HAS_STREAMABLE_HTTP:
+                pytest.skip("streamable_http module not available")
+            
             # Setup Streamable HTTP transport
-            port = 6272
+            port = 3001
             
             # Start server in subprocess
             server = StreamableHTTPServer(port)

@@ -7,6 +7,9 @@
 <!-- DEVELOPER NOTE: Update this section to describe what YOUR server does -->
 
 This MCP server provides tools for:
+{% if cookiecutter.include_oauth_passthrough == "yes" -%}
+- OAuth token passthrough for authenticating with external APIs (GitHub example included)
+{% endif -%}
 {% if cookiecutter.include_example_tools == "yes" -%}
 - Text echoing and manipulation
 - Time and date operations  
@@ -98,6 +101,36 @@ The Streamable HTTP transport offers:
 
 <!-- DEVELOPER NOTE: Replace this section with documentation for YOUR tools after removing examples -->
 
+{% if cookiecutter.include_oauth_passthrough == "yes" -%}
+### OAuth-Protected Tools (Require tokens from client)
+
+#### get_github_user
+Gets authenticated GitHub user information.
+- **Requires**: GitHub OAuth token passed via Context
+- **Returns**: User profile data or authentication error
+
+#### list_user_repos
+Lists repositories for the authenticated user.
+- **Requires**: GitHub OAuth token passed via Context
+- **Parameters**:
+  - `per_page` (int): Number of results per page (max 100)
+  - `page` (int): Page number for pagination
+  - `sort` (string): How to sort repositories
+- **Returns**: List of repositories or authentication error
+
+#### create_github_issue
+Creates an issue in a GitHub repository.
+- **Requires**: GitHub OAuth token with repo scope
+- **Parameters**:
+  - `owner` (string): Repository owner
+  - `repo` (string): Repository name
+  - `title` (string): Issue title
+  - `body` (string, optional): Issue description
+  - `labels` (array, optional): Issue labels
+- **Returns**: Created issue details or error
+
+For OAuth testing and documentation, see [docs/OAUTH_PASSTHROUGH.md](docs/OAUTH_PASSTHROUGH.md).
+{% endif -%}
 {% if cookiecutter.include_example_tools == "yes" -%}
 ### echo_tool
 Echoes back the provided text.
@@ -214,6 +247,43 @@ For issues or questions:
 {% endif -%}
 
 ## Development
+
+{% if cookiecutter.include_oauth_passthrough == "yes" -%}
+### Testing OAuth Tools
+
+The OAuth-protected GitHub tools require a GitHub personal access token. Here's how to test them:
+
+#### Step 1: Get a GitHub Token
+1. Go to https://github.com/settings/tokens
+2. Click "Generate new token (classic)"
+3. Select scopes: `repo` (for private repos) and `user`
+4. Copy the token (starts with `gho_`)
+
+#### Step 2: Test the Tools
+
+```bash
+# Test with a real GitHub token and private repository
+# This proves OAuth is working by accessing a private repo
+python test_oauth_private_repo.py gho_YOUR_TOKEN owner/repo
+
+# Example:
+# python test_oauth_private_repo.py gho_abc123... myusername/my-private-repo
+
+# Test error handling with invalid tokens
+python test_oauth_error_handling.py
+
+# Run OAuth integration tests
+pytest tests/integration/test_oauth_passthrough_integration.py -v
+
+# Test with real token in integration tests
+export GITHUB_TOKEN=gho_YOUR_TOKEN
+pytest tests/integration/test_oauth_passthrough_integration.py::test_github_tool_with_real_token -v
+```
+
+**Note**: MCP Inspector doesn't support OAuth tokens. Use the test scripts or a custom MCP client that can pass tokens via the `_meta` parameter.
+
+See [docs/OAUTH_PASSTHROUGH.md](docs/OAUTH_PASSTHROUGH.md) for full OAuth documentation and client implementation examples.
+{% endif -%}
 
 To contribute or add new tools to this server, see the [Developer Guide](DEVELOPER_GUIDE.md).
 
