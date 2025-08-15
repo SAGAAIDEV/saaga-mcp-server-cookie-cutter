@@ -1,4 +1,4 @@
-"""A fully-featured example MCP server demonstrating all SAAGA patterns and features"""
+"""MCP server with SAAGA decorators"""
 
 from example_server.server import server
 

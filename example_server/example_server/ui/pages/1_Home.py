@@ -78,7 +78,7 @@ def render_project_overview():
         st.markdown("""
         **Project Details:**
         - **Name:** Example Server
-        - **Description:** A fully-featured example MCP server demonstrating all SAAGA patterns and features
+        - **Description:** MCP server with SAAGA decorators
         - **Author:** Your Name
         - **Email:** email@example.com
         """)

@@ -71,7 +71,7 @@ def get_project_info() -> Dict[str, Any]:
     """
     return {
         "name": "Example Server",
-        "description": "A fully-featured example MCP server demonstrating all SAAGA patterns and features",
+        "description": "MCP server with SAAGA decorators",
         "author": "Your Name",
         "email": "email@example.com",
         "version": "0.1.0",

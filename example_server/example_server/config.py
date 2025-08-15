@@ -20,7 +20,7 @@ class ServerConfig:
     
     # Server settings
     name: str = "Example Server"
-    description: str = "A fully-featured example MCP server demonstrating all SAAGA patterns and features"
+    description: str = "MCP server with SAAGA decorators"
     
     # Logging configuration
     log_level: str = "INFO"
@@ -101,7 +101,7 @@ class ServerConfig:
         """Create configuration from dictionary."""
         return cls(
             name=data.get("name", "Example Server"),
-            description=data.get("description", "A fully-featured example MCP server demonstrating all SAAGA patterns and features"),
+            description=data.get("description", "MCP server with SAAGA decorators"),
             log_level=data.get("log_level", "INFO"),
             log_retention_days=data.get("log_retention_days", 30),
             logging_destinations=data.get("logging_destinations"),

@@ -10,6 +10,8 @@ import time
 import random
 from typing import List, Dict, Any
 from mcp.server.fastmcp import Context
+from mcp.server.session import ServerSession
+from pydantic import BaseModel, Field
 
 async def echo_tool(message: str, ctx: Context = None) -> str:
     """Echo back the input message.
@@ -138,6 +140,62 @@ async def search_tool(
         "message": f"Found {len(results)} results for '{query}' in {len(actual_dirs)} directories"
     }
 
+class BookingPreferences(BaseModel):
+    """Schema for collecting user preferences."""
+
+    checkAlternative: bool = Field(description="Would you like to check another date?")
+    alternativeDate: str = Field(
+        default="2024-12-26",
+        description="Alternative date (YYYY-MM-DD)",
+    )
+
+async def elicit_example(date: str, time: str, party_size: int, ctx: Context[ServerSession, None]) -> str:
+    """Book a table with date availability check."""
+    # Check if date is available
+    if date == "2024-12-25":
+        # Date unavailable - ask user for alternative
+        result = await ctx.elicit(
+            message=(f"No tables available for {party_size} on {date}. Would you like to try another date?"),
+            schema=BookingPreferences,
+        )
+
+        if result.action == "accept" and result.data:
+            if result.data.checkAlternative:
+                return f"[SUCCESS] Booked for {result.data.alternativeDate}"
+            return "[CANCELLED] No booking made"
+        return "[CANCELLED] Booking cancelled"
+
+    # Date available
+    return f"[SUCCESS] Booked for {date} at {time}"
+
+async def notification_example(data: str, ctx: Context[ServerSession, None]) -> str:
+    """Process data with logging."""
+    # Different log levels
+    await ctx.debug(f"Debug: Processing '{data}'")
+    await ctx.info("Info: Starting processing")
+    await ctx.warning("Warning: This is experimental")
+    await ctx.error("Error: (This is just a demo)")
+
+    # Notify about resource changes
+    await ctx.session.send_resource_list_changed()
+
+    return f"Processed: {data}"
+
+async def progress_example(task_name: str, ctx: Context[ServerSession, None], steps: int = 5) -> str:
+    """Execute a task with progress updates."""
+    await ctx.info(f"Starting: {task_name}")
+
+    for i in range(steps):
+        progress = (i + 1) / steps
+        await ctx.report_progress(
+            progress=progress,
+            total=1.0,
+            message=f"Step {i + 1}/{steps}",
+        )
+        await ctx.debug(f"Completed step {i + 1}")
+
+    return f"Task '{task_name}' completed"
+
 
 async def process_batch_data(items: List[str], operation: str = "upper", ctx: Context = None) -> Dict[str, Any]:
     """Process a batch of data items.
@@ -227,7 +285,10 @@ example_tools = [
     get_time,
     random_number,
     calculate_fibonacci,
-    search_tool
+    search_tool,
+    elicit_example,
+    notification_example,
+    progress_example
 ]
 
 async def get_tool_info() -> Dict[str, Any]:
