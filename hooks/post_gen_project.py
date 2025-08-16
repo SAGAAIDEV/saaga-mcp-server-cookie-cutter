@@ -359,6 +359,12 @@ def run_claude_setup(assigned_port=None):
     # Get the specific values we need from context
     project_slug = context["project_slug"]
     env_var_name = f"{project_slug.upper()}_URL"
+    
+    # Set the environment variable for the current process and child processes
+    if assigned_port:
+        env_var_value = f"http://usrpod:{assigned_port}/sse"
+        os.environ[env_var_name] = env_var_value
+        print(f"   🔧 Set environment variable: {env_var_name}={env_var_value}")
 
     # Build port information section
     if assigned_port:
@@ -645,11 +651,19 @@ This parallel approach reduces setup time from ~5 minutes to ~30 seconds!
     try:
         # Run Claude with the setup instructions
         print('   Running: claude -p "<setup instructions>" --dangerously-skip-permissions')
+        
+        # Prepare environment variables for subprocess
+        env = os.environ.copy()
+        if assigned_port:
+            # Ensure the environment variable is set for the Claude subprocess
+            env[env_var_name] = f"http://usrpod:{assigned_port}/sse"
+        
         result = subprocess.run(
             ["claude", "-p", claude_setup_instructions, "--dangerously-skip-permissions"],
             capture_output=True,
             text=True,
             cwd=get_project_path(),
+            env=env,  # Pass the modified environment
         )
 
         if result.returncode == 0:
@@ -867,6 +881,19 @@ def main():
 
     # Run Claude setup if requested (after AWS parameter is updated)
     run_claude_setup(assigned_port)
+    
+    # Export environment variable instructions if port was assigned
+    if assigned_port:
+        context = get_cookiecutter_context()
+        project_slug = context["project_slug"]
+        env_var_name = f"{project_slug.upper()}_URL"
+        env_var_value = f"http://usrpod:{assigned_port}/sse"
+        
+        print("\n📝 Environment Variable Setup:")
+        print(f"   To make the MCP port available in future sessions, add this to your shell profile:")
+        print(f"   export {env_var_name}=\"{env_var_value}\"")
+        print(f"\n   Or for this session only, run:")
+        print(f"   export {env_var_name}=\"{env_var_value}\"")
 
     print("\n✅ Post-generation hook completed!")
     # Don't fail the entire cookiecutter generation for any errors
