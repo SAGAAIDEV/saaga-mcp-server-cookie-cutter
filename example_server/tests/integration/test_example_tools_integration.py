@@ -45,7 +45,11 @@ class TestMCPToolDiscovery:
             "echo_tool", 
             "get_time", 
             "random_number", 
-            "calculate_fibonacci"
+            "calculate_fibonacci",
+            "search_tool",
+            "elicit_example",
+            "notification_example",
+            "progress_example"
         ]
         
         # Add conditional tools based on template configuration

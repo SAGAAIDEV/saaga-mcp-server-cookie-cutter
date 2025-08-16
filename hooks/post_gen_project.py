@@ -179,7 +179,7 @@ def create_integration_test_config():
             "mcpServers": {
                 project_slug: {
                     "url": "http://localhost:{{ cookiecutter.server_port }}/mcp",
-                    "transport": "streamable-http"
+                    "transport": "streamable-http",
                 }
             }
         }
@@ -193,8 +193,8 @@ def create_integration_test_config():
                 },
                 f"{project_slug}_http": {
                     "url": "http://localhost:{{ cookiecutter.server_port }}/mcp",
-                    "transport": "streamable-http"
-                }
+                    "transport": "streamable-http",
+                },
             }
         }
 
@@ -220,7 +220,9 @@ def create_integration_test_config():
         print(f"\n   📋 Usage examples:")
         print(f"      STDIO: claude --config {stdio_config_path}")
         print(f"      HTTP:  Start server with 'uv run {project_slug}-server-http'")
-        print(f"             Then connect client to http://localhost:{{ cookiecutter.server_port }}/mcp")
+        print(
+            f"             Then connect client to http://localhost:{{ cookiecutter.server_port }}/mcp"
+        )
 
     except Exception as e:
         print(f"   ⚠️  Warning: Failed to create MCP configs: {e}")
@@ -347,6 +349,7 @@ def run_refresh_requirements():
 def run_claude_setup(assigned_port=None):
     """Run Claude with setup instructions if configure_bazel_build_files is set to yes."""
     context = get_cookiecutter_context()
+    assigned_port = context["server_port"]
     configure_bazel_build_files = context["configure_bazel_build_files"]
 
     if configure_bazel_build_files != "yes":
@@ -863,7 +866,7 @@ def main():
     create_integration_test_config()
 
     # Update AWS SSM parameter first to get the port
-    assigned_port = update_aws_ssm_parameter()
+    # assigned_port = update_aws_ssm_parameter()
 
     # Run Claude setup if requested (after AWS parameter is updated)
     run_claude_setup(assigned_port)
