@@ -48,7 +48,7 @@ def get_cookiecutter_context():
         "include_admin_ui": "{{ cookiecutter.include_admin_ui }}",
         "mcp_config_file_path": "{{ cookiecutter.mcp_config_file_path }}",
         "configure_bazel_build_files": "{{ cookiecutter.configure_bazel_build_files }}",
-        "update_aws_parameter_store": "{{ cookiecutter.update_aws_parameter_store }}",
+        "server_port": "{{ cookiecutter.server_port }}",
     }
 
 
@@ -179,7 +179,7 @@ def create_integration_test_config():
             "mcpServers": {
                 project_slug: {
                     "url": "http://localhost:{{ cookiecutter.server_port }}/mcp",
-                    "transport": "streamable-http"
+                    "transport": "streamable-http",
                 }
             }
         }
@@ -193,8 +193,8 @@ def create_integration_test_config():
                 },
                 f"{project_slug}_http": {
                     "url": "http://localhost:{{ cookiecutter.server_port }}/mcp",
-                    "transport": "streamable-http"
-                }
+                    "transport": "streamable-http",
+                },
             }
         }
 
@@ -220,7 +220,9 @@ def create_integration_test_config():
         print(f"\n   📋 Usage examples:")
         print(f"      STDIO: claude --config {stdio_config_path}")
         print(f"      HTTP:  Start server with 'uv run {project_slug}-server-http'")
-        print(f"             Then connect client to http://localhost:{{ cookiecutter.server_port }}/mcp")
+        print(
+            f"             Then connect client to http://localhost:{{ cookiecutter.server_port }}/mcp"
+        )
 
     except Exception as e:
         print(f"   ⚠️  Warning: Failed to create MCP configs: {e}")
@@ -344,9 +346,10 @@ def run_refresh_requirements():
         print("   You may need to run './refresh_requirements_txt.sh' manually.")
 
 
-def run_claude_setup(assigned_port=None):
+def run_claude_setup():
     """Run Claude with setup instructions if configure_bazel_build_files is set to yes."""
     context = get_cookiecutter_context()
+    assigned_port = context["server_port"]
     configure_bazel_build_files = context["configure_bazel_build_files"]
 
     if configure_bazel_build_files != "yes":
@@ -359,7 +362,7 @@ def run_claude_setup(assigned_port=None):
     # Get the specific values we need from context
     project_slug = context["project_slug"]
     env_var_name = f"{project_slug.upper()}_URL"
-    
+
     # Set the environment variable for the current process and child processes
     if assigned_port:
         env_var_value = f"http://usrpod:{assigned_port}/sse"
@@ -651,13 +654,13 @@ This parallel approach reduces setup time from ~5 minutes to ~30 seconds!
     try:
         # Run Claude with the setup instructions
         print('   Running: claude -p "<setup instructions>" --dangerously-skip-permissions')
-        
+
         # Prepare environment variables for subprocess
         env = os.environ.copy()
         if assigned_port:
             # Ensure the environment variable is set for the Claude subprocess
             env[env_var_name] = f"http://usrpod:{assigned_port}/sse"
-        
+
         result = subprocess.run(
             ["claude", "-p", claude_setup_instructions, "--dangerously-skip-permissions"],
             capture_output=True,
@@ -680,176 +683,6 @@ This parallel approach reduces setup time from ~5 minutes to ~30 seconds!
         print("   Please ensure Claude CLI is installed and in your PATH.")
     except Exception as e:
         print(f"   ⚠️  Warning: Failed to run Claude setup: {e}")
-
-
-# =============================================================================
-# AWS SSM PARAMETER MANAGEMENT
-# =============================================================================
-
-
-def update_aws_ssm_parameter():
-    """Update AWS SSM parameter with incremented port for the new MCP server."""
-    # Get cookiecutter context
-    context = get_cookiecutter_context()
-    project_slug = context["project_slug"]
-    update_aws_parameter_store = context["update_aws_parameter_store"]
-
-    # Skip AWS parameter store update if not requested
-    if update_aws_parameter_store != "yes":
-        print(f"\n⏭️  Skipping AWS parameter store update (disabled in cookiecutter config)")
-        return None
-
-    print(f"\n☁️ Updating AWS SSM parameter for '{project_slug}'...")
-
-    # Proactively ensure AWS SSO login
-    print("   🔐 Ensuring AWS SSO login...")
-    try:
-        # Check if AWS CLI is available
-        subprocess.run(
-            ["aws", "--version"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-
-        # Attempt AWS SSO login
-        result = subprocess.run(
-            ["aws", "sso", "login"],
-            capture_output=False,  # Allow interactive prompts
-            text=True,
-        )
-
-        if result.returncode != 0:
-            print("   ❌ AWS SSO login failed or was declined")
-            print("   📋 Manual setup required:")
-            print(f"      1. Run 'aws sso login' manually")
-            print(f"      2. Add this line to the solve-env-prod AWS SSM parameter:")
-            print(f"         {project_slug.upper()}_URL=http://usrpod:[NEXT_PORT]/sse")
-            print(f"      3. Find the next available port by checking existing 8XXX ports")
-            print(f"      4. Contact saaga@saaga.dev or evan@saaga.dev for assistance")
-            return None
-
-        print("   ✅ AWS SSO login completed")
-
-    except FileNotFoundError:
-        print("   ❌ AWS CLI not found")
-        print("   📋 Manual setup required:")
-        print(f"      1. Install AWS CLI: https://aws.amazon.com/cli/")
-        print(f"      2. Run 'aws sso login'")
-        print(f"      3. Add this line to the solve-env-prod AWS SSM parameter:")
-        print(f"         {project_slug.upper()}_URL=http://usrpod:[NEXT_PORT]/sse")
-        print(f"      4. Find the next available port by checking existing 8XXX ports")
-        print(f"      5. Contact saaga@saaga.dev or evan@saaga.dev for assistance")
-        return None
-    except Exception as e:
-        print(f"   ❌ Unexpected error during AWS setup: {e}")
-        print("   📋 Manual setup required:")
-        print(f"      1. Run 'aws sso login' manually")
-        print(f"      2. Add this line to the solve-env-prod AWS SSM parameter:")
-        print(f"         {project_slug.upper()}_URL=http://usrpod:[NEXT_PORT]/sse")
-        print(f"      3. Find the next available port by checking existing 8XXX ports")
-        print(f"      4. Contact saaga@saaga.dev or evan@saaga.dev for assistance")
-        return None
-
-    try:
-        # Get current parameter value
-        print("   Getting current solve-env-prod parameter...")
-        result = subprocess.run(
-            [
-                "aws",
-                "ssm",
-                "get-parameter",
-                "--name",
-                "solve-env-prod",
-                "--with-decryption",
-                "--query",
-                "Parameter.Value",
-                "--output",
-                "text",
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-
-        current_value = result.stdout.strip()
-
-        # Find the highest port starting with 8XXX
-        import re
-
-        port_pattern = r"http://usrpod:8(\d{3})/sse"
-        ports = []
-
-        for line in current_value.split("\n"):
-            matches = re.findall(port_pattern, line)
-            for match in matches:
-                port_num = int(f"8{match}")
-                ports.append(port_num)
-
-                # Determine next port
-        if not ports:
-            print(f"   ❌ Error: No existing ports starting with 8XXX found in AWS parameter")
-            print(f"   This suggests the solve-env-prod parameter may not be properly configured")
-            print(f"   Expected to find at least one URL like: http://usrpod:8XXX/sse")
-            print(f"   Stopping process to prevent misconfiguration.")
-            sys.exit(1)
-
-        next_port = max(ports) + 1
-
-        print(f"   Found existing ports: {sorted(ports)}")
-        print(f"   Using next available port: {next_port}")
-
-        # Create new parameter value
-        new_line = f"{project_slug.upper()}_URL=http://usrpod:{next_port}/sse"
-        new_value = f"{current_value}\n{new_line}"
-
-        # Update parameter
-        print("   Updating solve-env-prod parameter...")
-        subprocess.run(
-            [
-                "aws",
-                "ssm",
-                "put-parameter",
-                "--name",
-                "solve-env-prod",
-                "--value",
-                new_value,
-                "--type",
-                "SecureString",
-                "--overwrite",
-                "--no-cli-pager",
-            ],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-
-        print(f"   ✅ Successfully updated AWS SSM parameter")
-        print(f"      Added: {new_line}")
-        print(f"      Port: {next_port}")
-
-        return next_port
-
-    except subprocess.CalledProcessError as e:
-        print(f"   ❌ Failed to update AWS SSM parameter: {e}")
-        if e.stderr:
-            print(f"      Error: {e.stderr}")
-        print("   📋 Manual setup required:")
-        print(f"      1. Run 'aws sso login' manually if needed")
-        print(f"      2. Add this line to the solve-env-prod AWS SSM parameter:")
-        print(f"         {project_slug.upper()}_URL=http://usrpod:[NEXT_PORT]/sse")
-        print(f"      3. Find the next available port by checking existing 8XXX ports")
-        print(f"      4. Contact saaga@saaga.dev or evan@saaga.dev for assistance")
-        return None
-    except Exception as e:
-        print(f"   ❌ Failed to update AWS SSM parameter: {e}")
-        print("   📋 Manual setup required:")
-        print(f"      1. Run 'aws sso login' manually if needed")
-        print(f"      2. Add this line to the solve-env-prod AWS SSM parameter:")
-        print(f"         {project_slug.upper()}_URL=http://usrpod:[NEXT_PORT]/sse")
-        print(f"      3. Find the next available port by checking existing 8XXX ports")
-        print(f"      4. Contact saaga@saaga.dev or evan@saaga.dev for assistance")
-        return None
 
 
 def main():
@@ -877,23 +710,12 @@ def main():
     create_integration_test_config()
 
     # Update AWS SSM parameter first to get the port
-    assigned_port = update_aws_ssm_parameter()
 
     # Run Claude setup if requested (after AWS parameter is updated)
-    run_claude_setup(assigned_port)
-    
+
+    run_claude_setup()
+
     # Export environment variable instructions if port was assigned
-    if assigned_port:
-        context = get_cookiecutter_context()
-        project_slug = context["project_slug"]
-        env_var_name = f"{project_slug.upper()}_URL"
-        env_var_value = f"http://usrpod:{assigned_port}/sse"
-        
-        print("\n📝 Environment Variable Setup:")
-        print(f"   To make the MCP port available in future sessions, add this to your shell profile:")
-        print(f"   export {env_var_name}=\"{env_var_value}\"")
-        print(f"\n   Or for this session only, run:")
-        print(f"   export {env_var_name}=\"{env_var_value}\"")
 
     print("\n✅ Post-generation hook completed!")
     # Don't fail the entire cookiecutter generation for any errors
