@@ -604,7 +604,7 @@ git diff --name-only | sort
 # mcp/usrpod/run-container.sh
 # mcp/usrpod/run.sh
 # solve/src/config/mcp-servers.ts
-# stacks/60.solve/service.tf
+
 ```
 
 
@@ -652,10 +652,10 @@ When setting up a new MCP server, execute ALL of these operations in parallel:
 - Edit mcp/usrpod/run.sh (add launch command)
 - Edit mcp/usrpod/run-container.sh (add container launch)
 - Edit solve/src/config/mcp-servers.ts (add config)
-- Edit stacks/60.solve/service.tf (add port)
 
-# 3. Test and commit
-- Run bazel build test
+
+
+
 
 ```
 
