@@ -47,7 +47,6 @@ def get_cookiecutter_context():
         "project_slug": "{{ cookiecutter.project_slug }}",
         "include_admin_ui": "{{ cookiecutter.include_admin_ui }}",
         "mcp_config_file_path": "{{ cookiecutter.mcp_config_file_path }}",
-        "configure_bazel_build_files": "{{ cookiecutter.configure_bazel_build_files }}",
         "server_port": "{{ cookiecutter.server_port }}",
     }
 
