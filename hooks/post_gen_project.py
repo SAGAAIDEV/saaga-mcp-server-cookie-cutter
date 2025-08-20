@@ -397,20 +397,130 @@ The expected environment variable format:
 """
 
     # Build the instructions with proper string formatting
-    intro_section = f"""# MCP Server Setup Checklist
+    intro_section = f"""# MCP Server Integration Instructions for {project_slug}
 
 ## Overview
-This checklist ensures proper configuration when adding a new MCP server to the SAAGA supergateway infrastructure. Use this alongside MCP_SERVER_SETUP_INSTRUCTIONS.md.
+These are the exact files that need to be modified to integrate the **{project_slug}** MCP server into the SAAGA infrastructure.
 
 ## IMPORTANT: Parallel Execution
-**All configuration updates can and should be performed IN PARALLEL using concurrent tool calls for maximum efficiency!**
+**Execute ALL file modifications IN PARALLEL using concurrent tool calls for maximum efficiency!**
 
-## Auto-Detection
-The MCP server being configured: **{project_slug}**
+## Server Configuration
+- **Server name**: {project_slug}
+- **Assigned port**: {assigned_port}
+- **Environment variable**: {env_var_name}
 
 {port_info}"""
 
-    rest_of_instructions = """## Pre-Setup Verification
+    rest_of_instructions = """## Files to Modify (Execute ALL in parallel)
+
+### STEP 1: Bazel Build Configuration
+**File**: `mcp/usrpod/BUILD.bazel`
+
+Add the server to both `usrpod` and `usrpod_container` targets in the `data` section:
+```python
+# Add this line to both targets' data arrays:
+"//mcp/<category>/<server_name>:<server_name>_bin",
+```
+
+Note: Replace `<category>` with the appropriate category (social, research, db, ops, etc.)
+
+### STEP 2: Shell Scripts for Server Launch
+
+#### 2a. Local Development Runner
+**File**: `mcp/usrpod/run.sh`
+
+Add this command block (adjust for Python or Node.js):
+```bash
+# Run <server_name> in background
+packages/vendor/supergateway/supergateway_/supergateway \
+    --stdio "mcp/<category>/<server_name>/<server_name>_bin" \
+    --outputTransport sse \
+    --port <port_number> &
+```
+
+#### 2b. Container Runner  
+**File**: `mcp/usrpod/run-container.sh`
+
+For Python servers, add:
+```bash
+# Run <server_name> in background using python3
+cd "${RUNFILES_ROOT}/packages/vendor/supergateway" && node main.js \
+    --stdio "python3 ${RUNFILES_ROOT}/mcp/<category>/<server_name>/<server_name>_bin" \
+    --outputTransport sse \
+    --logLevel info \
+    --port <port_number> &
+```
+
+For Node.js servers, add:
+```bash
+# Run <server_name> in background using node
+cd "${RUNFILES_ROOT}/packages/vendor/supergateway" && node main.js \
+    --stdio "${RUNFILES_ROOT}/mcp/<category>/<server_name>/<server_name>_bin_/<server_name>_bin" \
+    --outputTransport sse \
+    --logLevel info \
+    --port <port_number> &
+```
+
+### STEP 3: Frontend Integration
+
+#### 3a. Register the Server
+**File**: `solve/src/lib/mcp-server-registry.ts`
+
+Add to the `MCP_SERVER_REGISTRY` array:
+```typescript
+{
+  key: '<server_name>',
+  urlEnvKey: '<SERVER_NAME>_URL',  // Must match AWS SSM parameter
+  name: '<Display Name>',
+  description: '<Description of your MCP server functionality>',
+}
+```
+
+#### 3b. Configure Default Port
+**File**: `solve/src/config/mcp-servers.ts`
+
+Add to the `defaultPorts` object:
+```typescript
+const defaultPorts: Record<string, number> = {
+  // ... existing ports ...
+  <server_name>: <port_number>,
+}
+```
+
+#### 3c. Define URL Endpoints
+**File**: `solve/src/lib/mcp-urls.ts`
+
+Add to BOTH the development and production URL sections:
+```typescript
+// In development section (around line 15-25):
+<SERVER_NAME>_URL: `${baseUrl}:<port_number>/sse`,
+
+// In production section (around line 30-40):
+<SERVER_NAME>_URL: `${baseUrl}:<port_number>/sse`,
+```
+
+### STEP 4: Kubernetes Configuration
+
+#### 4a. K8s Service Manager
+**File**: `solve/src/lib/k8s-manager.ts`
+
+Add port mapping in TWO locations:
+
+1. In the service spec ports array (around line 100-115):
+```typescript
+{ name: '<server-name>', port: <port_number>, targetPort: <port_number> },
+```
+
+2. In the ingress service ports array (around line 365-375):
+```typescript
+{ name: '<server-name>', port: <port_number>, targetPort: <port_number> },
+```
+
+## Port Assignment Reference
+Check the current port assignments, if we have a collision. Move to the next 80XX port.
+
+## Pre-Setup Verification
 
 ### 1. Verify BUILD.bazel Configuration
 Before integrating the server, ensure the BUILD.bazel in your MCP server directory is correctly configured:
@@ -454,106 +564,22 @@ py_library(
 # Add appropriate configuration here
 ```
 
-## Setup Checklist
+## Execution Instructions
 
 ### PARALLEL EXECUTION STRATEGY
-When implementing these changes:
 1. **Read all files first** (in parallel) to understand current state
-2. **Execute all edits in parallel** - All 6 file modifications can be done simultaneously
+2. **Execute ALL file edits in parallel** - All modifications can be done simultaneously
 3. **Use TodoWrite tool** to track progress across parallel operations
 
-### 1. Choose Configuration
-- [ ] Server name: `________________`
-- [ ] Port number: `________________` (check existing ports first: 8001-8007 taken, 8008-8030 available)
-- [ ] Runtime type: [ ] Python [ ] Node.js
-
-### 2. Update MODULE.bazel (Python servers only)
-- [ ] Add pip.parse configuration:
-```python
-pip.parse(
-    download_only = True,
-    extra_pip_args = ["--only-binary=:all:"],
-    hub_name = "mcp_<server_name>",
-    python_version = "3.12",
-    requirements_by_platform = {
-        "//mcp/research/<server_name>:requirements_linux_arm64.txt": "linux_arm64",
-        "//mcp/research/<server_name>:requirements.txt": "linux_x86_64,osx_aarch64,osx_x86_64,windows_x86_64",
-    },
-)
-```
-- [ ] Add hub name to use_repo: `use_repo(pip, ..., "mcp_<server_name>")`
-
-### 3. Update BUILD.bazel Dependencies
-**File**: `mcp/usrpod/BUILD.bazel`
-
-- [ ] Add to `usrpod` sh_binary data:
-```python
-"//mcp/research/<server_name>:<target_name>",
-```
-- [ ] Add to `usrpod_container` sh_binary data (same line)
-
-### 4. Add Supergateway Launch Command
-**File**: `mcp/usrpod/run.sh`
-
-- [ ] Add launch command:
-```bash
-# Run <server_name> in background
-packages/vendor/supergateway/supergateway_/supergateway \
-    --stdio "mcp/research/<server_name>/<binary_name>" \
-    --outputTransport sse \
-    --port <port_number> &
-```
-
-### 5. Add Container Launch Command
-**File**: `mcp/usrpod/run-container.sh`
-
-For Python servers:
-- [ ] Add:
-```bash
-# Run <server_name> in background using python3
-cd "${RUNFILES_ROOT}/packages/vendor/supergateway" && \
-node main.js --stdio "python3 ${RUNFILES_ROOT}/mcp/research/<server_name>/<binary_name>" \
-    --outputTransport sse \
-    --port <port_number> &
-```
-
-For Node.js servers:
-- [ ] Add:
-```bash
-# Run <server_name> in background using node
-cd "${RUNFILES_ROOT}/packages/vendor/supergateway" && \
-node main.js --stdio "${RUNFILES_ROOT}/mcp/research/<server_name>/<binary_name>_/<binary_name>" \
-    --outputTransport sse \
-    --port <port_number> &
-```
-
-### 6. Configure Frontend Connection
-**File**: `solve/src/config/mcp-servers.ts`
-
-- [ ] Add configuration:
-```typescript
-<server_name>: {
-  type: 'sse',
-  url: process.env.<SERVER_NAME>_URL || 'http://localhost:<port_number>/sse',
-  description: '<Description of your MCP server>',
-  enabled: true,
-},
-```
-
-**CRITICAL**: The environment variable name `<SERVER_NAME>_URL` must exactly match the AWS SSM parameter variable name that was automatically added to solve-env-prod. This ensures proper environment variable resolution in production.
-
-### 7. Add Kubernetes Service Port
-**File**: `stacks/60.solve/service.tf`
-
-- [ ] Add port configuration:
-```hcl
-port {
-  name        = "<server-name>-mcp"  # Use kebab-case
-  port        = <port_number>
-  target_port = <port_number>
-  protocol    = "TCP"
-}
-```
+### File Modification Summary
+You need to modify exactly these files:
+1. `mcp/usrpod/BUILD.bazel` - Add server to data dependencies
+2. `mcp/usrpod/run.sh` - Add launch command
+3. `mcp/usrpod/run-container.sh` - Add container launch command
+4. `solve/src/lib/mcp-server-registry.ts` - Register server
+5. `solve/src/config/mcp-servers.ts` - Configure port
+6. `solve/src/lib/mcp-urls.ts` - Define URL endpoints
+7. `solve/src/lib/k8s-manager.ts` - Add K8s port mappings (2 locations)
 
 ## Port Selection Helper
 ```bash
@@ -630,7 +656,7 @@ When setting up a new MCP server, execute ALL of these operations in parallel:
 
 # 3. Test and commit
 - Run bazel build test
-- Commit all 6 files together
+
 ```
 
 This parallel approach reduces setup time from ~5 minutes to ~30 seconds!
@@ -639,17 +665,24 @@ This parallel approach reduces setup time from ~5 minutes to ~30 seconds!
     # Combine the instruction sections and replace placeholders
     combined_instructions = intro_section + rest_of_instructions
 
-    # Replace generic placeholders with specific values if port is assigned
-    if assigned_port:
-        claude_setup_instructions = combined_instructions.replace(
-            "<port_number>", str(assigned_port)
-        )
-        claude_setup_instructions = claude_setup_instructions.replace("<server_name>", project_slug)
-        claude_setup_instructions = claude_setup_instructions.replace(
-            "<SERVER_NAME>", project_slug.upper()
-        )
+    # Replace generic placeholders with specific values
+    claude_setup_instructions = combined_instructions.replace(
+        "<port_number>", str(assigned_port) if assigned_port else "[YOUR_PORT]"
+    )
+    claude_setup_instructions = claude_setup_instructions.replace("<server_name>", project_slug)
+    claude_setup_instructions = claude_setup_instructions.replace(
+        "<SERVER_NAME>", project_slug.upper()
+    )
+    # Detect category from project path (assumes mcp/<category>/<server_name> structure)
+    project_path_parts = Path(get_project_path()).parts
+    if "mcp" in project_path_parts:
+        mcp_index = project_path_parts.index("mcp")
+        if len(project_path_parts) > mcp_index + 1:
+            category = project_path_parts[mcp_index + 1]
+            claude_setup_instructions = claude_setup_instructions.replace("<category>", category)
     else:
-        claude_setup_instructions = combined_instructions
+        # Default category if can't detect
+        claude_setup_instructions = claude_setup_instructions.replace("<category>", "research")
 
     try:
         # Run Claude with the setup instructions
