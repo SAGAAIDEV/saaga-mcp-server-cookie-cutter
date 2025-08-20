@@ -16,9 +16,7 @@
   "streamable_http_json_response": ["no", "yes"],
   "log_level": ["INFO", "DEBUG", "WARNING", "ERROR"],
   "log_retention_days": "30",
-  "configure_bazel_build_files": ["yes", "no"],
   "include_oauth_passthrough": ["no", "yes"],
-
   "_copy_without_render": [
     ".claude",
     ".reference/templates/*",
