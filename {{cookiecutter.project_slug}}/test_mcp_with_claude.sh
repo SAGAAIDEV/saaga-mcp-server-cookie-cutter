@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # Configuration file is always mcp.integration_test.json
-CONFIG_FILE="${SCRIPT_DIR}/mcp.integration_test.json"
+CONFIG_FILE="${SCRIPT_DIR}/mcp.stdio.json"
 
 # Parse command line arguments
 PROMPT=""
@@ -20,7 +20,7 @@ PROMPT=""
 usage() {
     echo "Usage: $0 \"your prompt here\""
     echo ""
-    echo "This script tests your MCP server using the generated mcp.integration_test.json"
+    echo "This script tests your MCP server using the generated mcp.stdio.json"
     echo ""
     echo "Options:"
     echo "  -h, --help      Show this help message"

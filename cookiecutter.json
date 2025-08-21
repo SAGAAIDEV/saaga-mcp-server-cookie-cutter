@@ -16,10 +16,7 @@
   "streamable_http_json_response": ["no", "yes"],
   "log_level": ["INFO", "DEBUG", "WARNING", "ERROR"],
   "log_retention_days": "30",
-  "configure_bazel_build_files": ["yes", "no"],
-  "update_aws_parameter_store": ["no", "yes"],
   "include_oauth_passthrough": ["no", "yes"],
-  "jira_project_key": "",
   "_copy_without_render": [
     ".claude",
     ".reference/templates/*",

@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Cookie cutter template for creating MCP servers with SAAGA decorators"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     { name = "SAAGA AI Development Team", email = "dev@saaga.ai" }
 ]
@@ -41,6 +41,13 @@ dev = [
 Homepage = "https://github.com/SAGAAIDEV/saaga-mcp-server-cookie-cutter"
 Repository = "https://github.com/SAGAAIDEV/saaga-mcp-server-cookie-cutter"
 Issues = "https://github.com/SAGAAIDEV/saaga-mcp-server-cookie-cutter/issues"
+
+[tool.setuptools]
+packages = []  # This is a cookiecutter template, not a package
+py-modules = []  # No modules to include
+
+[tool.setuptools.package-data]
+"*" = []  # No package data since this is a template
 
 [tool.uv]
 # UV-specific configuration (not for dependencies)
