@@ -348,6 +348,9 @@ def run_refresh_requirements():
 def main():
     """Main entry point for the post-generation hook."""
     print("\n🔧 Running post-generation hook...")
+    
+    # Get cookiecutter context for use throughout
+    context = get_cookiecutter_context()
 
     # Update README.md with actual paths
     try:
@@ -373,6 +376,19 @@ def main():
     # See claude-setup-command.md in the root directory for the command to run
 
     print("\n✅ Post-generation hook completed!")
+    
+    # Print reminder about Claude Code setup in SAAGA
+    print("\n" + "="*70)
+    print("📌 IMPORTANT: Claude Code Setup in SAAGA")
+    print("="*70)
+    print("\nTo use this MCP server with Claude Code in SAAGA:")
+    print(f"1. Launch Claude Code in SAAGA")
+    print(f"2. Run the command: /setup-mcp {context['project_slug']} {{ cookiecutter.server_port }}")
+    print(f"   (This configures the MCP server on port {{ cookiecutter.server_port }})")
+    print("\nThe server will be available at:")
+    print(f"   http://localhost:{{ cookiecutter.server_port }}/mcp")
+    print("="*70)
+    
     # Don't fail the entire cookiecutter generation for any errors
     sys.exit(0)
 
