@@ -4,6 +4,10 @@ argument-hint: "[project-name] [include-ui]"
 allowed-tools: ["Bash", "Read", "Write", "LS"]
 ---
 
+## Grounding References
+- **Template Testing**: See `.reference/cookiecutter-maintenance.md#testing-template-generation` for testing patterns
+- **Critical Files**: Verify `.reference/critical-files.md` patterns are preserved in generated server
+
 **MANDATORY EXECUTION SEQUENCE - Execute ALL commands below in exact order:**
 
 **STEP 1 - Kill all existing MCP and Streamlit processes:**
