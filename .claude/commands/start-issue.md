@@ -6,6 +6,12 @@ allowed-tools: ["Bash", "Read", "Write", "mcp__Conduit__search_jira_issues", "mc
 
 I'll help you start working on JIRA issue $ARGUMENTS. Let me parse the issue key and site alias, then fetch the issue details and set up your development environment.
 
+## Grounding References
+- **Template Maintenance**: See `.reference/cookiecutter-maintenance.md` for template modification patterns
+- **Critical Files**: See `.reference/critical-files.md` for files that must not be broken
+- **MCP Patterns**: See `{{cookiecutter.project_slug}}/.reference/patterns/` for tool implementation patterns
+- **SAAGA Integration**: See `{{cookiecutter.project_slug}}/.reference/saaga-mcp-integration.md` for decorator requirements
+
 ## Parse Arguments
 Let me extract the issue key and site alias from the provided arguments:
 - Arguments provided: $ARGUMENTS
