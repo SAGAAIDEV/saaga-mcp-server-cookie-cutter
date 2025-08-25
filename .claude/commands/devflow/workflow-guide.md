@@ -3,6 +3,66 @@
 ## Overview
 This workflow breaks down JIRA issue implementation into focused, manageable phases. Each command has a single responsibility and guides you to the next step.
 
+## Visual Workflow
+
+![DevFlow Sequence Diagram](./devflow-sequence-diagram.png)
+
+<details>
+<summary>View/Edit Diagram Source (Mermaid)</summary>
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant Claude as Claude Code
+    participant JIRA
+    participant Git
+    participant GitHub
+
+    Dev->>Claude: /project:devflow/fetch-issue [KEY] [SITE]
+    Claude->>JIRA: Fetch issue details
+    JIRA-->>Claude: Requirements & acceptance criteria
+    Claude-->>Dev: Display issue summary
+    
+    Dev->>Claude: /project:devflow/analyze-feasibility
+    Claude->>Claude: Search codebase for existing implementation
+    Claude-->>Dev: Report findings (not/partially/fully implemented)
+    
+    Dev->>Claude: /project:devflow/create-branch [KEY] [SITE]
+    Claude->>Git: Create feature branch
+    Claude->>JIRA: Update status to "In Progress"
+    Claude-->>Dev: Branch created & JIRA updated
+    
+    Dev->>Claude: /project:devflow/plan-implementation
+    Claude->>Claude: Research technologies (Context7)
+    Claude->>Claude: Create detailed plan
+    Claude-->>Dev: Present plan for approval (ExitPlanMode)
+    
+    Note over Dev: Reviews plan
+    Dev->>Claude: /project:devflow/implement-plan
+    Claude->>Claude: Execute approved plan
+    Claude->>Git: Create/modify files
+    Claude-->>Dev: Implementation complete
+    
+    Dev->>Claude: /project:devflow/test-issue
+    Claude->>Claude: Run appropriate tests
+    Claude-->>Dev: Test results
+    
+    Dev->>Claude: /project:devflow/complete-issue [SITE]
+    Claude->>Git: Commit changes
+    Claude->>GitHub: Create pull request
+    Claude->>JIRA: Update status to "Done"
+    Claude-->>Dev: PR created, JIRA updated
+    
+    Note over Dev,GitHub: PR Review & Merge
+    
+    Dev->>Claude: /project:devflow/post-merge
+    Claude->>Git: Pull latest main
+    Claude->>Git: Delete feature branch
+    Claude-->>Dev: Ready for next issue
+```
+
+</details>
+
 ## Workflow Sequence
 
 ### 1. Fetch Issue → `/project:devflow/fetch-issue`
