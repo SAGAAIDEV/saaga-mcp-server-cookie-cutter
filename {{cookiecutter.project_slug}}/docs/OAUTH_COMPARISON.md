@@ -80,7 +80,7 @@ graph LR
 # Client sends temporary token and identifiers
 _meta = {
     "userId": "user_123",
-    "tempToken": "temp_abc456",
+    "userToken": "temp_abc456",
     "providerId": "reddit"
 }
 ```
@@ -137,7 +137,7 @@ result = await session.call_tool(
     arguments={},
     _meta={
         "userId": "user_123",
-        "tempToken": "temp_token_abc",
+        "userToken": "temp_token_abc",
         "providerId": "reddit"
     }
 )

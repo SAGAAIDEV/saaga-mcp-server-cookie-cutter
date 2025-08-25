@@ -1,13 +1,10 @@
-"""{% if cookiecutter.include_admin_ui == "yes" %}
+"""
 Shared UI components for {{cookiecutter.project_name}} Admin UI
 
 This module provides reusable Streamlit components including headers, alerts,
 status indicators, and other common UI elements used across different pages.
-{% else %}
-Placeholder for optional Streamlit admin UI components.
-{% endif %}"""
+"""
 
-{% if cookiecutter.include_admin_ui == "yes" %}
 import streamlit as st
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -37,7 +34,7 @@ def render_sidebar():
         st.markdown("### 🔧 Server Info")
         st.markdown("""
         **Port:** {{cookiecutter.server_port}}  
-        **Log Level:** {{cookiecutter.log_level}}  
+        **Log Level:** INFO  
         **Python:** {{cookiecutter.python_version}}+  
         """)
         
@@ -45,16 +42,8 @@ def render_sidebar():
         st.markdown("### 🎛️ Features")
         feature_list = []
         feature_list.append("✅ Admin UI")
-        {% if cookiecutter.include_example_tools == "yes" %}
         feature_list.append("✅ Example Tools")
-        {% else %}
-        feature_list.append("➖ Example Tools")
-        {% endif %}
-        {% if cookiecutter.include_parallel_example == "yes" %}
         feature_list.append("✅ Parallel Processing")
-        {% else %}
-        feature_list.append("➖ Parallel Processing")
-        {% endif %}
         
         for feature in feature_list:
             st.markdown(f"- {feature}")
@@ -290,4 +279,3 @@ def render_footer():
         f"</div>",
         unsafe_allow_html=True
     )
-{% endif %}

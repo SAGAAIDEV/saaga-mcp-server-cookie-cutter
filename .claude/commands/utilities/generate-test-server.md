@@ -22,7 +22,7 @@ Execute these bash commands in sequence:
 Execute: `rm -rf ./generated_servers/test_mcp_server`
 
 **STEP 3 - Generate new server from cookie cutter:**
-Execute: `cookiecutter . --no-input project_name="Test MCP Server" project_slug="test_mcp_server" description="Test MCP server generated for development testing" author_name="Test Developer" author_email="test@example.com" include_admin_ui="yes" include_example_tools="yes" include_parallel_example="yes" log_level="DEBUG" --output-dir ./generated_servers`
+Execute: `cookiecutter . --no-input project_name="Test MCP Server" project_slug="test_mcp_server" description="Test MCP server generated for development testing" author_name="Test Developer" author_email="test@example.com" --output-dir ./generated_servers`
 
 **STEP 4 - Navigate to generated project directory:**
 Execute: `cd ./generated_servers/test_mcp_server`

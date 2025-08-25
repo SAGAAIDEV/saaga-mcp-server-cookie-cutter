@@ -12,7 +12,7 @@ class TestOAuthBackendDecorator:
     
     @pytest.mark.asyncio
     async def test_decorator_with_valid_parameters(self):
-        """Test decorator with valid userId, tempToken, and providerId."""
+        """Test decorator with valid userId, userToken, and providerId."""
         # Create a mock function to decorate
         mock_func = AsyncMock(return_value={"status": "success"})
         
@@ -20,12 +20,12 @@ class TestOAuthBackendDecorator:
         ctx = Mock()
         ctx.request_context.meta = {
             "userId": "user123",
-            "tempToken": "temp_abc456",
+            "userToken": "temp_abc456",
             "providerId": "reddit"
         }
         
-        # Mock the API client
-        with patch("{{ cookiecutter.project_slug }}.decorators.oauth_backend.OAuthAPIClient") as MockClient:
+        # Mock the API client at the import location
+        with patch("{{ cookiecutter.project_slug }}.clients.oauth_api_client.OAuthAPIClient") as MockClient:
             mock_client = MockClient.return_value
             mock_client.exchange_token = AsyncMock(return_value="access_token_xyz789")
             
@@ -39,7 +39,7 @@ class TestOAuthBackendDecorator:
             # Verify token exchange was called
             mock_client.exchange_token.assert_called_once_with(
                 user_id="user123",
-                temp_token="temp_abc456",
+                user_token="temp_abc456",
                 provider_id="reddit"
             )
             
@@ -56,12 +56,12 @@ class TestOAuthBackendDecorator:
         """Test decorator when required parameters are missing."""
         mock_func = AsyncMock()
         
-        # Context missing tempToken
+        # Context missing userToken
         ctx = Mock()
         ctx.request_context.meta = {
             "userId": "user123",
             "providerId": "reddit"
-            # Missing tempToken
+            # Missing userToken
         }
         
         config = {"oauth_backend_url": "https://api.example.com"}
@@ -71,7 +71,7 @@ class TestOAuthBackendDecorator:
         
         # Should return error for missing parameters
         assert result["error"] == "missing_parameters"
-        assert "tempToken" in result["details"]
+        assert "userToken" in result["details"]
         
         # Original function should not be called
         mock_func.assert_not_called()
@@ -84,7 +84,7 @@ class TestOAuthBackendDecorator:
         ctx = Mock()
         ctx.request_context.meta = {
             "userId": "user123",
-            "tempToken": "temp_abc456",
+            "userToken": "temp_abc456",
             "providerId": "github"  # Mismatch - decorator expects "reddit"
         }
         
@@ -108,13 +108,13 @@ class TestOAuthBackendDecorator:
         ctx = Mock()
         ctx.request_context.meta = {
             "userId": "user123",
-            "tempToken": "temp_abc456",
+            "userToken": "temp_abc456",
             "providerId": "reddit"
         }
         
-        with patch("{{ cookiecutter.project_slug }}.decorators.oauth_backend.OAuthAPIClient") as MockClient:
+        with patch("{{ cookiecutter.project_slug }}.clients.oauth_api_client.OAuthAPIClient") as MockClient:
             mock_client = MockClient.return_value
-            mock_client.exchange_token = AsyncMock(side_effect=Exception("API timeout"))
+            mock_client.exchange_token = AsyncMock(side_effect=ValueError("API timeout"))
             
             config = {"oauth_backend_url": "https://api.example.com"}
             decorated = oauth_backend("reddit")(mock_func, config)
@@ -127,83 +127,19 @@ class TestOAuthBackendDecorator:
             
             mock_func.assert_not_called()
     
-    @pytest.mark.asyncio
-    async def test_decorator_mock_mode(self):
-        """Test decorator in mock mode."""
-        mock_func = AsyncMock(return_value={"data": "test"})
-        
-        ctx = Mock()
-        ctx.request_context.meta = {
-            "userId": "user123",
-            "tempToken": "temp_abc456",
-            "providerId": "reddit"
-        }
-        
-        with patch("{{ cookiecutter.project_slug }}.decorators.oauth_backend.OAuthAPIClient") as MockClient:
-            mock_client = MockClient.return_value
-            mock_client.exchange_token = AsyncMock(return_value="mock_reddit_token_123456789")
-            
-            config = {"oauth_backend_mock_mode": "yes"}
-            decorated = oauth_backend("reddit")(mock_func, config)
-            
-            result = await decorated(ctx=ctx)
-            
-            # Mock client should be initialized with mock_mode=True
-            MockClient.assert_called_once_with(backend_url="", mock_mode=True)
-            
-            # Should still exchange token
-            mock_client.exchange_token.assert_called_once()
-            
-            # Function should be called
-            mock_func.assert_called_once()
-            assert result == {"data": "test"}
 
 
 class TestOAuthAPIClient:
     """Test the OAuth API client."""
     
     @pytest.mark.asyncio
-    async def test_mock_exchange_success(self):
-        """Test mock token exchange returns expected tokens."""
-        client = OAuthAPIClient(mock_mode=True)
-        
-        token = await client.exchange_token(
-            user_id="user123",
-            temp_token="temp_abc",
-            provider_id="reddit"
-        )
-        
-        assert token == "mock_reddit_token_123456789"
-    
-    @pytest.mark.asyncio
-    async def test_mock_exchange_error_token(self):
-        """Test mock exchange with error token."""
-        client = OAuthAPIClient(mock_mode=True)
-        
-        with pytest.raises(Exception, match="Mock error: Invalid temp token"):
-            await client.exchange_token(
-                user_id="user123",
-                temp_token="error_token",
-                provider_id="reddit"
-            )
-    
-    @pytest.mark.asyncio
-    async def test_mock_exchange_empty_response(self):
-        """Test mock exchange with empty response token."""
-        client = OAuthAPIClient(mock_mode=True)
-        
-        token = await client.exchange_token(
-            user_id="user123",
-            temp_token="empty_response",
-            provider_id="reddit"
-        )
-        
-        assert token is None
-    
-    @pytest.mark.asyncio
     async def test_real_exchange_success(self):
         """Test real API token exchange with mocked httpx."""
         with patch("{{ cookiecutter.project_slug }}.clients.oauth_api_client.httpx") as mock_httpx:
+            # Mock the exception classes that httpx provides
+            mock_httpx.TimeoutException = TimeoutError
+            mock_httpx.RequestError = ConnectionError
+            
             # Mock successful response
             mock_response = Mock()
             mock_response.status_code = 200
@@ -213,11 +149,11 @@ class TestOAuthAPIClient:
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_httpx.AsyncClient.return_value.__aenter__.return_value = mock_client
             
-            client = OAuthAPIClient(backend_url="https://api.example.com", mock_mode=False)
+            client = OAuthAPIClient(backend_url="https://api.example.com")
             
             token = await client.exchange_token(
                 user_id="user123",
-                temp_token="temp_abc",
+                user_token="temp_abc",
                 provider_id="reddit"
             )
             
@@ -228,7 +164,7 @@ class TestOAuthAPIClient:
                 "https://api.example.com/api/connectors/requestAuth",
                 json={
                     "userId": "user123",
-                    "tempToken": "temp_abc",
+                    "userToken": "temp_abc",
                     "providerId": "reddit"
                 },
                 headers={"Content-Type": "application/json"}
@@ -238,6 +174,10 @@ class TestOAuthAPIClient:
     async def test_real_exchange_unauthorized(self):
         """Test real API exchange with 401 response."""
         with patch("{{ cookiecutter.project_slug }}.clients.oauth_api_client.httpx") as mock_httpx:
+            # Mock the exception classes that httpx provides
+            mock_httpx.TimeoutException = TimeoutError
+            mock_httpx.RequestError = ConnectionError
+            
             mock_response = Mock()
             mock_response.status_code = 401
             
@@ -245,27 +185,23 @@ class TestOAuthAPIClient:
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_httpx.AsyncClient.return_value.__aenter__.return_value = mock_client
             
-            client = OAuthAPIClient(backend_url="https://api.example.com", mock_mode=False)
+            client = OAuthAPIClient(backend_url="https://api.example.com")
             
-            with pytest.raises(Exception, match="Invalid or expired temporary token"):
+            with pytest.raises(ValueError, match=r"Invalid or expired temporary token"):
                 await client.exchange_token(
                     user_id="user123",
-                    temp_token="invalid_temp",
+                    user_token="invalid_temp",
                     provider_id="reddit"
                 )
-    
-    @pytest.mark.asyncio
-    async def test_health_check_mock_mode(self):
-        """Test health check in mock mode always returns True."""
-        client = OAuthAPIClient(mock_mode=True)
-        
-        result = await client.health_check()
-        assert result is True
     
     @pytest.mark.asyncio
     async def test_health_check_real_success(self):
         """Test health check with real backend."""
         with patch("{{ cookiecutter.project_slug }}.clients.oauth_api_client.httpx") as mock_httpx:
+            # Mock the exception classes that httpx provides
+            mock_httpx.TimeoutException = TimeoutError
+            mock_httpx.RequestError = ConnectionError
+            
             mock_response = Mock()
             mock_response.status_code = 200
             
@@ -273,7 +209,7 @@ class TestOAuthAPIClient:
             mock_client.get = AsyncMock(return_value=mock_response)
             mock_httpx.AsyncClient.return_value.__aenter__.return_value = mock_client
             
-            client = OAuthAPIClient(backend_url="https://api.example.com", mock_mode=False)
+            client = OAuthAPIClient(backend_url="https://api.example.com")
             
             result = await client.health_check()
             assert result is True

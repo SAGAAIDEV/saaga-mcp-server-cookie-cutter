@@ -3,8 +3,8 @@
 """Test script for OAuth backend functionality.
 
 This script tests the OAuth backend pattern where:
-1. Client provides userId, tempToken, and providerId
-2. The backend exchanges tempToken for accessToken
+1. Client provides userId, userToken, and providerId
+2. The backend exchanges userToken for accessToken
 3. Tools use the accessToken to make API calls
 
 Usage:
@@ -26,7 +26,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from mcp.client.session import ClientSession
-from mcp.client.stdio import stdio_client
+from mcp.client.stdio import stdio_client, StdioServerParameters
 from mcp import types
 
 
@@ -53,7 +53,7 @@ async def test_oauth_backend(backend_url: str = None, mock_mode: bool = True):
     if backend_url:
         env["OAUTH_BACKEND_URL"] = backend_url
     
-    server_params = types.StdioServerParameters(
+    server_params = StdioServerParameters(
         command="python",
         args=["-m", "{{ cookiecutter.project_slug }}.server.app"],
         env=env
@@ -121,7 +121,7 @@ async def test_oauth_backend(backend_url: str = None, mock_mode: bool = True):
                     arguments={},
                     _meta={
                         "userId": "test_user_123",
-                        "tempToken": "temp_token_abc456",
+                        "userToken": "temp_token_abc456",
                         "providerId": "reddit"
                     }
                 )
@@ -152,7 +152,7 @@ async def test_oauth_backend(backend_url: str = None, mock_mode: bool = True):
                     arguments={},
                     _meta={
                         "userId": "test_user_123",
-                        "tempToken": "temp_token_abc456",
+                        "userToken": "temp_token_abc456",
                         "providerId": "github"  # Wrong provider!
                     }
                 )
@@ -180,7 +180,7 @@ async def test_oauth_backend(backend_url: str = None, mock_mode: bool = True):
                     arguments={"limit": 5},
                     _meta={
                         "userId": "test_user_123",
-                        "tempToken": "temp_token_abc456",
+                        "userToken": "temp_token_abc456",
                         "providerId": "reddit"
                     }
                 )

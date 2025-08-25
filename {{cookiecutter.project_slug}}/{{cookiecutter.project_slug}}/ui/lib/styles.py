@@ -1,13 +1,10 @@
-"""{% if cookiecutter.include_admin_ui == "yes" %}
+"""
 CSS styling and theming for {{cookiecutter.project_name}} Admin UI
 
 This module provides custom CSS styles and theming for the Streamlit admin interface,
 ensuring consistent visual design and improved user experience.
-{% else %}
-Placeholder for optional Streamlit admin UI styling.
-{% endif %}"""
+"""
 
-{% if cookiecutter.include_admin_ui == "yes" %}
 import streamlit as st
 from typing import Optional
 
@@ -571,4 +568,3 @@ def hide_streamlit_style():
     """
     
     st.markdown(hide_style, unsafe_allow_html=True)
-{% endif %}

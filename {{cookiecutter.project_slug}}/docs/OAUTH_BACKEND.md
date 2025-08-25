@@ -9,7 +9,7 @@ This MCP server includes OAuth backend token exchange support, allowing secure a
 
 ### How It Works
 
-1. **Client provides credentials**: MCP client sends `userId`, `tempToken`, and `providerId` in the `_meta` parameter
+1. **Client provides credentials**: MCP client sends `userId`, `userToken`, and `providerId` in the `_meta` parameter
 2. **Backend exchange**: The `oauth_backend` decorator calls your backend API to exchange the temp token
 3. **Token injection**: The returned access token is injected into the context for tools to use
 4. **API calls**: Tools use the access token to call external APIs (Reddit, Google, etc.)
@@ -57,7 +57,7 @@ Your backend API must implement the following endpoint:
 ```json
 {
   "userId": "user_identifier",
-  "tempToken": "temporary_token_from_client",
+  "userToken": "temporary_token_from_client",
   "providerId": "oauth_provider_name"
 }
 ```
@@ -92,7 +92,7 @@ result = await session.call_tool(
     arguments={},
     _meta={
         "userId": "user_123",
-        "tempToken": "temp_token_abc456",
+        "userToken": "temp_token_abc456",
         "providerId": "reddit"
     }
 )
@@ -102,7 +102,7 @@ result = await session.call_tool(
 
 All three parameters must be provided:
 - `userId`: Unique identifier for the user
-- `tempToken`: Temporary token from your auth system
+- `userToken`: Temporary token from your auth system
 - `providerId`: OAuth provider name (must match tool's expected provider)
 
 ## Tool Implementation
@@ -194,7 +194,7 @@ The OAuth backend decorator provides detailed error responses:
   "error": "missing_parameters",
   "message": "Missing required OAuth parameters for reddit",
   "provider": "reddit",
-  "details": "Required: userId, tempToken, providerId. Missing: tempToken"
+  "details": "Required: userId, userToken, providerId. Missing: userToken"
 }
 ```
 
@@ -222,9 +222,9 @@ The OAuth backend decorator provides detailed error responses:
 ```json
 {
   "error": "invalid_parameter",
-  "message": "Invalid tempToken format for reddit",
+  "message": "Invalid userToken format for reddit",
   "provider": "reddit",
-  "details": "tempToken must be a non-empty string"
+  "details": "userToken must be a non-empty string"
 }
 ```
 
@@ -265,7 +265,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 If migrating from OAuth passthrough to backend pattern:
 
-1. **Update client code** to send `userId`, `tempToken`, `providerId` instead of tokens
+1. **Update client code** to send `userId`, `userToken`, `providerId` instead of tokens
 2. **Implement backend API** endpoint `/api/connectors/requestAuth`
 3. **Update tool registration** in app.py to use `oauth_backend_tools`
 4. **Test thoroughly** with mock mode first

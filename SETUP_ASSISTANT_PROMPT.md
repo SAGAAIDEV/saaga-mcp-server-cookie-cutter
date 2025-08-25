@@ -29,12 +29,10 @@ You'll be prompted for several values. Here are suggested defaults:
 - **author_name**: Your name
 - **author_email**: Your email
 - **python_version**: Choose 3.11 or 3.12
-- **include_admin_ui**: Choose "yes" if you want a web UI for configuration and logs
-- **include_example_tools**: Choose "yes" to see example implementations
-- **include_parallel_example**: Choose "yes" to see parallelization examples
 - **server_port**: Accept default (3001) or choose your preferred port
-- **log_level**: Choose "INFO" for normal use or "DEBUG" for development
-- **log_retention_days**: Accept default (30) or adjust as needed
+- **include_oauth_passthrough**: Choose "yes" if you need OAuth token passthrough support
+- **include_oauth_backend**: Choose "yes" if you need OAuth backend support
+- **oauth_backend_port**: Default is 8080 if OAuth backend is enabled
 
 ## 3. Navigate to Your Project
 

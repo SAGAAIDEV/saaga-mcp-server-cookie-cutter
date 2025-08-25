@@ -2,21 +2,21 @@
 """OAuth Backend Decorator - Exchanges temp tokens for access tokens via backend API.
 
 This decorator handles OAuth token exchange with a backend service.
-It extracts userId, tempToken, and providerId from Context metadata,
+It extracts userId, userToken, and providerId from Context metadata,
 calls a backend API to exchange the temp token for a real access token,
 and injects that token into the context for tools to use.
 """
 
 from functools import wraps
 from typing import Callable, Any, Awaitable, Optional, Dict
-import logging
 import asyncio
+from {{ cookiecutter.project_slug }}.log_system.unified_logger import UnifiedLogger
 
 def oauth_backend(provider: str):
     """Exchange temp tokens for access tokens via backend API.
     
     This decorator:
-    1. Checks Context for userId, tempToken, and providerId
+    1. Checks Context for userId, userToken, and providerId
     2. Calls backend API to exchange temp token for access token
     3. Injects the access token into context for tools to use
     4. Returns graceful errors if token exchange fails
@@ -41,7 +41,7 @@ def oauth_backend(provider: str):
         async def wrapper(*args, **kwargs) -> Any:
             from {{ cookiecutter.project_slug }}.clients.oauth_api_client import OAuthAPIClient
             
-            logger = logging.getLogger(f'{{ cookiecutter.project_slug }}.oauth_backend.{provider}')
+            unified_logger = UnifiedLogger.get_logger(f'oauth_backend.{provider}')
             
             try:
                 # Get Context from kwargs (following SAAGA pattern)
@@ -52,23 +52,28 @@ def oauth_backend(provider: str):
                     
                     # Extract OAuth backend parameters from meta
                     user_id = None
-                    temp_token = None
+                    user_token = None
                     provider_id = None
                     
                     if hasattr(meta, 'get'):
                         user_id = meta.get('userId')
-                        temp_token = meta.get('tempToken')
+                        user_token = meta.get('userToken')
                         provider_id = meta.get('providerId')
                     elif hasattr(meta, 'userId'):
                         user_id = getattr(meta, 'userId', None)
-                        temp_token = getattr(meta, 'tempToken', None)
+                        user_token = getattr(meta, 'userToken', None)
                         provider_id = getattr(meta, 'providerId', None)
                     
                     # Check if all required parameters are present
-                    if user_id and temp_token and provider_id:
+                    if user_id and user_token and provider_id:
+                        unified_logger.info(f"OAuth Backend: Received token exchange request")
+                        unified_logger.info(f"  Provider: {provider}")
+                        unified_logger.info(f"  User ID: {user_id}")
+                        unified_logger.info(f"  User Token: {user_token[:20]}... (length: {len(user_token)} chars)")
+                        unified_logger.info(f"  Provider ID: {provider_id}")
                         # Validate parameters
                         if not isinstance(user_id, str) or not user_id.strip():
-                            logger.warning(f"Invalid userId format for {provider}")
+                            unified_logger.warning(f"OAuth Backend: Invalid userId format for {provider}")
                             return {
                                 "error": "invalid_parameter",
                                 "message": f"Invalid userId format for {provider}",
@@ -76,17 +81,17 @@ def oauth_backend(provider: str):
                                 "details": "userId must be a non-empty string"
                             }
                         
-                        if not isinstance(temp_token, str) or not temp_token.strip():
-                            logger.warning(f"Invalid tempToken format for {provider}")
+                        if not isinstance(user_token, str) or not user_token.strip():
+                            unified_logger.warning(f"OAuth Backend: Invalid userToken format for {provider}")
                             return {
                                 "error": "invalid_parameter",
-                                "message": f"Invalid tempToken format for {provider}",
+                                "message": f"Invalid userToken format for {provider}",
                                 "provider": provider,
-                                "details": "tempToken must be a non-empty string"
+                                "details": "userToken must be a non-empty string"
                             }
                         
                         if not isinstance(provider_id, str) or not provider_id.strip():
-                            logger.warning(f"Invalid providerId format for {provider}")
+                            unified_logger.warning(f"OAuth Backend: Invalid providerId format for {provider}")
                             return {
                                 "error": "invalid_parameter",
                                 "message": f"Invalid providerId format for {provider}",
@@ -96,7 +101,7 @@ def oauth_backend(provider: str):
                         
                         # Check if provider matches
                         if provider_id != provider:
-                            logger.info(f"Provider mismatch: expected {provider}, got {provider_id}")
+                            unified_logger.info(f"OAuth Backend: Provider mismatch - expected {provider}, got {provider_id}")
                             return {
                                 "error": "provider_mismatch",
                                 "message": f"This tool requires {provider} authentication",
@@ -106,34 +111,30 @@ def oauth_backend(provider: str):
                         
                         # Initialize API client
                         backend_url = config.get('oauth_backend_url', '') if config else ''
-                        mock_mode = config.get('oauth_backend_mock_mode', 'no') == 'yes' if config else False
                         
-                        if not backend_url and not mock_mode:
-                            logger.error("No backend URL configured and mock mode disabled")
+                        if not backend_url:
+                            unified_logger.error("OAuth Backend: No backend URL configured")
                             return {
                                 "error": "configuration_error",
                                 "message": "OAuth backend not configured",
                                 "provider": provider,
-                                "details": "Backend URL is required when mock mode is disabled"
+                                "details": "Backend URL is required"
                             }
                         
-                        client = OAuthAPIClient(
-                            backend_url=backend_url,
-                            mock_mode=mock_mode
-                        )
+                        client = OAuthAPIClient(backend_url=backend_url)
                         
                         # Exchange temp token for access token
-                        logger.info(f"Exchanging temp token for {provider} access token")
+                        unified_logger.info(f"OAuth Backend: Exchanging user token for {provider} access token")
                         
                         try:
                             access_token = await client.exchange_token(
                                 user_id=user_id,
-                                temp_token=temp_token,
+                                user_token=user_token,
                                 provider_id=provider_id
                             )
                             
                             if not access_token:
-                                logger.warning(f"No access token returned for {provider}")
+                                unified_logger.warning(f"OAuth Backend: No access token returned for {provider}")
                                 return {
                                     "error": "token_exchange_failed",
                                     "message": f"Failed to obtain {provider} access token",
@@ -149,7 +150,8 @@ def oauth_backend(provider: str):
                                 setattr(meta, 'current_oauth_token', access_token)
                                 setattr(meta, 'oauth_provider', provider)
                             
-                            logger.info(f"Successfully obtained {provider} access token")
+                            unified_logger.info(f"OAuth Backend: Successfully obtained {provider} access token")
+                            unified_logger.info(f"  Injecting token into Context metadata for tool use")
                             
                             # Call the wrapped function with token available
                             result = await func(*args, **kwargs)
@@ -166,7 +168,7 @@ def oauth_backend(provider: str):
                             return result
                             
                         except Exception as api_error:
-                            logger.error(f"API call failed for {provider}: {str(api_error)}")
+                            unified_logger.error(f"OAuth Backend: API call failed for {provider}: {str(api_error)}")
                             return {
                                 "error": "api_error",
                                 "message": f"Failed to exchange token with {provider} backend",
@@ -178,21 +180,21 @@ def oauth_backend(provider: str):
                     missing = []
                     if not user_id:
                         missing.append("userId")
-                    if not temp_token:
-                        missing.append("tempToken")
+                    if not user_token:
+                        missing.append("userToken")
                     if not provider_id:
                         missing.append("providerId")
                     
-                    logger.info(f"Missing required parameters for {provider}: {', '.join(missing)}")
+                    unified_logger.info(f"OAuth Backend: Missing required parameters for {provider}: {', '.join(missing)}")
                     return {
                         "error": "missing_parameters",
                         "message": f"Missing required OAuth parameters for {provider}",
                         "provider": provider,
-                        "details": f"Required: userId, tempToken, providerId. Missing: {', '.join(missing)}"
+                        "details": f"Required: userId, userToken, providerId. Missing: {', '.join(missing)}"
                     }
                     
                 else:
-                    logger.debug(f"Context structure not suitable for OAuth backend extraction")
+                    unified_logger.debug(f"OAuth Backend: Context structure not suitable for OAuth backend extraction")
                     return {
                         "error": "invalid_context",
                         "message": f"Invalid context structure for {provider} OAuth",
@@ -202,7 +204,7 @@ def oauth_backend(provider: str):
                     
             except Exception as e:
                 # Catch any unexpected errors to prevent crashes
-                logger.error(f"Unexpected error in oauth_backend for {provider}: {str(e)}")
+                unified_logger.error(f"OAuth Backend: Unexpected error for {provider}: {str(e)}")
                 return {
                     "error": "oauth_processing_error",
                     "message": f"Error processing OAuth backend for {provider}",
@@ -213,4 +215,4 @@ def oauth_backend(provider: str):
         return wrapper
     
     return decorator
-{% endif -%}
+{%- endif %}

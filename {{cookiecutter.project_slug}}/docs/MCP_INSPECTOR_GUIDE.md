@@ -84,7 +84,6 @@ Open the Inspector URL in your browser.
 | SSE | Web clients (legacy) | Multiple endpoints | Separate streams per operation |
 | Streamable HTTP | Modern web clients | Single `/mcp` endpoint | Unified API, resumability, better performance |
 
-{% if cookiecutter.include_example_tools == "yes" -%}
 ## Testing Example Tools
 
 ### Regular Tools (Form Mode)
@@ -153,7 +152,6 @@ n: 20
 Expected: {"position": 20, "value": 6765, "calculation_time": 0.0000XX}
 ```
 
-{% if cookiecutter.include_parallel_example == "yes" -%}
 ### Parallel Tools (JSON Mode Required)
 
 ⚠️ **Important**: The parallelization decorator transforms these tools to accept a single parameter `kwargs_list` containing a list of dictionaries. Each dictionary in the list represents one execution of the original function.
@@ -264,7 +262,6 @@ Expected output (list of results for each computation):
   }
 ]
 ```
-{% endif -%}
 
 ## Testing Error Handling
 
@@ -278,12 +275,9 @@ The SAAGA decorators provide comprehensive error handling. Test these scenarios:
    - Leave required fields empty
    - The error response should clearly indicate what's missing
 
-{% if cookiecutter.include_parallel_example == "yes" -%}
 3. **Invalid parallel tool data**:
    - For `process_batch_data`: Try invalid operation: `{"operation": "invalid"}`
    - For empty arrays: Try `{"batches": []}`
-{% endif -%}
-{% endif -%}
 
 ## Viewing Logs
 
@@ -301,7 +295,6 @@ The SAAGA decorators automatically log all tool executions.
 - Linux: `~/.local/share/{{ cookiecutter.project_slug }}/tool_logs.db`
 - Windows: `%LOCALAPPDATA%\{{ cookiecutter.project_slug }}\tool_logs.db`
 
-{% if cookiecutter.include_admin_ui == "yes" -%}
 ### Viewing Logs in Admin UI
 
 You can also view logs through the Streamlit admin interface:
@@ -315,7 +308,6 @@ Navigate to the "Logs" page to see:
 - Success/failure rates
 - Performance metrics
 - Detailed error messages
-{% endif -%}
 
 ## Common Issues
 
@@ -347,6 +339,6 @@ Once you've verified the example tools work:
 1. Add your own tools in `{{ cookiecutter.project_slug }}/tools/`
 2. Follow the SAAGA decorator pattern for consistency
 3. Test thoroughly with the Inspector
-4. {% if cookiecutter.include_admin_ui == "yes" %}Monitor performance in the Admin UI{% else %}Check logs for performance metrics{% endif %}
+4. Monitor performance in the Admin UI
 
 For more details on creating custom tools, see the [SAAGA Decorator Patterns](../DECORATOR_PATTERNS.md) documentation.

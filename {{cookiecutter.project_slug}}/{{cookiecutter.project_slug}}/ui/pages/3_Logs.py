@@ -1,4 +1,4 @@
-"""{% if cookiecutter.include_admin_ui == "yes" %}
+"""
 Log viewer page for {{cookiecutter.project_name}} Admin UI
 
 This page provides interface for viewing, filtering, and analyzing server logs
@@ -6,11 +6,8 @@ from the SQLite logging database. Includes export capabilities and real-time upd
 
 Note: This is a placeholder implementation for Phase 4, Issue 1.
 Full functionality will be implemented in Phase 4, Issue 3.
-{% else %}
-Placeholder for optional Streamlit admin UI logs page.
-{% endif %}"""
+"""
 
-{% if cookiecutter.include_admin_ui == "yes" %}
 import streamlit as st
 from pathlib import Path
 import sys
@@ -392,4 +389,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-{% endif %}

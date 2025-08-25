@@ -1,4 +1,4 @@
-"""{% if cookiecutter.include_admin_ui == "yes" %}
+"""
 Streamlit Admin UI for {{cookiecutter.project_name}}
 
 This admin interface provides web-based management for the MCP server configuration
@@ -6,12 +6,8 @@ and log viewing. It runs independently of the MCP server and communicates throug
 shared configuration files and SQLite database.
 
 Run with: streamlit run {{cookiecutter.project_slug}}/ui/app.py
-{% else %}
-Placeholder for optional Streamlit admin UI.
-This file is only populated when include_admin_ui=yes during cookiecutter generation.
-{% endif %}"""
+"""
 
-{% if cookiecutter.include_admin_ui == "yes" %}
 import streamlit as st
 from pathlib import Path
 import sys
@@ -131,4 +127,3 @@ Session State Keys: {list(st.session_state.keys()) if hasattr(st, 'session_state
 
 if __name__ == "__main__":
     main()
-{% endif %}

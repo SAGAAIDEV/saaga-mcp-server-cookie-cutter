@@ -1,0 +1,29 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+
+py_binary(
+    name = "final_mcp_bin",
+    srcs = ["final_mcp/__main__.py"],
+    imports = ["final_mcp"],
+    main = "final_mcp/__main__.py",
+    visibility = ["//visibility:public"],
+    deps = [":final_mcp_lib"],
+)
+
+py_library(
+    name = "final_mcp_lib",
+    srcs = glob(["final_mcp/**/*.py"]),
+    imports = ["."],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@mcp_final_mcp//mcp",
+        "@mcp_final_mcp//pydantic",
+        "@mcp_final_mcp//pyyaml",
+        "@mcp_final_mcp//platformdirs",
+        "@mcp_final_mcp//pydantic_settings",
+        "@mcp_final_mcp//loguru",
+        "@mcp_final_mcp//streamlit",
+        "@mcp_final_mcp//pandas",
+        "@mcp_final_mcp//plotly",
+        # Add additional dependencies based on your requirements
+    ],
+)

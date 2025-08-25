@@ -4,22 +4,20 @@
   "description": "MCP server with SAAGA decorators",
   "author_name": "Your Name",
   "author_email": "email@example.com",
-  "python_version": ["3.11", "3.12"],
-  "include_admin_ui": ["no", "yes"],
-  "include_example_tools": ["yes", "no"],
-  "include_parallel_example": ["yes", "no"],
-  "mcp_config_file_path": "",
+  "python_version": [
+    "3.11",
+    "3.12"
+  ],
   "server_port": "3001",
-  "default_transport": ["stdio", "sse", "streamable-http"],
-  "streamable_http_enabled": ["yes", "no"],
-  "streamable_http_endpoint": "/mcp",
-  "streamable_http_json_response": ["no", "yes"],
-  "log_level": ["INFO", "DEBUG", "WARNING", "ERROR"],
-  "log_retention_days": "30",
-  "include_oauth_passthrough": ["no", "yes"],
-  "include_oauth_backend": ["no", "yes"],
-  "oauth_backend_url": "",
-  "oauth_backend_mock_mode": ["no", "yes"],
+  "include_oauth_passthrough": [
+    "yes",
+    "no"
+  ],
+  "include_oauth_backend": [
+    "yes",
+    "no"
+  ],
+  "oauth_backend_port": "8080",
   "_copy_without_render": [
     ".claude",
     ".reference/templates/*",

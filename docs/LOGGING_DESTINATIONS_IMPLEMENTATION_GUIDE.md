@@ -574,11 +574,6 @@ class ConvexDestination(LogDestination):
   "author_name": "Your Name",
   "author_email": "you@example.com",
   "python_version": ["3.11", "3.12"],
-  "include_admin_ui": ["no", "yes"],
-  "include_example_tools": ["yes", "no"],
-  "include_parallel_example": ["yes", "no"],
-  "log_level": ["INFO", "DEBUG", "WARNING", "ERROR"],
-  "log_retention_days": "30",
   "local_log_destination": ["sqlite", "none"],
   "production_log_destination": ["none", "kafka", "elasticsearch", "postgres", "convex"],
   "log_retry_attempts": "2",
@@ -723,7 +718,6 @@ async def test_destination_integration(dest_type, config):
 # Local SQLite only
 enable_local_logging: true
 enable_production_logging: false
-log_level: DEBUG
 ```
 
 ### Production Setup (Kafka)
@@ -746,7 +740,6 @@ elasticsearch_hosts:
   - "https://es1.cloud.elastic.co:443"
   - "https://es2.cloud.elastic.co:443"
 elasticsearch_index_prefix: "mcp-logs"
-log_level: INFO
 ```
 
 ### Edge Setup (Convex)

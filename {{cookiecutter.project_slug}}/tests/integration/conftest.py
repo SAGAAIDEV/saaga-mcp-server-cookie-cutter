@@ -55,6 +55,11 @@ class StreamableHTTPServer:
         # Build environment
         env = os.environ.copy()
         env["PYTHONPATH"] = str(self.project_root)
+        {% if cookiecutter.include_oauth_backend == "yes" -%}
+        # Add OAuth backend configuration for testing
+        env["OAUTH_BACKEND_URL"] = "http://localhost:8001/api/connectors/requestAuth"
+        env["OAUTH_BACKEND_MOCK_MODE"] = "no"  # Use real HTTP for tests
+        {% endif -%}
         
         # Start server process
         self.process = subprocess.Popen(
@@ -226,6 +231,12 @@ async def mcp_session(request) -> AsyncGenerator[Tuple[ClientSession, str], None
                 env["PYTHONPATH"] = os.environ["PYTHONPATH"]
             else:
                 env["PYTHONPATH"] = str(project_root)
+            
+            {% if cookiecutter.include_oauth_backend == "yes" -%}
+            # Add OAuth backend configuration for testing
+            env["OAUTH_BACKEND_URL"] = "http://localhost:8001/api/connectors/requestAuth"
+            env["OAUTH_BACKEND_MOCK_MODE"] = "no"  # Use real HTTP for tests
+            {% endif -%}
             
             # Create server parameters
             server_params = StdioServerParameters(

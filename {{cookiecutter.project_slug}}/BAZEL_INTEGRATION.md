@@ -41,9 +41,7 @@ Dependencies are explicitly listed in the `BUILD.bazel` file. The project includ
 
 - Core MCP dependencies (mcp, anyio, starlette, uvicorn, click)
 - Utility dependencies (platformdirs, loguru, pydantic, pyyaml, python-multipart)
-{% if cookiecutter.include_admin_ui == "yes" -%}
 - Admin UI dependencies (streamlit, plotly, pandas)
-{%- endif %}
 
 ### Adding New Dependencies
 

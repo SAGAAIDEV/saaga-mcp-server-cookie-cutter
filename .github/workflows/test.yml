@@ -37,11 +37,11 @@ jobs:
 
     - name: Test template generation (with UI)
       run: |
-        uv run cookiecutter . --no-input include_admin_ui=yes
+        uv run cookiecutter . --no-input
 
     - name: Test template generation (with examples)
       run: |
-        uv run cookiecutter . --no-input include_example_tools=yes include_parallel_example=yes
+        uv run cookiecutter . --no-input
 
     - name: Validate generated project structure
       run: |
