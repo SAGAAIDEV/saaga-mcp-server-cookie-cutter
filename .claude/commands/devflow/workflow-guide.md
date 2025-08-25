@@ -5,11 +5,42 @@ This workflow breaks down JIRA issue implementation into focused, manageable pha
 
 ## Visual Workflow
 
+### Simple Flow Diagram
+This diagram shows the basic command flow and decision points:
+
+![DevFlow Simple Flowchart](./devflow-simple-flowchart.png)
+
+### Detailed Sequence Diagram
+This diagram shows all interactions between systems:
+
 ![DevFlow Sequence Diagram](./devflow-sequence-diagram.png)
 
 <details>
-<summary>View/Edit Diagram Source (Mermaid)</summary>
+<summary>View/Edit Diagram Sources (Mermaid)</summary>
 
+**Simple Flowchart:**
+```mermaid
+flowchart TD
+    Start([Start New Issue]) --> Fetch[fetch-issue]
+    Fetch -->|Issue retrieved| Analyze[analyze-feasibility]
+    Analyze -->|Not implemented| Branch[create-branch]
+    Analyze -->|Fully implemented| Close[Close Issue]
+    Branch -->|Branch created| Plan[plan-implementation]
+    Plan -->|Plan approved| Implement[implement-plan]
+    Plan -->|Changes needed| Plan
+    Implement -->|Code complete| Test[test-issue]
+    Test -->|Tests pass| Complete[complete-issue]
+    Test -->|Tests fail| Implement
+    Complete -->|PR created| Review{PR Review}
+    Review -->|Merged| PostMerge[post-merge]
+    PostMerge -->|Cleanup done| Start
+    
+    style Start fill:#e1f5e1
+    style Close fill:#ffe1e1
+    style Review fill:#fff4e1
+```
+
+**Detailed Sequence:**
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
