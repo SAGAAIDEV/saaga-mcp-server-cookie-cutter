@@ -51,6 +51,13 @@ After each major component:
 - Confirm Context parameter inclusion
 - Confirm tests are created and follow patterns
 
+### Step 6: Run Linting and Formatting
+Before moving to testing, ensure code quality:
+- Run `ruff check .` to find issues
+- Run `ruff format .` to fix formatting
+- Fix any remaining linting errors
+- Ensure all files follow project style
+
 ---
 
 ## 🔄 Next Step

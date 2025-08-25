@@ -67,10 +67,18 @@ After I present the plan, you must:
 ## 🔄 Next Step
 
 **If you approve the plan**, run:
-
 ```
 /project:devflow/implement-plan
 ```
+
+**If you need changes to the plan**:
+- Describe what needs to be different
+- I'll revise the plan based on your feedback
+- We'll stay in planning mode until you're satisfied
+
+**If you reject the plan entirely**:
+- We can discuss alternative approaches
+- Or close the issue if it's not feasible
 
 This will:
 - Begin actual implementation following the approved plan

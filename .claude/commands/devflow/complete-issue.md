@@ -16,7 +16,14 @@ I'll finalize your implementation, create a pull request, and update JIRA.
 Ensure code quality before creating PR:
 
 !ruff check .
+!ruff format --check .
 !pytest
+
+**IMPORTANT**: If any of these checks fail:
+- **Linting errors**: Fix with `ruff check --fix .` or manually
+- **Format errors**: Fix with `ruff format .`
+- **Test failures**: Return to implementation to fix issues
+- Do NOT proceed until all checks pass!
 
 ### Step 2: Stage and Commit Changes
 I'll create a comprehensive commit with:
@@ -33,6 +40,14 @@ Push the feature branch to remote:
 !git push -u origin $(git branch --show-current)
 
 ### Step 4: Create Pull Request
+First, verify GitHub CLI is available:
+!gh --version
+
+If `gh` is not installed:
+- macOS: `brew install gh`
+- Linux: See https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+- Then run: `gh auth login`
+
 Create PR using GitHub CLI with:
 - Clear title referencing JIRA issue
 - Summary of changes
