@@ -16,9 +16,10 @@ This command should only be run after:
 ## Grounding References for Implementation
 - **Template Patterns**: `.reference/cookiecutter-maintenance.md`
 - **MCP Tool Patterns**: `{{cookiecutter.project_slug}}/.reference/patterns/tool_patterns.py`
-- **Integration Tests**: `{{cookiecutter.project_slug}}/.reference/patterns/integration_test_patterns.py`
-- **Unit Tests**: `{{cookiecutter.project_slug}}/.reference/patterns/unit_test_patterns.py`
+- **Integration Tests**: `{{cookiecutter.project_slug}}/.reference/patterns/integration_test_patterns.py` - REQUIRED for all tools
+- **Unit Tests**: `{{cookiecutter.project_slug}}/.reference/patterns/unit_test_patterns.py` - For decorators and utilities
 - **SAAGA Integration**: `{{cookiecutter.project_slug}}/.reference/saaga-mcp-integration.md`
+- **Decorator Testing**: Both unit tests (decorator logic) AND integration tests (example tools)
 
 ## Implementation Process
 
@@ -34,11 +35,27 @@ Following the approved plan, I'll:
 
 ### Step 3: Generate Tests
 **CRITICAL**: Tests must be created alongside implementation:
+
+**Test Requirements by Component Type:**
 - **For MCP Tools**: Create integration tests following `integration_test_patterns.py`
+- **For Example Tools**: ALWAYS create integration tests, even if decorator has unit tests
+- **For New Decorators**: Create BOTH:
+  - Unit tests for the decorator itself
+  - Integration tests for any example tools using the decorator
 - **For Utilities**: Create unit tests following `unit_test_patterns.py`
 - **For Template Changes**: Update test fixtures in `tests/`
-- All tests must use the patterns from `.reference/patterns/`
+
+**Special Rules:**
+- If JIRA mentions "example tools" → MUST create integration tests for those tools
+- If implementing OAuth/auth decorators → MUST test the full flow with example tools
+- Decorators that modify tool behavior → Need integration tests showing the behavior
+- All tests must use patterns from `.reference/patterns/`
 - Tests should validate both success and error cases
+
+**Example**: New OAuth decorator requires:
+1. Unit test for the decorator logic
+2. Integration tests for Reddit/GitHub/etc example tools using the decorator
+3. Tests showing token passthrough and error handling
 
 ### Step 4: Track Progress
 I'll use TodoWrite to track implementation tasks as I complete them.

@@ -169,6 +169,33 @@ def register_tools(mcp_server: FastMCP, config: ServerConfig) -> None:
         unified_logger.info(f"Registered OAuth passthrough tool: {tool_func.__name__} (provider: {provider})")
     {% endif -%}
     
+    {% if cookiecutter.include_oauth_backend == "yes" -%}
+    # Import OAuth backend tools
+    from {{ cookiecutter.project_slug }}.tools.reddit_backend_tools import oauth_backend_tools
+    from {{ cookiecutter.project_slug }}.decorators.oauth_backend import oauth_backend
+    
+    # Register OAuth backend tools with SAAGA decorators
+    # Tools provide (provider, function) tuples so app.py remains tool-agnostic
+    for provider, tool_func in oauth_backend_tools:
+        # Apply SAAGA decorator chain: exception_handler → tool_logger → oauth_backend(provider) → type_converter
+        decorated_func = exception_handler(
+            tool_logger(
+                oauth_backend(provider)(
+                    type_converter(tool_func),
+                    config.__dict__
+                ),
+                config.__dict__
+            )
+        )
+        
+        # Register directly with MCP
+        mcp_server.tool(
+            name=tool_func.__name__
+        )(decorated_func)
+        
+        unified_logger.info(f"Registered OAuth backend tool: {tool_func.__name__} (provider: {provider})")
+    {% endif -%}
+    
     unified_logger.info(f"Server '{mcp_server.name}' initialized with SAAGA decorators")
 {% endif -%}
 

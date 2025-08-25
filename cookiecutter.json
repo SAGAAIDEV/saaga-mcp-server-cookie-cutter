@@ -17,6 +17,9 @@
   "log_level": ["INFO", "DEBUG", "WARNING", "ERROR"],
   "log_retention_days": "30",
   "include_oauth_passthrough": ["no", "yes"],
+  "include_oauth_backend": ["no", "yes"],
+  "oauth_backend_url": "",
+  "oauth_backend_mock_mode": ["no", "yes"],
   "_copy_without_render": [
     ".claude",
     ".reference/templates/*",
