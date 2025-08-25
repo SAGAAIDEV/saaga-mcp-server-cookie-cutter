@@ -105,7 +105,6 @@ class TestToolLogger:
         with tempfile.TemporaryDirectory() as temp_dir:
             config = ServerConfig()
             # Override database path for testing
-            config.log_retention_days = 7
             yield config
     
     @pytest.mark.asyncio

@@ -9,19 +9,13 @@
 This MCP server provides tools for:
 {% if cookiecutter.include_oauth_passthrough == "yes" -%}
 - OAuth token passthrough for authenticating with external APIs (GitHub example included)
-{% endif -%}
-{% if cookiecutter.include_example_tools == "yes" -%}
 - Text echoing and manipulation
 - Time and date operations  
 - Random number generation
 - Fibonacci calculations
 - Heavy computation simulation
-{% if cookiecutter.include_parallel_example == "yes" -%}
 - Batch data processing with parallelization
-{% endif -%}
-{% else -%}
-- [List your server's features here]
-{% endif -%}
+{% endif %}
 
 ## Installation
 
@@ -130,8 +124,6 @@ Creates an issue in a GitHub repository.
 - **Returns**: Created issue details or error
 
 For OAuth testing and documentation, see [docs/OAUTH_PASSTHROUGH.md](docs/OAUTH_PASSTHROUGH.md).
-{% endif -%}
-{% if cookiecutter.include_example_tools == "yes" -%}
 ### echo_tool
 Echoes back the provided text.
 - **Parameters**: 
@@ -163,16 +155,14 @@ Simulates a computation-intensive task.
   - `seconds` (string): Duration to simulate
 - **Returns**: Completion status
 
-{% if cookiecutter.include_parallel_example == "yes" -%}
 ### process_batch_data
 Processes multiple data items in parallel.
 - **Parameters**:
   - `kwargs_list` (array): List of parameter sets
 - **Returns**: Results for each item
-{% endif -%}
 {% else -%}
 [Document your tools here with parameters and return values]
-{% endif -%}
+{% endif %}
 
 ## Configuration
 
@@ -184,16 +174,15 @@ The server uses a configuration file located at:
 ### Configuration Options
 
 ```yaml
-log_level: {{cookiecutter.log_level}}  # Logging verbosity
-log_retention_days: {{cookiecutter.log_retention_days}}  # How long to keep logs
+log_level: INFO  # Logging verbosity
+log_retention_days: 30  # How long to keep logs
 server_port: {{cookiecutter.server_port}}  # Port for HTTP transport (if used)
-default_transport: {{cookiecutter.default_transport}}  # Default transport protocol
-streamable_http_enabled: {% if cookiecutter.streamable_http_enabled == "yes" %}true{% else %}false{% endif %}  # Enable Streamable HTTP transport
-streamable_http_endpoint: "{{cookiecutter.streamable_http_endpoint}}"  # Endpoint for Streamable HTTP
-streamable_http_json_response: {% if cookiecutter.streamable_http_json_response == "yes" %}true{% else %}false{% endif %}  # Use JSON responses instead of SSE
+default_transport: stdio  # Default transport protocol
+streamable_http_enabled: true  # Enable Streamable HTTP transport
+streamable_http_endpoint: "/mcp"  # Endpoint for Streamable HTTP
+streamable_http_json_response: false  # Use JSON responses instead of SSE
 ```
 
-{% if cookiecutter.include_admin_ui == "yes" -%}
 ## Admin Interface
 
 This server includes a Streamlit admin UI for monitoring and configuration:
@@ -211,7 +200,6 @@ Features:
 - Log viewer with filtering and export
 - System resource monitoring
 
-{% endif -%}
 ## Logs
 
 Server logs are stored in an SQLite database at:
@@ -242,9 +230,7 @@ Server logs are stored in an SQLite database at:
 For issues or questions:
 - Check the logs in the platform-specific location above
 - Review error messages in your MCP client
-{% if cookiecutter.include_admin_ui == "yes" -%}
 - Use the admin UI to check server status and logs
-{% endif -%}
 
 ## Development
 
@@ -283,7 +269,7 @@ pytest tests/integration/test_oauth_passthrough_integration.py::test_github_tool
 **Note**: MCP Inspector doesn't support OAuth tokens. Use the test scripts or a custom MCP client that can pass tokens via the `_meta` parameter.
 
 See [docs/OAUTH_PASSTHROUGH.md](docs/OAUTH_PASSTHROUGH.md) for full OAuth documentation and client implementation examples.
-{% endif -%}
+{% endif %}
 
 To contribute or add new tools to this server, see the [Developer Guide](DEVELOPER_GUIDE.md).
 

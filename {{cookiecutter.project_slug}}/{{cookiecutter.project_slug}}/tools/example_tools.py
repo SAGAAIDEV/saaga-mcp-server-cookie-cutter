@@ -1,16 +1,9 @@
-"""{% if cookiecutter.include_example_tools == "yes" %}Example MCP tools for {{cookiecutter.project_name}}
+"""Example MCP tools for {{cookiecutter.project_name}}
 
 This module provides example tools that demonstrate how to create MCP tools
 with the SAAGA decorator pattern. These tools are automatically registered
 with the server and decorated with exception handling, logging, and optional
-parallelization.
-{% else %}Placeholder for MCP tools
-
-This module is a placeholder for your MCP tools. To add tools:
-1. Define your tool functions
-2. Add them to the appropriate lists (example_tools or parallel_example_tools)
-3. The server will automatically register and decorate them
-{% endif %}"""
+parallelization."""
 
 import time
 import random
@@ -18,8 +11,6 @@ from typing import List, Dict, Any
 from mcp.server.fastmcp import Context
 from mcp.server.session import ServerSession
 from pydantic import BaseModel, Field
-
-{% if cookiecutter.include_example_tools == "yes" -%}
 
 
 async def echo_tool(message: str, ctx: Context = None) -> str:
@@ -206,7 +197,6 @@ async def progress_example(task_name: str, ctx: Context[ServerSession, None], st
     return f"Task '{task_name}' completed"
 
 
-{% if cookiecutter.include_parallel_example == "yes" -%}
 async def process_batch_data(items: List[str], operation: str = "upper", ctx: Context = None) -> Dict[str, Any]:
     """Process a batch of data items.
     
@@ -289,10 +279,6 @@ parallel_example_tools = [
     process_batch_data,
     simulate_heavy_computation
 ]
-{% else -%}
-# Parallel example tools not included
-parallel_example_tools = []
-{% endif -%}
 
 
 # List of regular example tools
@@ -306,20 +292,6 @@ example_tools = [
     notification_example,
     progress_example
 ]
-
-{% else -%}
-# No example tools included - add your own tools here
-example_tools = []
-parallel_example_tools = []
-
-# Example of how to add your own tools:
-# 
-# def my_tool(param: str) -> str:
-#     """Your custom tool description."""
-#     return f"Processed: {param}"
-# 
-# example_tools = [my_tool]
-{% endif -%}
 
 
 
@@ -349,18 +321,14 @@ if __name__ == "__main__":
         print("Tool Information:")
         print(await get_tool_info())
         
-        {% if cookiecutter.include_example_tools == "yes" -%}
         print("\nTesting example tools:")
         print(await echo_tool("Hello, World!"))
         print(await get_time())
         print(await random_number(1, 10))
         print(await calculate_fibonacci(10))
         
-        {% if cookiecutter.include_parallel_example == "yes" -%}
         print("\nTesting parallel tools (individual calls):")
-        print(await process_batch_data("hello", "upper"))
+        print(await process_batch_data(["hello"], "upper"))
         print(await simulate_heavy_computation(2))
-        {% endif -%}
-        {% endif -%}
     
     asyncio.run(test_tools())

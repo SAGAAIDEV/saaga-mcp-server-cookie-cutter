@@ -22,22 +22,27 @@ class ServerConfig:
     name: str = "{{cookiecutter.project_name}}"
     description: str = "{{cookiecutter.description}}"
     
-    # Logging configuration
-    log_level: str = "{{cookiecutter.log_level}}"
-    log_retention_days: int = {{cookiecutter.log_retention_days}}
+    # Logging configuration (hardcoded defaults)
+    log_level: str = "INFO"
+    log_retention_days: int = 30
     
     # Logging destinations configuration
     logging_destinations: Dict[str, Any] = None
     
-    # Server transport settings
-    default_transport: str = "{{ cookiecutter.default_transport }}"
+    # Server transport settings (hardcoded default)
+    default_transport: str = "stdio"
     default_host: str = "127.0.0.1"
     default_port: int = {{cookiecutter.server_port}}
     
-    # Streamable HTTP transport settings
-    streamable_http_enabled: bool = {% if cookiecutter.streamable_http_enabled == "yes" %}True{% else %}False{% endif %}
-    streamable_http_endpoint: str = "{{ cookiecutter.streamable_http_endpoint }}"
-    streamable_http_json_response: bool = {% if cookiecutter.streamable_http_json_response == "yes" %}True{% else %}False{% endif %}  # If True, return JSON responses instead of SSE streams
+    # Streamable HTTP transport settings (always enabled, hardcoded defaults)
+    streamable_http_enabled: bool = True
+    streamable_http_endpoint: str = "/mcp"
+    streamable_http_json_response: bool = False  # If True, return JSON responses instead of SSE streams
+    
+    {% if cookiecutter.include_oauth_backend == "yes" -%}
+    # OAuth backend settings (from cookiecutter, can be overridden by environment)
+    oauth_backend_url: str = "http://localhost:{{cookiecutter.oauth_backend_port}}"
+    {% endif -%}
     
     # Platform-aware paths
     config_dir: Path = None
@@ -102,15 +107,15 @@ class ServerConfig:
         return cls(
             name=data.get("name", "{{cookiecutter.project_name}}"),
             description=data.get("description", "{{cookiecutter.description}}"),
-            log_level=data.get("log_level", "{{cookiecutter.log_level}}"),
-            log_retention_days=data.get("log_retention_days", {{cookiecutter.log_retention_days}}),
+            log_level=data.get("log_level", "INFO"),
+            log_retention_days=data.get("log_retention_days", 30),
             logging_destinations=data.get("logging_destinations"),
-            default_transport=data.get("default_transport", "{{ cookiecutter.default_transport }}"),
+            default_transport=data.get("default_transport", "stdio"),
             default_host=data.get("default_host", "127.0.0.1"),
             default_port=data.get("default_port", {{cookiecutter.server_port}}),
-            streamable_http_enabled=data.get("streamable_http_enabled", {% if cookiecutter.streamable_http_enabled == "yes" %}True{% else %}False{% endif %}),
-            streamable_http_endpoint=data.get("streamable_http_endpoint", "{{ cookiecutter.streamable_http_endpoint }}"),
-            streamable_http_json_response=data.get("streamable_http_json_response", {% if cookiecutter.streamable_http_json_response == "yes" %}True{% else %}False{% endif %}),
+            streamable_http_enabled=data.get("streamable_http_enabled", True),
+            streamable_http_endpoint=data.get("streamable_http_endpoint", "/mcp"),
+            streamable_http_json_response=data.get("streamable_http_json_response", False),
         )
     
     def save(self) -> None:
@@ -140,9 +145,26 @@ class ServerConfig:
                         loaded_config.config_file_path = config.config_file_path
                         loaded_config.log_file_path = config.log_file_path
                         loaded_config.database_path = config.database_path
-                        return loaded_config
+                        config = loaded_config  # Use loaded config
             except Exception as e:
                 print(f"Warning: Could not load configuration: {e}")
+        
+        # Override with environment variables if present
+        # This allows temporary overrides without editing config.yaml
+        if os.environ.get('LOG_LEVEL'):
+            config.log_level = os.environ['LOG_LEVEL']
+        if os.environ.get('LOG_RETENTION_DAYS'):
+            config.log_retention_days = int(os.environ['LOG_RETENTION_DAYS'])
+        if os.environ.get('DEFAULT_TRANSPORT'):
+            config.default_transport = os.environ['DEFAULT_TRANSPORT']
+        if os.environ.get('DEFAULT_PORT'):
+            config.default_port = int(os.environ['DEFAULT_PORT'])
+        if os.environ.get('DEFAULT_HOST'):
+            config.default_host = os.environ['DEFAULT_HOST']
+        {% if cookiecutter.include_oauth_backend == "yes" -%}
+        if os.environ.get('OAUTH_BACKEND_URL'):
+            config.oauth_backend_url = os.environ['OAUTH_BACKEND_URL']
+        {% endif -%}
         
         # Save default configuration
         config.save()
@@ -153,7 +175,6 @@ class ServerConfig:
         return f"ServerConfig(name='{self.name}', log_level='{self.log_level}', transport='{self.default_transport}')"
 
 
-{% if cookiecutter.include_admin_ui == "yes" -%}
 @dataclass
 class UIConfig:
     """Configuration class for the Streamlit admin UI."""
@@ -201,7 +222,6 @@ class UIConfig:
             show_config=data.get("show_config", True),
             show_tools=data.get("show_tools", True),
         )
-{% endif -%}
 
 
 # Global configuration instance
@@ -223,14 +243,12 @@ def reload_config() -> ServerConfig:
     return _config
 
 
-{% if cookiecutter.include_admin_ui == "yes" -%}
 def get_ui_config() -> UIConfig:
     """Get UI configuration with shared server config."""
     server_config = get_config()
     ui_config = UIConfig()
     ui_config.server_config = server_config
     return ui_config
-{% endif -%}
 
 
 def get_platform_info() -> Dict[str, str]:

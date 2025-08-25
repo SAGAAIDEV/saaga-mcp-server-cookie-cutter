@@ -94,17 +94,10 @@ You'll be prompted for the following configuration options:
 - `author_name`: Your name
 - `author_email`: Your email address
 - `python_version`: Target Python version (3.11 or 3.12)
-- `include_admin_ui`: Include Streamlit administrative UI (yes/no)
-- `include_example_tools`: Include example MCP tools (yes/no)
-- `include_parallel_example`: Include parallel processing example (yes/no)
-- `include_oauth_passthrough`: Include OAuth token passthrough support (yes/no)
 - `server_port`: Default server port for HTTP transport
-- `default_transport`: Default transport protocol (stdio, sse, streamable-http)
-- `streamable_http_enabled`: Enable Streamable HTTP transport (yes/no)
-- `streamable_http_endpoint`: Endpoint for Streamable HTTP (default: /mcp)
-- `streamable_http_json_response`: Use JSON responses instead of SSE (no/yes)
-- `log_level`: Default logging level (INFO, DEBUG, WARNING, ERROR)
-- `log_retention_days`: Number of days to retain logs
+- `include_oauth_passthrough`: Include OAuth token passthrough support (yes/no)
+- `include_oauth_backend`: Include OAuth backend support (yes/no)
+- `oauth_backend_port`: Port for OAuth backend service (default: 8080)
 
 ## Example Server Reference Implementation
 
@@ -215,9 +208,9 @@ Configuration files are automatically placed in appropriate locations:
 - Linux: `~/.local/share/your-project/`
 - Windows: `%APPDATA%/your-project/`
 
-### Optional Streamlit Admin UI
+### Streamlit Admin UI
 
-When `include_admin_ui=yes`, the template generates a comprehensive web-based administrative interface:
+The template includes a comprehensive web-based administrative interface:
 
 #### Dashboard
 ![Streamlit Admin UI Dashboard](docs/images/streamlit-ui-dashboard.png)
@@ -252,7 +245,7 @@ The logs page provides comprehensive log analysis with:
 
 #### Running the Admin UI
 
-After generating your project with `include_admin_ui=yes`:
+After generating your project:
 
 ```bash
 # Install your project

@@ -84,10 +84,8 @@ py_library(
     deps = [
         "@mcp_pypi//mcp",
         "@mcp_pypi//pydantic",
-        {% if cookiecutter.include_admin_ui == "yes" -%}
         "@mcp_pypi//streamlit",
         "@mcp_pypi//platformdirs",
-        {%- endif %}
         # Add additional dependencies based on your requirements
     ],
 )
@@ -97,7 +95,6 @@ py_library(
 
 No new variables needed since this is Python-only. The existing variables are sufficient:
 - `project_slug` - Used for target names
-- `include_admin_ui` - Determines if Streamlit deps are included
 
 ### 3. Integration Process for Generated Servers
 

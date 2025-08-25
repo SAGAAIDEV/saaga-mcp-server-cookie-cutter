@@ -1,13 +1,10 @@
-"""{% if cookiecutter.include_admin_ui == "yes" %}
+"""
 Home/Dashboard page for {{cookiecutter.project_name}} Admin UI
 
 This page provides an overview of the MCP server status, project information,
 and quick access to common administrative tasks.
-{% else %}
-Placeholder for optional Streamlit admin UI home page.
-{% endif %}"""
+"""
 
-{% if cookiecutter.include_admin_ui == "yes" %}
 import streamlit as st
 from pathlib import Path
 import sys
@@ -90,8 +87,8 @@ def render_project_overview():
         **Configuration:**
         - **Python Version:** {{cookiecutter.python_version}}+
         - **Server Port:** {{cookiecutter.server_port}}
-        - **Log Level:** {{cookiecutter.log_level}}
-        - **Log Retention:** {{cookiecutter.log_retention_days}} days
+        - **Log Level:** INFO
+        - **Log Retention:** 30 days
         """)
 
 def render_feature_status():
@@ -107,20 +104,12 @@ def render_feature_status():
         
     with col2:
         # Example tools
-        {% if cookiecutter.include_example_tools == "yes" %}
         st.success("✅ Example Tools")
-        {% else %}
-        st.info("➖ Example Tools")
-        {% endif %}
         st.caption("Sample MCP tools for demonstration")
         
     with col3:
         # Parallel processing
-        {% if cookiecutter.include_parallel_example == "yes" %}
         st.success("✅ Parallel Processing")
-        {% else %}
-        st.info("➖ Parallel Processing")
-        {% endif %}
         st.caption("Parallel execution examples")
 
 def render_quick_actions_section():
@@ -213,4 +202,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-{% endif %}

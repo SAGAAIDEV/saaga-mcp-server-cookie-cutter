@@ -21,11 +21,9 @@ py_library(
         "@mcp_{{ cookiecutter.project_slug }}//platformdirs",
         "@mcp_{{ cookiecutter.project_slug }}//pydantic_settings",
         "@mcp_{{ cookiecutter.project_slug }}//loguru",
-        {% if cookiecutter.include_admin_ui == "yes" -%}
         "@mcp_{{ cookiecutter.project_slug }}//streamlit",
         "@mcp_{{ cookiecutter.project_slug }}//pandas",
         "@mcp_{{ cookiecutter.project_slug }}//plotly",
-        {%- endif %}
         # Add additional dependencies based on your requirements
     ],
 )

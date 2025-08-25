@@ -8,9 +8,7 @@ This guide provides manual test examples for all tools in the SAAGA MCP Server t
    ```bash
    uv tool install cookiecutter  # Install globally if needed
    cookiecutter . --no-input \
-       project_name="Test Project" \
-       include_example_tools="yes" \
-       include_parallel_example="yes"
+       project_name="Test Project"
    ```
 
 2. Set up and launch the MCP Inspector:

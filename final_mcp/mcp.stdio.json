@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "final_mcp": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter/final_mcp",
+        "final_mcp-server-stdio"
+      ]
+    }
+  }
+}

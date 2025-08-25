@@ -151,12 +151,10 @@ def list_tools() -> int:
         ("calculate_fibonacci", "Calculate Fibonacci number", "Basic"),
     ]
     
-    {% if cookiecutter.include_parallel_example == "yes" %}
     tools.extend([
         ("process_batch_data", "Process data in parallel", "Parallel"),
         ("simulate_heavy_computation", "Simulate computation", "Parallel"),
     ])
-    {% endif %}
     
     # Create table
     table = Table(title="Available Tools")

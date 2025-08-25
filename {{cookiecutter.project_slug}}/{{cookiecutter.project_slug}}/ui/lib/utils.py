@@ -1,13 +1,10 @@
-"""{% if cookiecutter.include_admin_ui == "yes" %}
+"""
 Utility functions for {{cookiecutter.project_name}} Admin UI
 
 This module provides helper functions for the Streamlit admin interface,
 including server status checking, configuration management, and data processing.
-{% else %}
-Placeholder for optional Streamlit admin UI utilities.
-{% endif %}"""
+"""
 
-{% if cookiecutter.include_admin_ui == "yes" %}
 import os
 import sys
 import platform
@@ -79,12 +76,12 @@ def get_project_info() -> Dict[str, Any]:
         "version": "0.1.0",
         "python_version": "{{cookiecutter.python_version}}",
         "server_port": {{cookiecutter.server_port}},
-        "log_level": "{{cookiecutter.log_level}}",
-        "log_retention_days": {{cookiecutter.log_retention_days}},
+        "log_level": "INFO",
+        "log_retention_days": 30,
         "features": {
             "admin_ui": True,
-            "example_tools": {{cookiecutter.include_example_tools == "yes"}},
-            "parallel_examples": {{cookiecutter.include_parallel_example == "yes"}}
+            "example_tools": True,
+            "parallel_examples": True
         }
     }
 
@@ -174,17 +171,17 @@ def get_default_configuration() -> Dict[str, Any]:
         "server": {
             "name": "{{cookiecutter.project_name}}",
             "port": {{cookiecutter.server_port}},
-            "log_level": "{{cookiecutter.log_level}}"
+            "log_level": "INFO"
         },
         "logging": {
-            "level": "{{cookiecutter.log_level}}",
-            "retention_days": {{cookiecutter.log_retention_days}},
+            "level": "INFO",
+            "retention_days": 30,
             "database_path": str(Path(get_data_path()) / "logs.db")
         },
         "features": {
             "admin_ui": True,
-            "example_tools": {{cookiecutter.include_example_tools == "yes"}},
-            "parallel_examples": {{cookiecutter.include_parallel_example == "yes"}}
+            "example_tools": True,
+            "parallel_examples": True
         },
         "paths": {
             "config": get_config_path(),
@@ -518,4 +515,3 @@ def is_port_available(port: int, host: str = "localhost") -> bool:
             return result != 0  # Port is available if connection fails
     except Exception:
         return False
-{% endif %}

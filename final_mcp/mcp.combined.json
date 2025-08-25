@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "final_mcp_stdio": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/Users/timkitchens/projects/client-repos/saaga-mcp-server-cookie-cutter/final_mcp",
+        "final_mcp-server-stdio"
+      ]
+    },
+    "final_mcp_http": {
+      "url": "http://localhost:3001/mcp",
+      "transport": "streamable-http"
+    }
+  }
+}

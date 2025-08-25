@@ -37,13 +37,17 @@ dependencies = [
     "python-multipart>=0.0.6",
     "loguru>=0.7.0",
     "rich>=13.0.0",
+    {% if cookiecutter.include_oauth_backend == "yes" -%}
+    "httpx>=0.27.0",
+    {% endif -%}
     "psutil>=5.9.0",  # Required for test cleanup
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0"{% if cookiecutter.include_admin_ui == "yes" %},
+    "pytest-cov>=4.0.0"{% if cookiecutter.include_oauth_backend == "yes" %},
+    "pytest-httpserver>=1.0.0"{% endif %},
     "streamlit>=1.28.0",
     "plotly>=5.0.0",
-    "pandas>=2.0.0"{% endif %}{% if cookiecutter.include_oauth_passthrough == "yes" %},
+    "pandas>=2.0.0"{% if cookiecutter.include_oauth_passthrough == "yes" %},
     "httpx>=0.25.0"  # For calling external APIs with OAuth tokens{% endif %}
 ]
 

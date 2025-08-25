@@ -1,13 +1,10 @@
-"""{% if cookiecutter.include_admin_ui == "yes" %}
+"""
 Shared UI library for {{cookiecutter.project_name}} Admin interface.
 
 This package provides reusable components, utilities, and styling
 for the Streamlit admin interface.
-{% else %}
-Placeholder for optional Streamlit admin UI library.
-{% endif %}"""
+"""
 
-{% if cookiecutter.include_admin_ui == "yes" %}
 from .components import (
     render_header,
     render_sidebar,
@@ -104,4 +101,3 @@ __all__ = [
     "apply_page_config",
     "hide_streamlit_style"
 ]
-{% endif %}

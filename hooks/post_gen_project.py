@@ -45,8 +45,6 @@ def get_cookiecutter_context():
     return {
         "project_name": "{{ cookiecutter.project_name }}",
         "project_slug": "{{ cookiecutter.project_slug }}",
-        "include_admin_ui": "{{ cookiecutter.include_admin_ui }}",
-        "mcp_config_file_path": "{{ cookiecutter.mcp_config_file_path }}",
         "server_port": "{{ cookiecutter.server_port }}",
     }
 
@@ -117,7 +115,6 @@ def run_uv_commands():
     context = get_cookiecutter_context()
     project_name = context["project_name"]
     project_slug = context["project_slug"]
-    include_admin_ui = context["include_admin_ui"]
 
     print(f"\n📦 Installing dependencies for '{project_name}' with uv...")
 
@@ -132,10 +129,9 @@ def run_uv_commands():
         )
         print("   ✅ uv sync completed successfully")
 
-        # Show additional info based on cookiecutter variables
-        if include_admin_ui == "yes":
-            print("\n   📊 Admin UI is included! You can run it with:")
-            print(f"      uv run streamlit run {project_slug}/ui/app.py")
+        # Show Admin UI info
+        print("\n   📊 Admin UI is included! You can run it with:")
+        print(f"      uv run streamlit run {project_slug}/ui/app.py")
 
     except subprocess.CalledProcessError as e:
         print(f"   ⚠️  Warning: Failed to run uv commands: {e}")
@@ -227,79 +223,6 @@ def create_integration_test_config():
         print(f"   ⚠️  Warning: Failed to create MCP configs: {e}")
 
 
-def install_mcp_server_config():
-    """Install the MCP server configuration into a specified JSON config file."""
-    # Get cookiecutter context
-    context = get_cookiecutter_context()
-    project_name = context["project_name"]
-    project_slug = context["project_slug"]
-    mcp_config_file_path = context["mcp_config_file_path"]
-
-    # Skip if no path provided
-    if not mcp_config_file_path or mcp_config_file_path.strip() == "":
-        return
-
-    print(f"\n🔧 Installing MCP server configuration...")
-
-    try:
-        # Expand user path and resolve absolute path
-        config_path = Path(mcp_config_file_path).expanduser().resolve()
-
-        # Check if file exists
-        if not config_path.exists():
-            print(f"   ⚠️  Warning: Config file not found: {config_path}")
-            print("   Skipping MCP server configuration installation.")
-            return
-
-        # Read and parse JSON file
-        try:
-            with open(config_path, "r", encoding="utf-8") as f:
-                config_data = json.load(f)
-        except json.JSONDecodeError as e:
-            print(f"   ⚠️  Warning: Invalid JSON in config file: {e}")
-            print("   Skipping MCP server configuration installation.")
-            return
-
-        # Check if mcpServers key exists
-        if "mcpServers" not in config_data:
-            print(f"   ⚠️  Warning: Config file does not contain 'mcpServers' key")
-            print("   Skipping MCP server configuration installation.")
-            return
-
-        # Get absolute project path
-        project_path = get_project_path()
-
-        # Create the server configuration entry
-        server_config = {
-            "command": "uv",
-            "args": ["run", "--directory", project_path, f"{project_slug}-server"],
-        }
-
-        # Check if project_slug already exists and replace/add
-        action = "Updated" if project_slug in config_data["mcpServers"] else "Added"
-        config_data["mcpServers"][project_slug] = server_config
-
-        # Write back the updated configuration
-        try:
-            with open(config_path, "w", encoding="utf-8") as f:
-                json.dump(config_data, f, indent=2, ensure_ascii=False)
-
-            print(f"   ✅ {action} '{project_slug}' server configuration in: {config_path}")
-            print(f"   📋 Configuration:")
-            print(f"      Command: uv run --directory {project_path} {project_slug}-server")
-
-        except PermissionError:
-            print(f"   ⚠️  Warning: Permission denied writing to: {config_path}")
-            print("   You may need to manually add the server configuration.")
-        except Exception as e:
-            print(f"   ⚠️  Warning: Failed to write config file: {e}")
-            print("   You may need to manually add the server configuration.")
-
-    except Exception as e:
-        print(f"   ⚠️  Warning: Failed to process MCP config file: {e}")
-        print("   You may need to manually add the server configuration.")
-
-
 def run_refresh_requirements():
     """Run the refresh_requirements_txt.sh script to generate requirements.txt files for Bazel."""
     print("\n📋 Generating requirements.txt files for Bazel...")
@@ -345,12 +268,65 @@ def run_refresh_requirements():
         print("   You may need to run './refresh_requirements_txt.sh' manually.")
 
 
+def cleanup_conditional_files():
+    """Remove files that shouldn't exist based on cookiecutter choices.
+    
+    This prevents empty or stub files from being generated when features
+    are not selected, keeping the generated project clean.
+    """
+    files_removed = []
+    
+    # OAuth Passthrough files
+    if "{{ cookiecutter.include_oauth_passthrough }}" != "yes":
+        oauth_passthrough_files = [
+            "tests/unit/test_oauth_passthrough.py",
+            "tests/integration/test_oauth_passthrough_integration.py",
+            "{{ cookiecutter.project_slug }}/tools/github_passthrough_tools.py",
+            "{{ cookiecutter.project_slug }}/decorators/oauth_passthrough.py",
+        ]
+        for file_path in oauth_passthrough_files:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                files_removed.append(file_path)
+    
+    # OAuth Backend files
+    if "{{ cookiecutter.include_oauth_backend }}" != "yes":
+        oauth_backend_files = [
+            "tests/unit/test_oauth_backend.py",
+            "tests/integration/test_oauth_backend_integration.py",
+            "tests/helpers/mock_oauth_backend.py",
+            "{{ cookiecutter.project_slug }}/tools/reddit_backend_tools.py",
+            "{{ cookiecutter.project_slug }}/decorators/oauth_backend.py",
+            "{{ cookiecutter.project_slug }}/clients/oauth_api_client.py",
+            "test_oauth_backend.py",
+            "test_oauth_backend_simple.py",
+            "test_oauth_backend_with_real_http.py",
+            "docs/OAUTH_BACKEND.md",
+            "docs/OAUTH_COMPARISON.md",
+        ]
+        for file_path in oauth_backend_files:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                files_removed.append(file_path)
+    
+    
+    if files_removed:
+        print(f"\n🧹 Cleaned up {len(files_removed)} conditional files not needed for this configuration")
+        for file_path in files_removed[:5]:  # Show first 5
+            print(f"   - {file_path}")
+        if len(files_removed) > 5:
+            print(f"   ... and {len(files_removed) - 5} more")
+
+
 def main():
     """Main entry point for the post-generation hook."""
     print("\n🔧 Running post-generation hook...")
     
     # Get cookiecutter context for use throughout
     context = get_cookiecutter_context()
+    
+    # Clean up conditional files first
+    cleanup_conditional_files()
 
     # Update README.md with actual paths
     try:
@@ -365,9 +341,6 @@ def main():
 
     # Generate requirements.txt files for Bazel
     run_refresh_requirements()
-
-    # Install MCP server configuration if requested
-    install_mcp_server_config()
 
     # Create MCP config files for various transports
     create_integration_test_config()

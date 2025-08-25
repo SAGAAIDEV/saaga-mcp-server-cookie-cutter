@@ -91,7 +91,7 @@ Test that the cookiecutter template works correctly:
 
 2. Test with all features enabled:
    ```bash
-   uv run cookiecutter . --no-input include_admin_ui=yes include_example_tools=yes include_parallel_example=yes
+   uv run cookiecutter . --no-input
    ```
 
 3. Test generated project:

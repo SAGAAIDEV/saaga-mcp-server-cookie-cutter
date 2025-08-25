@@ -6,6 +6,13 @@ allowed-tools: ["mcp__context7__resolve-library-id", "mcp__context7__get-library
 
 ## Plan Implementation - Template Development
 
+⚠️ **CRITICAL COMMAND BOUNDARY** ⚠️
+- This command MUST ONLY create plans
+- This command MUST NOT write any code
+- This command MUST NOT implement anything
+- This command MUST NOT use Write, Edit, or MultiEdit tools
+- Even if the user says "approved" or "looks good", DO NOT IMPLEMENT
+
 I'll create a detailed implementation plan for modifying the cookie cutter template based on the JIRA issue requirements.
 
 ## Grounding References - Template Maintenance
@@ -51,38 +58,37 @@ Present a structured plan with:
 - Decorator chain: type_converter → tool_logger → exception_handler
 - Use templates from `.reference/templates/` for new components
 
-### Step 5: Present Plan and Stop
+### Step 5: Present Plan and STOP COMPLETELY
 I'll use ExitPlanMode to present the complete plan for your review.
 
-**IMPORTANT**: This command ONLY creates a plan. No implementation will occur.
+**THEN I MUST STOP. NO FURTHER ACTION.**
 
 ---
 
-## 🛑 Plan Review Required
+## 🛑 FULL STOP - Plan Presented
 
-After I present the plan, you must:
-1. **Review the plan** carefully
-2. **Decide** whether to approve, modify, or reject
+**THIS COMMAND ENDS HERE. I WILL NOT IMPLEMENT ANYTHING.**
 
-## 🔄 Next Step
+After the plan is presented:
+1. **You review the plan** 
+2. **You decide** what to do next
 
-**If you approve the plan**, run:
+## 🔄 What YOU Must Do Next
+
+**To implement the plan**, YOU must explicitly run:
 ```
 /project:devflow/implement-plan
 ```
 
-**If you need changes to the plan**:
-- Describe what needs to be different
-- I'll revise the plan based on your feedback
-- We'll stay in planning mode until you're satisfied
+**To revise the plan**:
+- Tell me what needs to be different
+- I'll revise the plan (still no implementation)
+- We stay in planning mode only
 
-**If you reject the plan entirely**:
-- We can discuss alternative approaches
-- Or close the issue if it's not feasible
+**CRITICAL RULES**:
+- Even if you say "approved" → I MUST NOT implement
+- Even if you say "looks good" → I MUST NOT implement  
+- Even if you say "go ahead" → I MUST NOT implement
+- ONLY the command `/project:devflow/implement-plan` can trigger implementation
 
-This will:
-- Begin actual implementation following the approved plan
-- Apply patterns from `.reference/patterns/`
-- Follow project conventions and SAAGA requirements
-
-**Note**: No code will be written until you explicitly run the implement-plan command.
+**No code will be written by this command under ANY circumstances.**
