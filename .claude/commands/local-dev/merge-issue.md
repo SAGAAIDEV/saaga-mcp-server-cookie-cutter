@@ -66,7 +66,7 @@ Once your issue is merged locally:
 
 1. **Start your next issue immediately:
    ```
-   /project:start-issue [NEW-ISSUE-KEY] [SITE-ALIAS]
+   /project:devflow/fetch-issue [NEW-ISSUE-KEY] [SITE-ALIAS]
    ```
    Continue rapid development on the same main branch
 

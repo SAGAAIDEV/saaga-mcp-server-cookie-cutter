@@ -62,7 +62,7 @@ Once you approve the plan and I exit plan mode:
 
 1. **I'll implement** following the approved plan
 2. **Test implementation**: Run appropriate tests
-3. **When complete**: Use `/project:complete-issue [SITE-ALIAS]`
+3. **When complete**: Use `/project:devflow/complete-issue [SITE-ALIAS]`
 
 The implementation will strictly follow:
 - Patterns from `.reference/patterns/`

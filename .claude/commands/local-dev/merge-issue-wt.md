@@ -88,7 +88,7 @@ Once your issue is merged and worktree cleaned up:
 
 1. **Start your next issue with a new worktree:**
    ```
-   /project:start-issue [NEW-ISSUE-KEY] [SITE-ALIAS]
+   /project:devflow/fetch-issue [NEW-ISSUE-KEY] [SITE-ALIAS]
    ```
    This will create a fresh worktree for the new issue
 

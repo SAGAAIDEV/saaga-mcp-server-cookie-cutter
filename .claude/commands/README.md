@@ -6,18 +6,20 @@ This directory contains custom slash commands to streamline development workflow
 
 ### Core Workflow Commands
 
-#### `/project:start-issue [ISSUE-KEY] [SITE-ALIAS]`
+#### `/project:devflow/fetch-issue [ISSUE-KEY] [SITE-ALIAS]`
 Start work on a new JIRA issue (feature, bug, or task) by:
 - Fetching the JIRA issue details from the specified Atlassian site
-- Creating a feature branch
-- Updating JIRA status to "In Progress"
-- **Automatically detecting testing approach** (UI vs MCP)
-- Creating an implementation plan with appropriate test strategy
-- Requesting human review
+- Analyzing the requirements and acceptance criteria
+- Guiding you through the complete workflow
 
-Example: `/project:start-issue ASEP-40 saaga`
+Example: `/project:devflow/fetch-issue ASEP-40 saaga`
 
-#### `/project:test-issue [OPTIONAL-HINTS]`
+The workflow continues with:
+- `/project:devflow/analyze-feasibility` - Check if requirements are already implemented
+- `/project:devflow/create-branch` - Create branch and update JIRA status
+- `/project:devflow/plan-implementation` - Research and plan the implementation
+
+#### `/project:devflow/test-issue [OPTIONAL-HINTS]`
 Intelligently test the current issue by:
 - Analyzing the context and changes
 - Automatically choosing between UI, API, or MCP testing
@@ -25,7 +27,7 @@ Intelligently test the current issue by:
 - Executing the appropriate test workflow
 - No need to specify test type unless you want to override
 
-Example: `/project:test-issue`
+Example: `/project:devflow/test-issue`
 
 #### `/project:test-mcp [TOOL-NAME] [PARAMS]`
 Test MCP endpoints using Claude subprocess:
@@ -76,7 +78,7 @@ Test complex UI flows using Claude subprocess:
 
 Example: `/project:test-ui-subprocess "Complete user registration and onboarding"`
 
-#### `/project:complete-issue [SITE-ALIAS]`
+#### `/project:devflow/complete-issue [SITE-ALIAS]`
 Complete the current issue by:
 - Running quality checks (linting, tests)
 - Committing changes with conventional commits
@@ -84,7 +86,7 @@ Complete the current issue by:
 - Updating JIRA issue to "Done" on the specified Atlassian site
 - Adding PR link to JIRA
 
-Example: `/project:complete-issue saaga`
+Example: `/project:devflow/complete-issue saaga`
 
 #### `/project:merge-issue [SITE-ALIAS]`
 Merge the current issue locally to main without creating a PR:
@@ -97,14 +99,14 @@ Merge the current issue locally to main without creating a PR:
 
 Example: `/project:merge-issue saaga`
 
-#### `/project:post-merge`
+#### `/project:devflow/post-merge`
 Execute post-merge actions:
 - Sync local main with remote
 - Re-run tests on merged code
 - Clean up issue branch
 - Update development environment
 
-Example: `/project:post-merge`
+Example: `/project:devflow/post-merge`
 
 ### Utility Commands
 
@@ -157,16 +159,27 @@ Example: `/project:workflows/run-tests quick`
 
 ```
 .claude/commands/
-├── README.md                 # This file
-├── start-issue.md           # Start new issue workflow
-├── test-issue.md            # Intelligent issue testing
-├── test-mcp.md             # Test MCP endpoints
-├── complete-issue.md        # Complete issue workflow
-├── merge-issue.md          # Merge issue locally (no PR)
-├── post-merge.md           # Post-merge actions
-└── workflows/              # Utility commands
-    ├── jira-status.md     # Update JIRA status
-    └── run-tests.md       # Run project tests
+├── README.md                    # This file
+├── devflow/                     # Core development workflow
+│   ├── fetch-issue.md          # Fetch and analyze JIRA issue
+│   ├── analyze-feasibility.md  # Check existing implementations
+│   ├── create-branch.md        # Create branch and update status
+│   ├── plan-implementation.md  # Research and plan implementation
+│   ├── test-issue.md           # Intelligent issue testing
+│   ├── complete-issue.md       # Complete issue workflow
+│   ├── post-merge.md           # Post-merge actions
+│   └── workflow-guide.md       # Complete workflow documentation
+├── local-dev/                   # Local development utilities
+│   ├── merge-issue.md          # Merge issue locally (no PR)
+│   └── merge-issue-wt.md       # Merge from worktree
+├── utilities/                   # Utility commands
+│   ├── list-sites.md           # List configured Atlassian sites
+│   └── generate-test-server.md # Generate test MCP server
+├── onboarding/                  # Onboarding and training
+│   └── onboarding-workflow.md  # New developer onboarding
+└── workflows/                   # Additional workflow commands
+    ├── jira-status.md          # Update JIRA status
+    └── run-tests.md            # Run project tests
 ```
 
 ## Adding New Commands

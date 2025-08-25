@@ -12,8 +12,8 @@ I'll guide you through our complete development workflow. This process leverages
 
 Here's EXACTLY what you'll do from start to finish:
 
-1. **Start JIRA Work** → `/project:start-issue [ISSUE-KEY] saaga`
-   - Fetches JIRA ticket, creates branch, begins implementation
+1. **Start JIRA Work** → `/project:devflow/fetch-issue [ISSUE-KEY] saaga`
+   - Fetches JIRA ticket and analyzes requirements
 
 2. **Guide Claude's Coding** → Monitor and provide feedback
    - Review changes, answer questions, course-correct as needed
@@ -24,11 +24,11 @@ Here's EXACTLY what you'll do from start to finish:
 4. **Generate & Launch Test MCP Server** → `/project:generate-test-server`
    - Creates fresh MCP server, launches Inspector & Admin UI for manual testing
 
-5. **Create Pull Request** → `/project:complete-issue`
+5. **Create Pull Request** → `/project:devflow/complete-issue`
    - Commits changes, pushes branch, creates PR
    - **YOU MUST notify team in Slack/Teams**
 
-6. **Sync After PR Merged** → `/project:post-merge`
+6. **Sync After PR Merged** → `/project:devflow/post-merge`
    - Updates local main with merged changes, cleans up branch
 
 Would you like detailed information about what each command does? Let me know and I'll explain the complete process for any step.
@@ -38,17 +38,18 @@ Would you like detailed information about what each command does? Let me know an
 Begin by having Claude retrieve and analyze your assigned JIRA issue:
 
 ```bash
-/project:start-issue [ISSUE-KEY] saaga
+/project:devflow/fetch-issue [ISSUE-KEY] saaga
 ```
 
-**Example**: `/project:start-issue ASEP-42 saaga`
+**Example**: `/project:devflow/fetch-issue ASEP-42 saaga`
 
 ### What happens:
 - Claude fetches the JIRA issue details
 - Reviews the current codebase structure
+- Analyzes feasibility
 - Creates a feature branch
 - Forms an implementation plan
-- Begins coding the solution
+- Begins coding the solution after plan approval
 
 ### Your role:
 - ✅ Review Claude's understanding of the issue
@@ -125,7 +126,7 @@ Once implementation appears complete, ensure quality:
 Once you're confident the implementation is successful:
 
 ```bash
-/project:complete-issue
+/project:devflow/complete-issue
 ```
 
 ### This command will:
@@ -146,7 +147,7 @@ Once you're confident the implementation is successful:
 **IMPORTANT**: Only run this AFTER your PR has been merged into main branch by a reviewer.
 
 ```bash
-/project:post-merge
+/project:devflow/post-merge
 ```
 
 ### This handles:
@@ -197,10 +198,10 @@ Once you're confident the implementation is successful:
 
 ## 📚 Quick Command Reference
 
-1. **Start work**: `/project:start-issue ASEP-XX saaga`
+1. **Start work**: `/project:devflow/fetch-issue ASEP-XX saaga`
 2. **Test server**: `/project:generate-test-server`
-3. **Complete work**: `/project:complete-issue`
-4. **After merge**: `/project:post-merge`
+3. **Complete work**: `/project:devflow/complete-issue`
+4. **After merge**: `/project:devflow/post-merge`
 
 ## 🎯 Success Checklist
 
@@ -215,7 +216,7 @@ Before marking issue complete:
 
 Your first JIRA issue is waiting! Run:
 ```bash
-/project:start-issue [YOUR-ISSUE-KEY] saaga
+/project:devflow/fetch-issue [YOUR-ISSUE-KEY] saaga
 ```
 
 Remember: Claude is your AI pair programmer. Guide it, verify its work, and together you'll deliver high-quality implementations efficiently.
