@@ -1,5 +1,5 @@
 ---
-description: Create an implementation plan based on JIRA requirements
+description: Research and create implementation plan ONLY - does NOT implement code
 argument-hint: ""
 allowed-tools: ["mcp__context7__resolve-library-id", "mcp__context7__get-library-docs", "WebSearch", "Read", "ExitPlanMode"]
 ---
@@ -51,20 +51,30 @@ Present a structured plan with:
 - Decorator chain: type_converter → tool_logger → exception_handler
 - Use templates from `.reference/templates/` for new components
 
-### Step 5: Exit Plan Mode
-Once the plan is ready, I'll use ExitPlanMode to present it for your approval.
+### Step 5: Present Plan and Stop
+I'll use ExitPlanMode to present the complete plan for your review.
+
+**IMPORTANT**: This command ONLY creates a plan. No implementation will occur.
 
 ---
 
-## 🎯 After Plan Approval
+## 🛑 Plan Review Required
 
-Once you approve the plan and I exit plan mode:
+After I present the plan, you must:
+1. **Review the plan** carefully
+2. **Decide** whether to approve, modify, or reject
 
-1. **I'll implement** following the approved plan
-2. **Test implementation**: Run appropriate tests
-3. **When complete**: Use `/project:devflow/complete-issue [SITE-ALIAS]`
+## 🔄 Next Step
 
-The implementation will strictly follow:
-- Patterns from `.reference/patterns/`
-- Your project's existing conventions
-- SAAGA decorator requirements
+**If you approve the plan**, run:
+
+```
+/project:devflow/implement-plan
+```
+
+This will:
+- Begin actual implementation following the approved plan
+- Apply patterns from `.reference/patterns/`
+- Follow project conventions and SAAGA requirements
+
+**Note**: No code will be written until you explicitly run the implement-plan command.
